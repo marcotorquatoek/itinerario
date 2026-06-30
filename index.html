@@ -1,10 +1,17 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.8.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.11.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Itinerario · Prenotazioni</title>
+<!-- Web app iOS: aggiungi alla Home -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Itinerario">
+<meta name="theme-color" content="#0d9488">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAFkElEQVR4nO3dS3PbNhDAccijUwn1ezZObDe2Hn5KltO0cTo9tV+09F090JNmYq3EB4jFAv/f7CnxUOBytViTzGQy+/sPB+wz3e122mtAok60F4B0URwQURwQTR0zBwR0DogoDogoDoimjpEDgqmjOiBgW4GI4oCI4oCIm2AQ0Tkgojggojgg4iYYRNwEg4htBSKKAyJmDoiYOSBiW4GI4oCI4oCIgRQiBlKI2FYgojggYuaAiJkDIrYViCgOiCgOiBhIIWIghWiqvQBl9dXm8A/M/jzyAxmb+K9r7TXEdrQgJKUVysQ/l1Ic9XwT6lCzr8EOlbKJf37QXsO46vnjeAefZd13M/9VdtTKiHB8Xdl2jsiXLcsWcuJ2Lr+I/4Wu54/qZx08Jv5LVp2jXij3+VlGA/6Jfn2GC/XKcK/VqZ+KIJHPQFovttpLeJXOSgbKpDhSux6praefHAbSNK9EvdiqZ2ZgmJ856mWKldGol1v1/AwJ29tKvXzSXsIR6a/wANvFgVEZnjmsfCnr5ZN6rvqF1ZmjXtmojEa9elLPWI9gW4HIZHHUq0/aS+jM4prtFYfFLDfMrZy3z+MylW3ePnfOuZ//+fL2D/89XY7wUZayPfGfb7TX0EF9/VvAo+2tibfCVsns99uARxvVif4vTF0ioJaV0ekn21DPYfuwdhMskK7XO2R9qOewdVj6beXlJsye0u9Kh6qPUGcRga07pAEMucbh+od6JluFpc4x3PCrG3b+SJypmWOYUNc1wHHUM9kuzHSOl9vP2ksIxsq5cBNMi4G0m+kcA4WdFQqZPEopDvTAgzclFtJO54CIgVSLgbTTOSBi5lBiIe2ldI6w72SM8x5Qcpg5tBhIu5nO4Z/y+bJaORczxTFcqL2gkD3FFfVU1oW4rmEqQz2TmT2VDWXI1S2nZzQsvQnmt4sg59zvGoeqDL9dqGeyZRTXORpdr3RpPaNhaubYhTzz9tc7cGWo57B1TKrNPOSZj+9l/Rz8mNH+xZt/DLMzxsFNMOei7hqWsl3ozIE2rM0cO+et7YPf+M1cPXudwmTnsFgfFtdssjgQh6WbYN+H31xpp64Dv7lSz1iPMNw5rNSHlXW+xZtg4zObYcOdwznn16l/KdNf4QFWZ47/h4/1pXYORX59qZ6fQmeOb9KsjzRX1Ym9m2B7wz+kdSX8w6V6ToZHDp2jkU59pLOSgfIpDpfGVUlhDaFMqvtftdcQ3sv2r/gf6h8+xv/QUWUyc/wQ/j72dfL3H9XPOnhkta0grGyLI2bziN+o4uBNsCDyzGG2ncM556PM2nE+RQUP3gbLN4E5dw7nnL8b92s99vF1ZV4cGML8U9mj4e8uRsqdv7tQP7tRg5ljgNxTV8S24m8vTBwzNUUUB/rJf+Zowt+eB8yavz1XP6MIQeeAKM+nsnvD35wHSZm/OVc/lzhB54CorOIY3jxCtR8TeCrbVUHpKmjmaMJfn/VOlr8+U19/zChrW0Enxv4v+yBR9Woe1fWZ+sojBzNHe8UlqriZo4lq9aFTmqrVB/U1xw9mDojKLY72zaNrm8lGucWBo0p5Krs3qtX7owmqVu/V16kVvAl2TMH5KX1bqZaHmsfhv81e6cWBA4qeOZqolqd7U1MtT9XXphvMHLLiM8O24pxz1eLH5vH2TwpEcUBEcbz6vlXQNho8ld2LnDhX7FPZvVHN3znnqvk79ZUkEmwrEE1+uvpFew1IFDMHRNwEg4iZAyKKAyKKA6Kp2zF0YD86B0QUB0QUB0TcBIOIm2AQsa1ARHFARHFAxE0wiOgcEFEcEFEcEHETDCJugkHEtgIRxQERxQERN8EgonNARHFARHFAxMwBEZ0DIooDIooDIooDIgZSiOgcEFEcEFEcEDFzQETngIjigIjigOg/fqpYTdsHjZwAAAAASUVORK5CYII=">
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAFkElEQVR4nO3dS3PbNhDAccijUwn1ezZObDe2Hn5KltO0cTo9tV+09F090JNmYq3EB4jFAv/f7CnxUOBytViTzGQy+/sPB+wz3e122mtAok60F4B0URwQURwQTR0zBwR0DogoDogoDoimjpEDgqmjOiBgW4GI4oCI4oCIm2AQ0Tkgojggojgg4iYYRNwEg4htBSKKAyJmDoiYOSBiW4GI4oCI4oCIgRQiBlKI2FYgojggYuaAiJkDIrYViCgOiCgOiBhIIWIghWiqvQBl9dXm8A/M/jzyAxmb+K9r7TXEdrQgJKUVysQ/l1Ic9XwT6lCzr8EOlbKJf37QXsO46vnjeAefZd13M/9VdtTKiHB8Xdl2jsiXLcsWcuJ2Lr+I/4Wu54/qZx08Jv5LVp2jXij3+VlGA/6Jfn2GC/XKcK/VqZ+KIJHPQFovttpLeJXOSgbKpDhSux6praefHAbSNK9EvdiqZ2ZgmJ856mWKldGol1v1/AwJ29tKvXzSXsIR6a/wANvFgVEZnjmsfCnr5ZN6rvqF1ZmjXtmojEa9elLPWI9gW4HIZHHUq0/aS+jM4prtFYfFLDfMrZy3z+MylW3ePnfOuZ//+fL2D/89XY7wUZayPfGfb7TX0EF9/VvAo+2tibfCVsns99uARxvVif4vTF0ioJaV0ekn21DPYfuwdhMskK7XO2R9qOewdVj6beXlJsye0u9Kh6qPUGcRga07pAEMucbh+od6JluFpc4x3PCrG3b+SJypmWOYUNc1wHHUM9kuzHSOl9vP2ksIxsq5cBNMi4G0m+kcA4WdFQqZPEopDvTAgzclFtJO54CIgVSLgbTTOSBi5lBiIe2ldI6w72SM8x5Qcpg5tBhIu5nO4Z/y+bJaORczxTFcqL2gkD3FFfVU1oW4rmEqQz2TmT2VDWXI1S2nZzQsvQnmt4sg59zvGoeqDL9dqGeyZRTXORpdr3RpPaNhaubYhTzz9tc7cGWo57B1TKrNPOSZj+9l/Rz8mNH+xZt/DLMzxsFNMOei7hqWsl3ozIE2rM0cO+et7YPf+M1cPXudwmTnsFgfFtdssjgQh6WbYN+H31xpp64Dv7lSz1iPMNw5rNSHlXW+xZtg4zObYcOdwznn16l/KdNf4QFWZ47/h4/1pXYORX59qZ6fQmeOb9KsjzRX1Ym9m2B7wz+kdSX8w6V6ToZHDp2jkU59pLOSgfIpDpfGVUlhDaFMqvtftdcQ3sv2r/gf6h8+xv/QUWUyc/wQ/j72dfL3H9XPOnhkta0grGyLI2bziN+o4uBNsCDyzGG2ncM556PM2nE+RQUP3gbLN4E5dw7nnL8b92s99vF1ZV4cGML8U9mj4e8uRsqdv7tQP7tRg5ljgNxTV8S24m8vTBwzNUUUB/rJf+Zowt+eB8yavz1XP6MIQeeAKM+nsnvD35wHSZm/OVc/lzhB54CorOIY3jxCtR8TeCrbVUHpKmjmaMJfn/VOlr8+U19/zChrW0Enxv4v+yBR9Woe1fWZ+sojBzNHe8UlqriZo4lq9aFTmqrVB/U1xw9mDojKLY72zaNrm8lGucWBo0p5Krs3qtX7owmqVu/V16kVvAl2TMH5KX1bqZaHmsfhv81e6cWBA4qeOZqolqd7U1MtT9XXphvMHLLiM8O24pxz1eLH5vH2TwpEcUBEcbz6vlXQNho8ld2LnDhX7FPZvVHN3znnqvk79ZUkEmwrEE1+uvpFew1IFDMHRNwEg4iZAyKKAyKKA6Kp2zF0YD86B0QUB0QUB0TcBIOIm2AQsa1ARHFARHFAxE0wiOgcEFEcEFEcEHETDCJugkHEtgIRxQERxQERN8EgonNARHFARHFAxMwBEZ0DIooDIooDIooDIgZSiOgcEFEcEFEcEDFzQETngIjigIjigOg/fqpYTdsHjZwAAAAASUVORK5CYII=">
 <style>
 :root{
   --bg:#f4f7f6; --surface:#ffffff; --surface-2:#eef5f3;
@@ -20,6 +27,7 @@ body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   background:var(--bg); color:var(--text);
   padding:18px 14px 110px; max-width:520px; margin:0 auto; min-height:100vh;
+  padding-top:calc(18px + env(safe-area-inset-top));
 }
 header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
 header h1{font-size:1.45rem;font-weight:700;letter-spacing:-.5px}
@@ -77,10 +85,26 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .lrow.late{border-color:#f5c6c6;background:var(--red-bg)}
 .lrow-main{flex:1;min-width:0}
 .lrow-title{font-size:.92rem;font-weight:700}
+.lrow-place{font-size:.74rem;color:var(--teal);font-weight:600;margin-top:2px}
+/* itinerario tappe */
+.itrow{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:13px 14px;margin-bottom:9px}
+.itrow.ok{border-left:4px solid var(--green)}
+.itrow.miss{border-left:4px solid var(--red);background:#fff7f7}
+.itcheck{font-size:1.3rem;line-height:1}
+.itmain{flex:1;min-width:0;cursor:pointer}
+.ittitle{font-size:1rem;font-weight:700}
+.itsub{font-size:.76rem;color:var(--muted);margin-top:3px}
+.itnote{font-size:.74rem;color:var(--muted);margin-top:3px;font-style:italic}
+.itright{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.okpill{font-size:.64rem;font-weight:700;color:var(--green);background:var(--green-bg);padding:3px 8px;border-radius:999px;white-space:nowrap}
+.misspill{font-size:.64rem;font-weight:700;color:var(--red);background:var(--red-bg);padding:3px 8px;border-radius:999px;white-space:nowrap}
+.ittrash{background:none;border:none;color:var(--muted);font-size:.95rem;cursor:pointer;padding:0}
 .lrow-sub{font-size:.75rem;color:var(--muted);margin-top:3px}
 .lrow.late .lrow-sub{color:var(--red);font-weight:600}
 .lrow-amt{font-size:1rem;font-weight:700;color:var(--text);white-space:nowrap}
-.sito a{color:var(--teal);text-decoration:none;font-weight:600}.excl-banner{background:repeating-linear-gradient(45deg,var(--surface-2),var(--surface-2) 8px,#e4ecea 8px,#e4ecea 16px);color:var(--muted);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:5px 10px;border-radius:9px;margin-bottom:10px;text-align:center}
+.sito a{color:var(--teal);text-decoration:none;font-weight:600}
+.sitebadge{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:600;color:var(--text)}
+.sitelogo{width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800}.excl-banner{background:repeating-linear-gradient(45deg,var(--surface-2),var(--surface-2) 8px,#e4ecea 8px,#e4ecea 16px);color:var(--muted);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:5px 10px;border-radius:9px;margin-bottom:10px;text-align:center}
 .info.nocanc{color:var(--red);font-weight:700}.daygroup{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:14px 2px 2px}
 .typetag{font-size:.62rem;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.4px}
 .typetag.allog{background:#e0f2f1;color:var(--teal-deep)}
@@ -205,7 +229,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div>
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.8.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.11.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
 </header>
@@ -220,6 +244,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <div id="view-detail" class="hide">
 <div class="tabs">
   <button class="tab active" data-tab="tutto" onclick="setTab('tutto')">📋 Tutto</button>
+  <button class="tab" data-tab="itinerario" onclick="setTab('itinerario')">🗺️ Itinerario</button>
   <button class="tab" data-tab="calendario" onclick="setTab('calendario')">📅 Cal.</button>
   <button class="tab" data-tab="alloggi" onclick="setTab('alloggi')">🏨</button>
   <button class="tab" data-tab="voli" onclick="setTab('voli')">✈️</button>
@@ -270,6 +295,24 @@ header .sub{font-size:.72rem;color:var(--muted)}
   </div>
 </div>
 
+<!-- MODAL TAPPA ITINERARIO -->
+<div class="overlay" id="overlay-tappa">
+  <div class="modal">
+    <h2 id="tappa-modal-title">Nuova tappa</h2>
+    <input type="hidden" id="tp-id">
+    <div class="field"><label>Tappa / luogo</label><input id="tp-nome" placeholder="es. Ubud"></div>
+    <div class="two">
+      <div class="field"><label>Dal (gg/mm)</label><input id="tp-inizio" class="datein" placeholder="gg/mm" inputmode="numeric" maxlength="5"></div>
+      <div class="field"><label>Al (gg/mm)</label><input id="tp-fine" class="datein" placeholder="gg/mm" inputmode="numeric" maxlength="5"></div>
+    </div>
+    <div class="field"><label>Note</label><input id="tp-note" placeholder="es. zona risaie, vicino centro…"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeTappaForm()">Annulla</button>
+      <button class="btn primary" id="tappa-save-btn" onclick="saveTappa()">Salva</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="overlay">
   <div class="modal">
     <h2 id="modal-title">Nuova voce</h2>
@@ -290,7 +333,13 @@ header .sub{font-size:.72rem;color:var(--muted)}
     <!-- ALLOGGIO -->
     <div class="grp" id="grp-allog">
       <div class="field check" id="fld-daprenotare"><input type="checkbox" id="f-daprenotare" onchange="toggleDaPrenotare()"><label>📍 Solo segnaposto (ancora da prenotare)</label></div>
-      <div class="field"><label>Tappa / luogo</label><input id="f-tappa" placeholder="es. Lisbona"></div>
+      <div class="field"><label>Tappa <span style="font-weight:400;color:var(--muted)">(dall'itinerario)</span></label>
+        <select id="f-tappaid" onchange="onTappaSelect()" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:11px;color:var(--text);font-size:.95rem;font-family:inherit">
+          <option value="">— Scegli una tappa —</option>
+          <option value="__new">+ Nuova tappa (scrivi sotto)</option>
+        </select>
+      </div>
+      <div class="field hide" id="fld-tappamanuale"><label>Nome tappa / luogo</label><input id="f-tappa" placeholder="es. Lisbona"></div>
     </div>
 
     <!-- VOLO -->
@@ -345,7 +394,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
     <!-- ===== INFORMAZIONI AGGIUNTIVE (collassabili) ===== -->
     <button type="button" class="more-toggle" id="more-toggle" onclick="toggleMore()">▸ Informazioni aggiuntive</button>
     <div id="more-fields" class="hide">
-      <div class="field"><label>Sito di prenotazione</label><input id="f-sito" placeholder="es. Booking.com"></div>
+      <div class="field"><label>Sito di prenotazione</label><input id="f-sito" placeholder="es. Booking.com" list="sito-list"><datalist id="sito-list"><option value="Booking.com"><option value="Airbnb"><option value="Expedia"><option value="Trip.com"><option value="Hotels.com"><option value="Agoda"></datalist></div>
       <div class="field" id="fld-link"><label>🔗 Link struttura</label><input id="f-link" type="url" placeholder="https://…"></div>
 
       <div class="grp-extra" id="extra-allog">
@@ -402,6 +451,7 @@ const SUPABASE_URL = 'https://zdwzombpaixkcryfpkxg.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpkd3pvbWJwYWl4a2NyeWZwa3hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MzczMTAsImV4cCI6MjA5NzMxMzMxMH0.ttAPvk-kV_BWC8RH43eVNXsN6HglLIQhp0rieWwjGPw';
 const TABLE = 'itinerario_prenotazioni';
 const TABLE_TRIPS = 'itinerario_viaggi';
+const TABLE_TAPPE = 'itinerario_tappe';
 // =====================================================================
 
 let db = null;
@@ -525,6 +575,7 @@ function instantOf(dateStr,timeStr,tz){
   return guess.getTime()-off*60000;
 }
 let data = [];
+let tappe = [];
 let trips = [];
 let currentTrip = null; // oggetto viaggio selezionato
 let tab = 'tutto';
@@ -640,7 +691,11 @@ async function delTrip(id,nome){
   loadTrips();
 }
 
-function onFab(){ currentTrip ? openForm() : openTripForm(); }
+function onFab(){
+  if(!currentTrip){ openTripForm(); return; }
+  if(tab==='itinerario'){ openTappaForm(); return; }
+  openForm();
+}
 // ===================== /VISTA VIAGGI =====================
 
 async function load(){
@@ -649,6 +704,11 @@ async function load(){
   const { data:rows, error } = await db.from(TABLE).select('*').eq('viaggio_id',currentTrip.id).order('data_inizio',{ascending:true});
   if(error){ $('status').textContent = '⚠️ Errore: '+error.message; return; }
   data = rows||[];
+  // tappe itinerario (non bloccante: se la tabella non esiste, l'app funziona lo stesso)
+  try{
+    const { data:tp } = await db.from(TABLE_TAPPE).select('*').eq('viaggio_id',currentTrip.id);
+    tappe = tp||[];
+  }catch(e){ tappe=[]; }
   render();
 }
 
@@ -663,7 +723,7 @@ function tipoOfTab(t){ return t==='alloggi'?'alloggio':t==='voli'?'volo':t==='at
 
 function render(){
   const isCal = tab==='calendario';
-  const isList = (tab==='pagamenti'||tab==='cancellazioni');
+  const isList = (tab==='pagamenti'||tab==='cancellazioni'||tab==='itinerario');
   const filtered = (tab==='tutto'||isCal||isList) ? data : data.filter(r=>r.tipo===tipoOfTab(tab));
 
   // Totali sul set filtrato (per pagamenti/cancellazioni uso tutti i dati)
@@ -697,6 +757,7 @@ function render(){
   if(isCal){ renderCalendar(); return; }
 
   const list=$('list');
+  if(tab==='itinerario'){ list.innerHTML=renderItinerario(); return; }
   if(tab==='pagamenti'){ list.innerHTML=renderPagamenti(); return; }
   if(tab==='cancellazioni'){ list.innerHTML=renderCancellazioni(); return; }
 
@@ -822,6 +883,21 @@ function selectCalDay(d){
   renderCalendar();
 }
 
+function siteBadge(sito){
+  if(!sito) return '';
+  const s=norm(sito);
+  // brand riconosciuti: colore + iniziale
+  let bg,fg='#fff',ini,nome;
+  if(s.includes('booking')){ bg='#003580'; ini='B'; nome='Booking'; }
+  else if(s.includes('airbnb')){ bg='#ff385c'; ini='A'; nome='Airbnb'; }
+  else if(s.includes('expedia')){ bg='#fbcc33'; fg='#1a2b49'; ini='E'; nome='Expedia'; }
+  else if(s.includes('trip.com')||s==='trip'||s.includes('trip ')){ bg='#287dfa'; ini='T'; nome='Trip.com'; }
+  else if(s.includes('hotels.com')){ bg='#d32f2f'; ini='H'; nome='Hotels.com'; }
+  else if(s.includes('agoda')){ bg='#5c2d91'; ini='A'; nome='Agoda'; }
+  else { bg='var(--surface-2)'; fg='var(--muted)'; ini='🔗'; nome=sito; }
+  return `<span class="sitebadge"><span class="sitelogo" style="background:${bg};color:${fg}">${ini}</span>${esc(nome)}</span>`;
+}
+
 function cardHtml(r){
   const p=Number(r.prezzo)||0;
   const loc=(r.prezzo_locale&&r.valuta)?`<span class="loc">(${num(r.prezzo_locale)} ${esc(r.valuta)})</span>`:'';
@@ -894,7 +970,7 @@ function cardHtml(r){
         ${tag?tag+'<div style="height:6px"></div>':''}
         <div class="title">${esc(r.nome_hotel)}</div>
         <div class="meta">${meta}</div>
-        ${r.sito_prenotazione?`<div class="sito">🔗 ${esc(r.sito_prenotazione)}</div>`:''}
+        ${r.sito_prenotazione?`<div class="sito">${siteBadge(r.sito_prenotazione)}</div>`:''}
         ${r.link?`<div class="sito"><a href="${esc(r.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🌐 Apri link struttura</a></div>`:''}
       </div>
       ${badgeHtml}
@@ -916,21 +992,36 @@ function cardHtml(r){
 function esc(s){return (s||'').toString().replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));}
 
 // ---------- LISTE PAGAMENTI / CANCELLAZIONI ----------
+function postoOf(r){
+  if(r.tipo==='alloggio') return r.tappa||'';
+  if(r.tipo==='attivita') return r.luogo||'';
+  if(r.tipo==='volo'){ const tr=parseTratte(r.tratte); const a=[...tr.andata]; return a.length?`${a[0].da}→${a[a.length-1].a}`:''; }
+  return '';
+}
 function renderPagamenti(){
-  // voci con qualcosa ancora da pagare (da pagare o acconto), ordinate per data pagamento
-  const items=data.filter(r=>!r.escluso_totale && !r.da_prenotare && (r.stato_pagamento==='dapagare'||r.stato_pagamento==='acconto'||(!r.stato_pagamento&&!r.pagato)))
+  // voci con qualcosa ancora da pagare: da pagare, acconto, e pagare in loco
+  const items=data.filter(r=>!r.escluso_totale && !r.da_prenotare && (r.stato_pagamento==='dapagare'||r.stato_pagamento==='acconto'||r.stato_pagamento==='inloco'||(!r.stato_pagamento&&!r.pagato)))
     .map(r=>{ const p=Number(r.prezzo)||0; const acc=r.stato_pagamento==='acconto'?(Number(r.acconto)||0):0; return {...r, resto:Math.max(p-acc,0)}; })
     .filter(r=>r.resto>0)
     .sort((a,b)=>(a.data_pagamento||'9999').localeCompare(b.data_pagamento||'9999'));
   if(!items.length) return '<div class="empty">🎉 Nessun pagamento in sospeso.</div>';
   const tot=items.reduce((s,r)=>s+r.resto,0);
   let html=`<div class="liststat">Totale ancora da pagare: <b>${eur(tot)}</b> · a testa ${eur(tot/2)}</div>`;
+  const oggi=new Date().toISOString().slice(0,10);
   items.forEach(r=>{
-    const scaduto = r.data_pagamento && r.data_pagamento < new Date().toISOString().slice(0,10);
+    const inloco=r.stato_pagamento==='inloco';
+    const scaduto = !inloco && r.data_pagamento && r.data_pagamento < oggi;
+    const posto=postoOf(r);
+    let sub;
+    if(inloco) sub='📍 da pagare in loco';
+    else if(r.data_pagamento) sub=(scaduto?'⚠️ scaduto il ':'entro ')+'<b>'+fdate(r.data_pagamento)+'</b>';
+    else sub='senza scadenza';
+    if(r.stato_pagamento==='acconto') sub+=' · acconto '+eur(Number(r.acconto)||0);
     html+=`<div class="lrow ${scaduto?'late':''}">
       <div class="lrow-main">
-        <div class="lrow-title">${TYPE_LABELS[r.tipo]?'<span class="typetag '+TYPE_TAGCLASS[r.tipo]+'">'+TYPE_LABELS[r.tipo]+'</span> ':''}${esc(r.nome_hotel)}</div>
-        <div class="lrow-sub">${r.data_pagamento?(scaduto?'⚠️ scaduto il ':'entro ')+'<b>'+fdate(r.data_pagamento)+'</b>':'senza scadenza'}${r.stato_pagamento==='acconto'?' · acconto versato '+eur(Number(r.acconto)||0):''}</div>
+        <div class="lrow-title"><span class="typetag ${TYPE_TAGCLASS[r.tipo]}">${TYPE_LABELS[r.tipo]}</span> ${esc(r.nome_hotel)}</div>
+        ${posto?`<div class="lrow-place">📍 ${esc(posto)}</div>`:''}
+        <div class="lrow-sub">${sub}</div>
       </div>
       <div class="lrow-amt">${eur(r.resto)}</div>
     </div>`;
@@ -938,20 +1029,20 @@ function renderPagamenti(){
   return html;
 }
 function renderCancellazioni(){
-  // alloggi cancellabili con scadenza, ordinati per data scadenza; escludo non cancellabili e senza data
   const items=data.filter(r=>r.tipo==='alloggio' && !r.non_cancellabile && r.scadenza_cancellazione)
     .sort((a,b)=>a.scadenza_cancellazione.localeCompare(b.scadenza_cancellazione));
   const noncanc=data.filter(r=>r.tipo==='alloggio' && r.non_cancellabile);
   if(!items.length && !noncanc.length) return '<div class="empty">Nessuna scadenza di cancellazione registrata.</div>';
   let html='';
   if(items.length){
+    const oggi=new Date().toISOString().slice(0,10);
     items.forEach(r=>{
-      const oggi=new Date().toISOString().slice(0,10);
       const scaduto=r.scadenza_cancellazione<oggi;
       const gg=daysBetween(oggi,r.scadenza_cancellazione);
       html+=`<div class="lrow ${scaduto?'late':''}">
         <div class="lrow-main">
           <div class="lrow-title">${esc(r.nome_hotel)}${r.valuta_cancellazione?' ⚠️':''}</div>
+          ${r.tappa?`<div class="lrow-place">📍 ${esc(r.tappa)}</div>`:''}
           <div class="lrow-sub">${scaduto?'scaduta il ':'cancellabile entro '}<b>${fdate(r.scadenza_cancellazione)}</b>${!scaduto&&gg>=0?` · ${gg===0?'oggi!':'tra '+gg+'gg'}`:''}</div>
         </div>
         <div class="lrow-amt">${eur(Number(r.prezzo)||0)}</div>
@@ -961,10 +1052,84 @@ function renderCancellazioni(){
   if(noncanc.length){
     html+=`<div class="liststat" style="margin-top:14px">🔒 Non cancellabili</div>`;
     noncanc.forEach(r=>{
-      html+=`<div class="lrow"><div class="lrow-main"><div class="lrow-title">${esc(r.nome_hotel)}</div><div class="lrow-sub">non rimborsabile</div></div><div class="lrow-amt">${eur(Number(r.prezzo)||0)}</div></div>`;
+      html+=`<div class="lrow"><div class="lrow-main"><div class="lrow-title">${esc(r.nome_hotel)}</div>${r.tappa?`<div class="lrow-place">📍 ${esc(r.tappa)}</div>`:''}<div class="lrow-sub">non rimborsabile</div></div><div class="lrow-amt">${eur(Number(r.prezzo)||0)}</div></div>`;
     });
   }
   return html;
+}
+
+// ---------- ITINERARIO (tappe) ----------
+function norm(s){ return (s||'').toString().trim().toLowerCase(); }
+// una tappa è "coperta" se esiste un alloggio prenotato (non segnaposto) con tappa corrispondente
+function tappaCoperta(t){
+  return data.some(r=>r.tipo==='alloggio' && !r.da_prenotare && (
+    (r.tappa_id && r.tappa_id===t.id) ||
+    (!r.tappa_id && norm(r.tappa)===norm(t.nome) && norm(t.nome)!=='')
+  ));
+}
+function renderItinerario(){
+  const sorted=[...tappe].sort((a,b)=>(a.data_inizio||'9999').localeCompare(b.data_inizio||'9999'));
+  let html='<div class="liststat">Le tue tappe — spunta verde = alloggio già prenotato</div>';
+  if(!sorted.length){
+    html+='<div class="empty">Nessuna tappa.<br>Tocca + per aggiungere la prima tappa del viaggio.</div>';
+  } else {
+    let nCoperte=0;
+    sorted.forEach(t=>{
+      const ok=tappaCoperta(t); if(ok) nCoperte++;
+      const range=(t.data_inizio||t.data_fine)?`${fdate(t.data_inizio)} → ${fdate(t.data_fine)}`:'date da definire';
+      const notti=(t.data_inizio&&t.data_fine)?Math.max(daysBetween(t.data_inizio,t.data_fine),0):0;
+      html+=`<div class="itrow ${ok?'ok':'miss'}">
+        <div class="itcheck">${ok?'✅':'⬜'}</div>
+        <div class="itmain" onclick='editTappa(${JSON.stringify(t).replace(/'/g,"&#39;")})'>
+          <div class="ittitle">${esc(t.nome)}</div>
+          <div class="itsub">📅 ${range}${notti?` · ${notti} nott${notti===1?'e':'i'}`:''}</div>
+          ${t.note?`<div class="itnote">${esc(t.note)}</div>`:''}
+        </div>
+        <div class="itright">
+          ${ok?'<span class="okpill">prenotato</span>':'<span class="misspill">da prenotare</span>'}
+          <button class="ittrash" onclick="delTappaConfirm('${t.id}')">🗑</button>
+        </div>
+      </div>`;
+    });
+    html=`<div class="liststat">${nCoperte}/${sorted.length} tappe con alloggio prenotato</div>`+html.replace(/^<div class="liststat">[^<]*<\/div>/,'');
+  }
+  html+='<button class="add-leg" style="margin-top:8px" onclick="openTappaForm()">+ Aggiungi tappa</button>';
+  return html;
+}
+
+function openTappaForm(){
+  $('tappa-modal-title').textContent='Nuova tappa';
+  $('tp-id').value=''; $('tp-nome').value=''; $('tp-inizio').value=''; $('tp-fine').value=''; $('tp-note').value='';
+  attachDateMask();
+  $('overlay-tappa').classList.add('show');
+}
+function editTappa(t){
+  $('tappa-modal-title').textContent='Modifica tappa';
+  $('tp-id').value=t.id; $('tp-nome').value=t.nome||'';
+  $('tp-inizio').value=isoToDdmm(t.data_inizio); $('tp-fine').value=isoToDdmm(t.data_fine);
+  $('tp-note').value=t.note||'';
+  attachDateMask();
+  $('overlay-tappa').classList.add('show');
+}
+function closeTappaForm(){ $('overlay-tappa').classList.remove('show'); }
+async function saveTappa(){
+  const nome=$('tp-nome').value.trim();
+  if(!nome){ alert('Inserisci il nome della tappa'); return; }
+  const rec={ viaggio_id:currentTrip?currentTrip.id:null, nome, data_inizio:ddmmToIso($('tp-inizio').value), data_fine:ddmmToIso($('tp-fine').value), note:$('tp-note').value.trim()||null };
+  const id=$('tp-id').value;
+  $('tappa-save-btn').textContent='…';
+  let res;
+  try{
+    res = id ? await db.from(TABLE_TAPPE).update(rec).eq('id',id) : await db.from(TABLE_TAPPE).insert(rec);
+  }catch(e){ res={error:{message:e.message}}; }
+  $('tappa-save-btn').textContent='Salva';
+  if(res.error){ alert('Errore: '+res.error.message+(/relation|exist|schema/i.test(res.error.message)?'\n\nProbabilmente manca la tabella itinerario_tappe: esegui lo script SQL.':'')); return; }
+  closeTappaForm(); load();
+}
+async function delTappaConfirm(id){
+  if(!confirm('Eliminare questa tappa dall\'itinerario?')) return;
+  await db.from(TABLE_TAPPE).delete().eq('id',id);
+  load();
 }
 
 // ---------- VOLI: parsing e rendering ----------
@@ -1078,6 +1243,30 @@ function toggleMore(){
   const m=$('more-fields'); const open=m.classList.toggle('hide')===false;
   $('more-toggle').innerHTML=(open?'▾':'▸')+' Informazioni aggiuntive';
 }
+function populateTappeSelect(selectedId){
+  const sel=$('f-tappaid');
+  const sorted=[...tappe].sort((a,b)=>(a.data_inizio||'9999').localeCompare(b.data_inizio||'9999'));
+  let opts='<option value="">— Scegli una tappa —</option>';
+  sorted.forEach(t=>{ opts+=`<option value="${t.id}">${esc(t.nome)}${t.data_inizio?' ('+fdate(t.data_inizio)+')':''}</option>`; });
+  opts+='<option value="__new">+ Nuova tappa (scrivi sotto)</option>';
+  sel.innerHTML=opts;
+  sel.value = selectedId||'';
+  onTappaSelect();
+}
+function onTappaSelect(){
+  const v=$('f-tappaid').value;
+  $('fld-tappamanuale').classList.toggle('hide', v!=='__new');
+  if(v && v!=='__new'){
+    const t=tappe.find(x=>x.id===v);
+    if(t){
+      $('f-tappa').value=t.nome;
+      // se la tappa ha date e i campi data sono vuoti, le precompilo
+      if(t.data_inizio && !$('f-inizio').value) $('f-inizio').value=isoToDdmm(t.data_inizio);
+      if(t.data_fine && !$('f-fine').value) $('f-fine').value=isoToDdmm(t.data_fine);
+    }
+  } else if(v===''){ $('f-tappa').value=''; }
+}
+
 function toggleDaPrenotare(){
   const on=$('f-daprenotare').checked;
   // in modalità segnaposto restano solo nome/tappa + date; nascondo prezzo, pagamento, cancellazione, aggiuntive
@@ -1147,6 +1336,7 @@ function openForm(){
   $('f-andataritorno').checked=false; $('sec-ritorno').classList.add('hide');
   clearLegs(); addLeg('andata');
   $('more-fields').classList.add('hide'); $('more-toggle').innerHTML='▸ Informazioni aggiuntive';
+  populateTappeSelect('');
   togglePayField(); toggleDaPrenotare();
   attachDateMask();
   $('overlay').classList.add('show');
@@ -1159,6 +1349,12 @@ function editRow(r){
   $('f-id').value=r.id;
   $('f-nome').value=r.nome_hotel||'';
   $('f-tappa').value=r.tappa||'';
+  // collego il select tappe: per id se presente, altrimenti per nome (retrocompat), altrimenti manuale
+  let tappaSel='';
+  if(r.tappa_id && tappe.some(t=>t.id===r.tappa_id)) tappaSel=r.tappa_id;
+  else if(r.tappa){ const m=tappe.find(t=>norm(t.nome)===norm(r.tappa)); tappaSel=m?m.id:'__new'; }
+  populateTappeSelect(tappaSel);
+  if(tappaSel==='__new'){ $('fld-tappamanuale').classList.remove('hide'); $('f-tappa').value=r.tappa||''; }
   $('f-sistemazione').value=r.tipo_sistemazione||'';
   $('f-orainizio').value=r.ora_inizio||''; $('f-orafine').value=r.ora_fine||'';
   $('f-colazione').value=r.colazione||'no'; $('f-colazioneprezzo').value=r.colazione_prezzo||''; toggleColazionePrezzo();
@@ -1217,11 +1413,35 @@ async function save(){
 
   const prezzo = daPrenotare ? 0 : ($('f-prezzo').value?Number($('f-prezzo').value):0);
 
+  // Risolvo la tappa collegata (solo alloggi)
+  let tappaId=null, tappaNome=null;
+  if(tipo==='alloggio'){
+    const sel=$('f-tappaid').value;
+    if(sel==='__new'){
+      const nuovoNome=$('f-tappa').value.trim();
+      if(nuovoNome){
+        // creo la tappa nell'itinerario al volo, riusando le date dell'alloggio
+        try{
+          const { data:created } = await db.from(TABLE_TAPPE).insert({
+            viaggio_id: currentTrip?currentTrip.id:null, nome:nuovoNome,
+            data_inizio:ddmmToIso($('f-inizio').value), data_fine:ddmmToIso($('f-fine').value)
+          }).select();
+          if(created && created[0]){ tappaId=created[0].id; }
+          tappaNome=nuovoNome;
+        }catch(e){ tappaNome=nuovoNome; }
+      }
+    } else if(sel){
+      const t=tappe.find(x=>x.id===sel);
+      tappaId=sel; tappaNome=t?t.nome:null;
+    }
+  }
+
   const rec={
     viaggio_id: currentTrip ? currentTrip.id : null,
     tipo:tipo,
     nome_hotel:nome,
-    tappa: tipo==='alloggio'?($('f-tappa').value.trim()||null):null,
+    tappa: tipo==='alloggio'?(tappaNome||$('f-tappa').value.trim()||null):null,
+    tappa_id: tipo==='alloggio'?tappaId:null,
     tipo_sistemazione: tipo==='alloggio'?($('f-sistemazione').value.trim()||null):null,
     ora_inizio: tipo==='alloggio'?($('f-orainizio').value||null):null,
     ora_fine: tipo==='alloggio'?($('f-orafine').value||null):null,
@@ -1263,6 +1483,7 @@ async function save(){
 
 $('overlay').addEventListener('click',e=>{ if(e.target===$('overlay')) closeForm(); });
 $('overlay-trip').addEventListener('click',e=>{ if(e.target===$('overlay-trip')) closeTripForm(); });
+$('overlay-tappa').addEventListener('click',e=>{ if(e.target===$('overlay-tappa')) closeTappaForm(); });
 
 // ---------- Avvio sicuro ----------
 let __initTries=0;
