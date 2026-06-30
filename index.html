@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.6.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.7.1 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -60,6 +60,8 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);position:relative}
 .card.warn{border-color:var(--amber-line);border-width:2px}
 .card.nocanc-card{border-left:4px solid var(--red)}
+.card.excluded{opacity:.72;border-style:dashed}
+.excl-banner{background:repeating-linear-gradient(45deg,var(--surface-2),var(--surface-2) 8px,#e4ecea 8px,#e4ecea 16px);color:var(--muted);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:5px 10px;border-radius:9px;margin-bottom:10px;text-align:center}
 .info.nocanc{color:var(--red);font-weight:700}.daygroup{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:14px 2px 2px}
 .typetag{font-size:.62rem;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.4px}
 .typetag.allog{background:#e0f2f1;color:var(--teal-deep)}
@@ -74,38 +76,35 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .badge.unpaid{background:var(--red-bg);color:var(--red);border-color:#f5c6c6}
 .badge.loco{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-line)}
 
-/* Calendario / agenda verticale */
-.cal{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:6px}
-.agenda{padding:4px}
-.ag-row{display:grid;grid-template-columns:48px 1fr;gap:10px;padding:7px 8px;border-radius:10px;align-items:stretch}
-.ag-row+.ag-row{border-top:1px solid var(--line)}
-.ag-row.today{background:rgba(13,148,136,.07)}
-.ag-date{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:2px;line-height:1.05}
-.ag-date .wd{font-size:.6rem;color:var(--muted);text-transform:uppercase}
-.ag-date .dn{font-size:1.15rem;font-weight:800;color:var(--text)}
-.ag-date .mo{font-size:.58rem;color:var(--muted);text-transform:uppercase}
-.ag-row.today .ag-date .dn,.ag-row.today .ag-date .wd{color:var(--teal)}
-.ag-body{display:flex;flex-direction:column;gap:5px;min-width:0;justify-content:center}
-.ag-lanes{display:grid;gap:3px}
-.ag-seg{height:22px;display:flex;align-items:center;padding:0 8px;font-size:.72rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ag-seg.empty{background:none}
-.ag-seg.one{background:var(--teal);border-radius:7px}
-.ag-seg.start{background:var(--teal);border-radius:7px 0 0 7px}
-.ag-seg.mid{background:var(--teal);opacity:.55}
-.ag-seg.end{background:var(--teal);opacity:.55;border-radius:0 7px 7px 0;justify-content:flex-end}
-.ag-seg.paid.one,.ag-seg.paid.start{background:var(--teal-deep)}
-.ag-seg.paid.mid,.ag-seg.paid.end{background:var(--teal-deep);opacity:.55}
-.ag-seg .endlbl{font-size:.62rem;font-weight:600;opacity:.95}
-.ag-ev{font-size:.76rem;color:var(--text);padding:4px 9px;border-radius:8px;border-left:3px solid;background:var(--surface-2)}
-.ag-ev b{font-weight:700}
-.ag-ev .t{color:var(--muted);font-size:.7rem;margin-left:4px}
-.ag-ev.volo{border-color:#4338ca}
-.ag-ev.att{border-color:#be185d}
-.ag-free{font-size:.8rem;color:var(--line)}
-.cal-legend{display:flex;gap:14px;margin-top:12px;font-size:.72rem;color:var(--muted);flex-wrap:wrap;padding-left:4px}
+/* Calendario / griglia mensile */
+.cal{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 10px}
+.mcal+.mcal{margin-top:18px}
+.mcal-title{font-size:.95rem;font-weight:700;color:var(--teal-deep);margin-bottom:8px;text-align:center}
+.mcal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.mcal-wd{text-align:center;font-size:.62rem;font-weight:700;color:var(--muted);padding-bottom:2px}
+.mcal-cell{aspect-ratio:1;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:4px 0 0;position:relative;font-size:.78rem;color:var(--text)}
+.mcal-cell.empty{background:none}
+.mcal-cell.has{cursor:pointer}
+.mcal-cell.stay{background:rgba(13,148,136,.12)}
+.mcal-cell.today .dnum{background:var(--teal);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+.mcal-cell.sel{outline:2px solid var(--teal);outline-offset:-2px}
+.mcal-cell .dnum{font-weight:600;line-height:22px;height:22px}
+.mcal-cell .dots{display:flex;gap:2px;margin-top:1px;flex-wrap:wrap;justify-content:center}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.dot.allog{background:var(--teal)}
+.dot.volo{background:#4338ca}
+.dot.att{background:#be185d}
+.cal-legend{display:flex;gap:14px;margin-top:14px;font-size:.72rem;color:var(--muted);flex-wrap:wrap;justify-content:center}
 .cal-legend span{display:inline-flex;align-items:center;gap:5px}
-.cal-legend i{width:12px;height:12px;border-radius:4px;display:inline-block}
+.cal-hint{text-align:center;color:var(--muted);font-size:.8rem;padding:14px}
 .cal-empty{text-align:center;color:var(--muted);padding:30px;font-size:.85rem}
+#cal-detail{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+.dd-title{font-size:.85rem;font-weight:700;margin-bottom:8px}
+.dd-item{display:flex;gap:9px;align-items:flex-start;font-size:.82rem;padding:7px 10px;border-radius:9px;background:var(--surface-2);margin-bottom:6px;border-left:3px solid}
+.dd-item.allog{border-color:var(--teal)}
+.dd-item.volo{border-color:#4338ca}
+.dd-item.att{border-color:#be185d}
+.dd-ic{font-size:.95rem;line-height:1.3}
 .card .row{display:flex;justify-content:space-between;font-size:.82rem;color:var(--muted);margin-top:12px;gap:8px}
 .card .row b{color:var(--text);font-weight:600}
 .card .price{font-size:1.15rem;font-weight:700;color:var(--text);margin-top:10px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
@@ -348,7 +347,17 @@ header .sub{font-size:.72rem;color:var(--muted)}
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="loadSupabaseFallback()"></script>
+<script>
+function loadSupabaseFallback(){
+  // se jsdelivr fallisce, provo unpkg
+  var s=document.createElement('script');
+  s.src='https://unpkg.com/@supabase/supabase-js@2';
+  s.onload=function(){ if(window.__initApp) window.__initApp(); };
+  s.onerror=function(){ var el=document.getElementById('trips-status'); if(el) el.innerHTML='⚠️ Impossibile caricare la libreria Supabase. Controlla la connessione internet e ricarica.'; };
+  document.head.appendChild(s);
+}
+</script>
 <script>
 // =====================================================================
 //  CONFIGURAZIONE SUPABASE — inserisci qui le tue credenziali
@@ -359,7 +368,7 @@ const TABLE = 'itinerario_prenotazioni';
 const TABLE_TRIPS = 'itinerario_viaggi';
 // =====================================================================
 
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let db = null;
 const $ = id => document.getElementById(id);
 const eur = n => '€' + (Number(n)||0).toLocaleString('it-IT',{minimumFractionDigits:0,maximumFractionDigits:2});
 const num = n => (Number(n)||0).toLocaleString('it-IT',{minimumFractionDigits:0,maximumFractionDigits:2});
@@ -450,13 +459,29 @@ function setMode(m){
 // ===================== VISTA VIAGGI =====================
 async function loadTrips(){
   $('trips-status').textContent='Caricamento…';
-  const { data:rows, error } = await db.from(TABLE_TRIPS).select('*').order('data_inizio',{ascending:false});
-  if(error){ $('trips-status').textContent='⚠️ Errore: '+error.message; return; }
-  trips=rows||[];
-  // conteggio voci da cancellare per badge
-  const { data:flags } = await db.from(TABLE).select('viaggio_id,valuta_cancellazione').eq('valuta_cancellazione',true);
-  const cancMap={}; (flags||[]).forEach(f=>{ cancMap[f.viaggio_id]=(cancMap[f.viaggio_id]||0)+1; });
-  renderTrips(cancMap);
+  $('trips-list').innerHTML='';
+  // controllo che l'SDK sia caricato
+  if(typeof supabase==='undefined' || !db){
+    $('trips-status').innerHTML='⚠️ Libreria Supabase non caricata. Controlla la connessione internet e ricarica la pagina.';
+    return;
+  }
+  try{
+    const { data:rows, error } = await db.from(TABLE_TRIPS).select('*').order('data_inizio',{ascending:false});
+    if(error){
+      $('trips-status').innerHTML='⚠️ '+esc(error.message)+(/relation|does not exist|schema cache/i.test(error.message)?'<br><br>Probabilmente la tabella <b>itinerario_viaggi</b> non esiste ancora. Esegui lo script SQL su Supabase.':'');
+      return;
+    }
+    trips=rows||[];
+    // conteggio voci da cancellare per badge (non bloccante)
+    let cancMap={};
+    try{
+      const { data:flags } = await db.from(TABLE).select('viaggio_id,valuta_cancellazione').eq('valuta_cancellazione',true);
+      (flags||[]).forEach(f=>{ cancMap[f.viaggio_id]=(cancMap[f.viaggio_id]||0)+1; });
+    }catch(e){ /* ignoro: il badge cancellazioni è secondario */ }
+    renderTrips(cancMap);
+  }catch(e){
+    $('trips-status').innerHTML='⚠️ Errore di connessione: '+esc(e.message||String(e))+'<br><br>Verifica URL e chiave Supabase e la connessione internet.';
+  }
 }
 
 function renderTrips(cancMap){
@@ -485,6 +510,7 @@ function goTrips(){
 function openTrip(id){
   currentTrip=trips.find(t=>t.id===id);
   if(!currentTrip) return;
+  calSelected=null;
   $('view-trips').classList.add('hide');
   $('view-detail').classList.remove('hide');
   $('backBtn').classList.remove('hide');
@@ -547,6 +573,7 @@ async function load(){
 
 function setTab(t){
   tab=t;
+  if(t!=='calendario') calSelected=null;
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
   render();
 }
@@ -596,83 +623,109 @@ function render(){
 }
 
 // ---------- CALENDARIO ----------
-const DAYW=46;
-function dkey(d){ return d; } // 'YYYY-MM-DD'
 function daysBetween(a,b){ return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000); }
 function addDays(d,n){ const x=new Date(d+'T00:00:00'); x.setDate(x.getDate()+n); return x.toISOString().slice(0,10); }
+let calDayMap={};   // 'YYYY-MM-DD' -> [{tipo,label,...}]
+let calSelected=null;
 
-function renderCalendar(){
-  const cal=$('calendar');
-  // raccolgo le voci con date
-  const alloggi=[], eventi=[]; // eventi = voli + attività (puntuali)
+function buildDayMap(){
+  const map={};
+  const push=(d,obj)=>{ if(!d)return; (map[d]=map[d]||[]).push(obj); };
   data.forEach(r=>{
     if(r.tipo==='alloggio' && r.data_inizio){
-      alloggi.push({start:r.data_inizio, end:r.data_fine||r.data_inizio, label:r.tappa||r.nome_hotel, paid:(r.stato_pagamento==='pagato'||r.pagato)});
+      const end=r.data_fine||r.data_inizio;
+      const n=Math.max(daysBetween(r.data_inizio,end),0)||0;
+      // segno ogni notte (dal check-in fino al giorno prima del check-out); se 0 notti, solo il giorno
+      const lastNight = n>0 ? addDays(r.data_inizio,n-1) : r.data_inizio;
+      for(let d=r.data_inizio; d<=lastNight; d=addDays(d,1)){
+        push(d,{tipo:'allog', label:r.tappa||r.nome_hotel, role:(d===r.data_inizio?'in':'stay')});
+      }
+      push(end,{tipo:'allog', label:r.tappa||r.nome_hotel, role:'out'}); // check-out
     } else if(r.tipo==='volo'){
       const tr=parseTratte(r.tratte);
       const legs=[...tr.andata,...tr.ritorno].filter(l=>l.data_dep);
-      if(legs.length) legs.forEach(lg=>eventi.push({tipo:'volo', date:lg.data_dep, time:lg.ora_dep||'', label:`${lg.da} → ${lg.a}`, icon:'✈️'}));
-      else if(r.data_inizio) eventi.push({tipo:'volo', date:r.data_inizio, time:'', label:r.nome_hotel, icon:'✈️'});
+      if(legs.length) legs.forEach(lg=>push(lg.data_dep,{tipo:'volo',label:`${lg.da}→${lg.a}`,time:lg.ora_dep||''}));
+      else if(r.data_inizio) push(r.data_inizio,{tipo:'volo',label:r.nome_hotel,time:''});
     } else if(r.tipo==='attivita' && r.data_inizio){
-      eventi.push({tipo:'att', date:r.data_inizio, time:r.ora_inizio||'', label:r.luogo||r.nome_hotel, icon:'🎟️'});
+      push(r.data_inizio,{tipo:'att',label:r.luogo||r.nome_hotel,time:r.ora_inizio||''});
     }
   });
-  if(!alloggi.length && !eventi.length){
+  return map;
+}
+
+function renderCalendar(){
+  const cal=$('calendar');
+  calDayMap=buildDayMap();
+  const days=Object.keys(calDayMap);
+  if(!days.length){
     cal.innerHTML='<div class="cal-empty">Nessuna data inserita.<br>Aggiungi prenotazioni con le date per vederle sul calendario.</div>'; return;
   }
-
-  // range complessivo
-  let min=null, max=null;
-  const consider=(d)=>{ if(!d)return; if(!min||d<min)min=d; if(!max||d>max)max=d; };
-  alloggi.forEach(a=>{ consider(a.start); consider(a.end); });
-  eventi.forEach(e=>consider(e.date));
-  const total=daysBetween(min,max)+1;
+  // range -> elenco di mesi da coprire
+  let min=days[0],max=days[0];
+  days.forEach(d=>{ if(d<min)min=d; if(d>max)max=d; });
   const today=new Date().toISOString().slice(0,10);
+  const wdHead=['L','M','M','G','V','S','D'];
 
-  // assegno una "corsia" stabile a ciascun alloggio (colore/posizione costante lungo i giorni)
-  const sortedAll=[...alloggi].sort((a,b)=>a.start.localeCompare(b.start));
-  const lanes=[];
-  sortedAll.forEach(a=>{
-    let li=lanes.findIndex(end=>a.start>end);
-    if(li<0){ li=lanes.length; lanes.push(a.end); } else lanes[li]=a.end;
-    a.lane=li;
-  });
-  const laneCount=Math.max(lanes.length,1);
+  // mesi coinvolti
+  const months=[];
+  let cur=min.slice(0,7);
+  const endM=max.slice(0,7);
+  while(cur<=endM){ months.push(cur); const [y,m]=cur.split('-').map(Number); cur=(m===12?(y+1)+'-01':y+'-'+String(m+1).padStart(2,'0')); }
 
-  let rows='';
-  for(let i=0;i<total;i++){
-    const d=addDays(min,i);
-    const dt=new Date(d+'T00:00:00');
-    const wd=dt.toLocaleDateString('it-IT',{weekday:'short'});
-    const isToday=d===today;
-
-    // segmenti alloggio attivi in questo giorno
-    let segs='<div class="ag-lanes" style="grid-template-columns:repeat('+laneCount+',1fr)">';
-    for(let l=0;l<laneCount;l++){
-      const a=sortedAll.find(x=>x.lane===l && x.start<=d && d<=x.end);
-      if(a){
-        const isStart=a.start===d, isEnd=a.end===d;
-        const pos=isStart&&isEnd?'one':isStart?'start':isEnd?'end':'mid';
-        segs+=`<div class="ag-seg ${pos}${a.paid?' paid':''}">${isStart?'🏨 '+esc(a.label):(isEnd?'<span class="endlbl">check-out</span>':'')}</div>`;
-      } else segs+='<div class="ag-seg empty"></div>';
+  let html='';
+  months.forEach(mk=>{
+    const [Y,M]=mk.split('-').map(Number);
+    const monthName=new Date(Y,M-1,1).toLocaleDateString('it-IT',{month:'long',year:'numeric'});
+    const firstDow=(new Date(Y,M-1,1).getDay()+6)%7; // 0=lun
+    const daysInMonth=new Date(Y,M,0).getDate();
+    html+=`<div class="mcal"><div class="mcal-title">${monthName.charAt(0).toUpperCase()+monthName.slice(1)}</div>`;
+    html+='<div class="mcal-grid">'+wdHead.map(w=>`<div class="mcal-wd">${w}</div>`).join('');
+    for(let i=0;i<firstDow;i++) html+='<div class="mcal-cell empty"></div>';
+    for(let day=1;day<=daysInMonth;day++){
+      const d=`${Y}-${String(M).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const items=calDayMap[d]||[];
+      const types=[...new Set(items.map(x=>x.tipo))];
+      const dots=types.map(t=>`<i class="dot ${t}"></i>`).join('');
+      const hasStay=items.some(x=>x.tipo==='allog'&&(x.role==='in'||x.role==='stay'));
+      html+=`<div class="mcal-cell${items.length?' has':''}${d===today?' today':''}${d===calSelected?' sel':''}${hasStay?' stay':''}" onclick="selectCalDay('${d}')">
+        <span class="dnum">${day}</span><div class="dots">${dots}</div></div>`;
     }
-    segs+='</div>';
+    html+='</div></div>';
+  });
 
-    // eventi del giorno
-    const evs=eventi.filter(e=>e.date===d).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
-    let evHtml='';
-    evs.forEach(e=>{
-      evHtml+=`<div class="ag-ev ${e.tipo}">${e.icon} <b>${esc(e.label)}</b>${e.time?` <span class="t">${esc(e.time)}</span>`:''}</div>`;
-    });
-
-    rows+=`<div class="ag-row${isToday?' today':''}">
-      <div class="ag-date"><span class="wd">${wd}</span><span class="dn">${dt.getDate()}</span><span class="mo">${dt.toLocaleDateString('it-IT',{month:'short'})}</span></div>
-      <div class="ag-body">${segs}${evHtml||(!evs.length&&!sortedAll.some(x=>x.start<=d&&d<=x.end)?'<div class="ag-free">—</div>':'')}</div>
-    </div>`;
+  const legend='<div class="cal-legend"><span><i class="dot allog"></i>Alloggi</span><span><i class="dot volo"></i>Voli</span><span><i class="dot att"></i>Attività</span></div>';
+  // dettaglio giorno selezionato
+  let detail='';
+  if(calSelected && calDayMap[calSelected]){
+    detail=dayDetailHtml(calSelected);
+  } else {
+    detail='<div class="cal-hint">Tocca un giorno per vederne i dettagli</div>';
   }
+  cal.innerHTML=html+legend+'<div id="cal-detail">'+detail+'</div>';
+}
 
-  const legend='<div class="cal-legend"><span><i style="background:var(--teal)"></i>Alloggi</span><span><i style="background:#4338ca"></i>Voli</span><span><i style="background:#be185d"></i>Attività</span></div>';
-  cal.innerHTML='<div class="cal agenda">'+rows+'</div>'+legend;
+function dayDetailHtml(d){
+  const dt=new Date(d+'T00:00:00');
+  const items=calDayMap[d]||[];
+  const titolo=dt.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
+  let rows='';
+  // alloggi (raggruppo per label, mostro ruolo)
+  items.filter(x=>x.tipo==='allog').forEach(x=>{
+    const r = x.role==='out'?'Check-out':x.role==='in'?'Check-in':'Pernottamento';
+    rows+=`<div class="dd-item allog"><span class="dd-ic">🏨</span><span><b>${esc(x.label)}</b> · ${r}</span></div>`;
+  });
+  items.filter(x=>x.tipo==='volo').forEach(x=>{
+    rows+=`<div class="dd-item volo"><span class="dd-ic">✈️</span><span><b>${esc(x.label)}</b>${x.time?' · '+esc(x.time):''}</span></div>`;
+  });
+  items.filter(x=>x.tipo==='att').forEach(x=>{
+    rows+=`<div class="dd-item att"><span class="dd-ic">🎟️</span><span><b>${esc(x.label)}</b>${x.time?' · '+esc(x.time):''}</span></div>`;
+  });
+  return `<div class="dd-title">${titolo.charAt(0).toUpperCase()+titolo.slice(1)}</div>${rows||'<div class="cal-hint">Niente in programma</div>'}`;
+}
+
+function selectCalDay(d){
+  calSelected = (calSelected===d)?null:d;
+  renderCalendar();
 }
 
 function cardHtml(r){
@@ -689,7 +742,11 @@ function cardHtml(r){
     const colaz = r.colazione==='inclusa' ? '☕ Colazione inclusa'
       : r.colazione==='pagamento' ? `☕ Colazione a pagamento${r.colazione_prezzo?' ('+esc(r.colazione_prezzo)+')':''}`
       : 'Colazione non disponibile';
+    const notti = (r.data_inizio&&r.data_fine)?Math.max(daysBetween(r.data_inizio,r.data_fine),0):0;
+    const perNotte = notti>0?(Number(r.prezzo)||0)/notti:null;
+    const nottiTxt = notti>0?`🌙 ${notti} nott${notti===1?'e':'i'}${perNotte!=null?` · ${eur(perNotte)}/notte`:''}`:'';
     dates=`<div class="row"><span>Check-in <b>${ci}</b></span><span>Check-out <b>${co}</b></span></div>`
+      + (nottiTxt?`<div class="row"><span>${nottiTxt}</span></div>`:'')
       + `<div class="row"><span>${colaz}</span></div>`;
   } else if(r.tipo==='volo'){
     const tr = parseTratte(r.tratte);
@@ -710,7 +767,8 @@ function cardHtml(r){
   const badgeHtml = `<span class="badge ${cfg[0]}" onclick="cyclePay('${r.id}','${st}')">${cfg[1]}</span>`;
 
   return `
-  <div class="card ${r.valuta_cancellazione?'warn':''} ${r.non_cancellabile?'nocanc-card':''}">
+  <div class="card ${r.valuta_cancellazione?'warn':''} ${r.non_cancellabile?'nocanc-card':''} ${r.escluso_totale?'excluded':''}">
+    ${r.escluso_totale?'<div class="excl-banner">🚫 Esclusa dalle statistiche</div>':''}
     <div class="top">
       <div>
         ${tag?tag+'<div style="height:6px"></div>':''}
@@ -991,7 +1049,29 @@ async function save(){
 
 $('overlay').addEventListener('click',e=>{ if(e.target===$('overlay')) closeForm(); });
 $('overlay-trip').addEventListener('click',e=>{ if(e.target===$('overlay-trip')) closeTripForm(); });
-goTrips();
+
+// ---------- Avvio sicuro ----------
+let __initTries=0;
+window.__initApp=function(){
+  if(db) return;                      // già inizializzato
+  if(typeof supabase==='undefined' || !supabase.createClient){
+    // libreria non ancora pronta: riprovo per ~10s, poi mostro errore
+    __initTries++;
+    if(__initTries>50){
+      const el=$('trips-status'); if(el) el.innerHTML='⚠️ Impossibile caricare la libreria Supabase. Controlla la connessione internet e ricarica la pagina.';
+      return;
+    }
+    return setTimeout(window.__initApp,200);
+  }
+  try{
+    db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }catch(e){
+    const el=$('trips-status'); if(el) el.innerHTML='⚠️ Errore di configurazione Supabase: '+esc(e.message||String(e));
+    return;
+  }
+  goTrips();
+};
+window.__initApp();
 </script>
 </body>
 </html>
