@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.11.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.13.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -9,6 +9,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Itinerario">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="theme-color" content="#0d9488">
 <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAFkElEQVR4nO3dS3PbNhDAccijUwn1ezZObDe2Hn5KltO0cTo9tV+09F090JNmYq3EB4jFAv/f7CnxUOBytViTzGQy+/sPB+wz3e122mtAok60F4B0URwQURwQTR0zBwR0DogoDogoDoimjpEDgqmjOiBgW4GI4oCI4oCIm2AQ0Tkgojggojgg4iYYRNwEg4htBSKKAyJmDoiYOSBiW4GI4oCI4oCIgRQiBlKI2FYgojggYuaAiJkDIrYViCgOiCgOiBhIIWIghWiqvQBl9dXm8A/M/jzyAxmb+K9r7TXEdrQgJKUVysQ/l1Ic9XwT6lCzr8EOlbKJf37QXsO46vnjeAefZd13M/9VdtTKiHB8Xdl2jsiXLcsWcuJ2Lr+I/4Wu54/qZx08Jv5LVp2jXij3+VlGA/6Jfn2GC/XKcK/VqZ+KIJHPQFovttpLeJXOSgbKpDhSux6praefHAbSNK9EvdiqZ2ZgmJ856mWKldGol1v1/AwJ29tKvXzSXsIR6a/wANvFgVEZnjmsfCnr5ZN6rvqF1ZmjXtmojEa9elLPWI9gW4HIZHHUq0/aS+jM4prtFYfFLDfMrZy3z+MylW3ePnfOuZ//+fL2D/89XY7wUZayPfGfb7TX0EF9/VvAo+2tibfCVsns99uARxvVif4vTF0ioJaV0ekn21DPYfuwdhMskK7XO2R9qOewdVj6beXlJsye0u9Kh6qPUGcRga07pAEMucbh+od6JluFpc4x3PCrG3b+SJypmWOYUNc1wHHUM9kuzHSOl9vP2ksIxsq5cBNMi4G0m+kcA4WdFQqZPEopDvTAgzclFtJO54CIgVSLgbTTOSBi5lBiIe2ldI6w72SM8x5Qcpg5tBhIu5nO4Z/y+bJaORczxTFcqL2gkD3FFfVU1oW4rmEqQz2TmT2VDWXI1S2nZzQsvQnmt4sg59zvGoeqDL9dqGeyZRTXORpdr3RpPaNhaubYhTzz9tc7cGWo57B1TKrNPOSZj+9l/Rz8mNH+xZt/DLMzxsFNMOei7hqWsl3ozIE2rM0cO+et7YPf+M1cPXudwmTnsFgfFtdssjgQh6WbYN+H31xpp64Dv7lSz1iPMNw5rNSHlXW+xZtg4zObYcOdwznn16l/KdNf4QFWZ47/h4/1pXYORX59qZ6fQmeOb9KsjzRX1Ym9m2B7wz+kdSX8w6V6ToZHDp2jkU59pLOSgfIpDpfGVUlhDaFMqvtftdcQ3sv2r/gf6h8+xv/QUWUyc/wQ/j72dfL3H9XPOnhkta0grGyLI2bziN+o4uBNsCDyzGG2ncM556PM2nE+RQUP3gbLN4E5dw7nnL8b92s99vF1ZV4cGML8U9mj4e8uRsqdv7tQP7tRg5ljgNxTV8S24m8vTBwzNUUUB/rJf+Zowt+eB8yavz1XP6MIQeeAKM+nsnvD35wHSZm/OVc/lzhB54CorOIY3jxCtR8TeCrbVUHpKmjmaMJfn/VOlr8+U19/zChrW0Enxv4v+yBR9Woe1fWZ+sojBzNHe8UlqriZo4lq9aFTmqrVB/U1xw9mDojKLY72zaNrm8lGucWBo0p5Krs3qtX7owmqVu/V16kVvAl2TMH5KX1bqZaHmsfhv81e6cWBA4qeOZqolqd7U1MtT9XXphvMHLLiM8O24pxz1eLH5vH2TwpEcUBEcbz6vlXQNho8ld2LnDhX7FPZvVHN3znnqvk79ZUkEmwrEE1+uvpFew1IFDMHRNwEg4iZAyKKAyKKA6Kp2zF0YD86B0QUB0QUB0TcBIOIm2AQsa1ARHFARHFAxE0wiOgcEFEcEFEcEHETDCJugkHEtgIRxQERxQERN8EgonNARHFARHFAxMwBEZ0DIooDIooDIooDIgZSiOgcEFEcEFEcEDFzQETngIjigIjigOg/fqpYTdsHjZwAAAAASUVORK5CYII=">
 <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAFkElEQVR4nO3dS3PbNhDAccijUwn1ezZObDe2Hn5KltO0cTo9tV+09F090JNmYq3EB4jFAv/f7CnxUOBytViTzGQy+/sPB+wz3e122mtAok60F4B0URwQURwQTR0zBwR0DogoDogoDoimjpEDgqmjOiBgW4GI4oCI4oCIm2AQ0Tkgojggojgg4iYYRNwEg4htBSKKAyJmDoiYOSBiW4GI4oCI4oCIgRQiBlKI2FYgojggYuaAiJkDIrYViCgOiCgOiBhIIWIghWiqvQBl9dXm8A/M/jzyAxmb+K9r7TXEdrQgJKUVysQ/l1Ic9XwT6lCzr8EOlbKJf37QXsO46vnjeAefZd13M/9VdtTKiHB8Xdl2jsiXLcsWcuJ2Lr+I/4Wu54/qZx08Jv5LVp2jXij3+VlGA/6Jfn2GC/XKcK/VqZ+KIJHPQFovttpLeJXOSgbKpDhSux6praefHAbSNK9EvdiqZ2ZgmJ856mWKldGol1v1/AwJ29tKvXzSXsIR6a/wANvFgVEZnjmsfCnr5ZN6rvqF1ZmjXtmojEa9elLPWI9gW4HIZHHUq0/aS+jM4prtFYfFLDfMrZy3z+MylW3ePnfOuZ//+fL2D/89XY7wUZayPfGfb7TX0EF9/VvAo+2tibfCVsns99uARxvVif4vTF0ioJaV0ekn21DPYfuwdhMskK7XO2R9qOewdVj6beXlJsye0u9Kh6qPUGcRga07pAEMucbh+od6JluFpc4x3PCrG3b+SJypmWOYUNc1wHHUM9kuzHSOl9vP2ksIxsq5cBNMi4G0m+kcA4WdFQqZPEopDvTAgzclFtJO54CIgVSLgbTTOSBi5lBiIe2ldI6w72SM8x5Qcpg5tBhIu5nO4Z/y+bJaORczxTFcqL2gkD3FFfVU1oW4rmEqQz2TmT2VDWXI1S2nZzQsvQnmt4sg59zvGoeqDL9dqGeyZRTXORpdr3RpPaNhaubYhTzz9tc7cGWo57B1TKrNPOSZj+9l/Rz8mNH+xZt/DLMzxsFNMOei7hqWsl3ozIE2rM0cO+et7YPf+M1cPXudwmTnsFgfFtdssjgQh6WbYN+H31xpp64Dv7lSz1iPMNw5rNSHlXW+xZtg4zObYcOdwznn16l/KdNf4QFWZ47/h4/1pXYORX59qZ6fQmeOb9KsjzRX1Ym9m2B7wz+kdSX8w6V6ToZHDp2jkU59pLOSgfIpDpfGVUlhDaFMqvtftdcQ3sv2r/gf6h8+xv/QUWUyc/wQ/j72dfL3H9XPOnhkta0grGyLI2bziN+o4uBNsCDyzGG2ncM556PM2nE+RQUP3gbLN4E5dw7nnL8b92s99vF1ZV4cGML8U9mj4e8uRsqdv7tQP7tRg5ljgNxTV8S24m8vTBwzNUUUB/rJf+Zowt+eB8yavz1XP6MIQeeAKM+nsnvD35wHSZm/OVc/lzhB54CorOIY3jxCtR8TeCrbVUHpKmjmaMJfn/VOlr8+U19/zChrW0Enxv4v+yBR9Woe1fWZ+sojBzNHe8UlqriZo4lq9aFTmqrVB/U1xw9mDojKLY72zaNrm8lGucWBo0p5Krs3qtX7owmqVu/V16kVvAl2TMH5KX1bqZaHmsfhv81e6cWBA4qeOZqolqd7U1MtT9XXphvMHLLiM8O24pxz1eLH5vH2TwpEcUBEcbz6vlXQNho8ld2LnDhX7FPZvVHN3znnqvk79ZUkEmwrEE1+uvpFew1IFDMHRNwEg4iZAyKKAyKKA6Kp2zF0YD86B0QUB0QUB0TcBIOIm2AQsa1ARHFARHFAxE0wiOgcEFEcEFEcEHETDCJugkHEtgIRxQERxQERN8EgonNARHFARHFAxMwBEZ0DIooDIooDIooDIgZSiOgcEFEcEFEcEDFzQETngIjigIjigOg/fqpYTdsHjZwAAAAASUVORK5CYII=">
@@ -29,14 +32,19 @@ body{
   padding:18px 14px 110px; max-width:520px; margin:0 auto; min-height:100vh;
   padding-top:calc(18px + env(safe-area-inset-top));
 }
-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.refresh-btn{flex-shrink:0;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--teal);font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .3s}
+.refresh-btn:active{transform:rotate(180deg)}
+.refresh-btn.spin{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 header h1{font-size:1.45rem;font-weight:700;letter-spacing:-.5px}
 .vbadge{font-size:.6rem;font-weight:600;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);padding:2px 7px;border-radius:999px;vertical-align:middle;letter-spacing:0}
 header h1 span{color:var(--teal)}
 header .sub{font-size:.72rem;color:var(--muted)}
 
 /* Tabs */
-.tabs{display:flex;gap:6px;background:var(--surface-2);padding:5px;border-radius:14px;margin-bottom:16px}
+.tabs{display:flex;gap:6px;background:var(--surface-2);padding:5px;border-radius:14px;margin-bottom:8px}
+.tabs:last-of-type{margin-bottom:16px}
 .tab{flex:1;text-align:center;font-size:.78rem;font-weight:600;padding:9px 4px;border-radius:10px;color:var(--muted);cursor:pointer;border:none;background:none}
 .tab.active{background:var(--surface);color:var(--teal);box-shadow:0 1px 4px rgba(0,0,0,.08)}
 
@@ -227,11 +235,12 @@ header .sub{font-size:.72rem;color:var(--muted)}
 </head>
 <body>
 <header>
-  <div>
+  <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.11.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.13.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
+  <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
 </header>
 
 <!-- VISTA: LISTA VIAGGI -->
@@ -245,10 +254,12 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <div class="tabs">
   <button class="tab active" data-tab="tutto" onclick="setTab('tutto')">📋 Tutto</button>
   <button class="tab" data-tab="itinerario" onclick="setTab('itinerario')">🗺️ Itinerario</button>
-  <button class="tab" data-tab="calendario" onclick="setTab('calendario')">📅 Cal.</button>
-  <button class="tab" data-tab="alloggi" onclick="setTab('alloggi')">🏨</button>
-  <button class="tab" data-tab="voli" onclick="setTab('voli')">✈️</button>
-  <button class="tab" data-tab="attivita" onclick="setTab('attivita')">🎟️</button>
+  <button class="tab" data-tab="calendario" onclick="setTab('calendario')">📅 Calendario</button>
+</div>
+<div class="tabs">
+  <button class="tab" data-tab="alloggi" onclick="setTab('alloggi')">🏨 Alloggi</button>
+  <button class="tab" data-tab="voli" onclick="setTab('voli')">✈️ Voli</button>
+  <button class="tab" data-tab="attivita" onclick="setTab('attivita')">🎟️ Attività</button>
 </div>
 <div class="tabs">
   <button class="tab" data-tab="pagamenti" onclick="setTab('pagamenti')">💳 Pagamenti</button>
@@ -261,8 +272,8 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <div class="summary">
   <div class="scard full" style="padding-bottom:12px">
     <div class="modetabs">
-      <button class="mtab active" id="mt-tot" onclick="setMode('tot')">Totale viaggio</button>
-      <button class="mtab" id="mt-half" onclick="setMode('half')">A testa</button>
+      <button class="mtab" id="mt-tot" onclick="setMode('tot')">Totale viaggio</button>
+      <button class="mtab active" id="mt-half" onclick="setMode('half')">A testa</button>
     </div>
     <div class="val" id="s-tot" style="margin-top:10px">€0</div>
   </div>
@@ -579,7 +590,7 @@ let tappe = [];
 let trips = [];
 let currentTrip = null; // oggetto viaggio selezionato
 let tab = 'tutto';
-let mode = 'tot'; // 'tot' | 'half'
+let mode = 'half'; // 'tot' | 'half' — default: a testa
 
 function setMode(m){
   mode=m;
@@ -649,7 +660,7 @@ function openTrip(id){
   $('headsub').textContent=currentTrip.nome;
   tab='tutto';
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.tab==='tutto'));
-  setMode('tot');
+  setMode('half');
   load();
 }
 
@@ -695,6 +706,24 @@ function onFab(){
   if(!currentTrip){ openTripForm(); return; }
   if(tab==='itinerario'){ openTappaForm(); return; }
   openForm();
+}
+
+// Forza il ricaricamento bypassando la cache (utile per la web app installata su iOS)
+async function forceUpdate(){
+  const btn=$('refreshBtn'); if(btn) btn.classList.add('spin');
+  // 1) provo a svuotare le cache del browser/service worker
+  try{
+    if(window.caches && caches.keys){ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); }
+  }catch(e){}
+  try{
+    if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations){
+      const regs=await navigator.serviceWorker.getRegistrations(); await Promise.all(regs.map(r=>r.unregister()));
+    }
+  }catch(e){}
+  // 2) ricarico con un parametro anti-cache, così iOS scarica la versione nuova
+  const u=new URL(window.location.href);
+  u.searchParams.set('v', Date.now());
+  window.location.replace(u.toString());
 }
 // ===================== /VISTA VIAGGI =====================
 
@@ -778,30 +807,33 @@ function render(){
 }
 
 // ---------- CALENDARIO ----------
-function daysBetween(a,b){ return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000); }
-function addDays(d,n){ const x=new Date(d+'T00:00:00'); x.setDate(x.getDate()+n); return x.toISOString().slice(0,10); }
+function isValidISO(d){ return typeof d==='string' && /^\d{4}-\d{2}-\d{2}$/.test(d) && !isNaN(new Date(d+'T00:00:00').getTime()); }
+function daysBetween(a,b){ if(!isValidISO(a)||!isValidISO(b)) return 0; return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000); }
+function addDays(d,n){ if(!isValidISO(d)) return d; const x=new Date(d+'T00:00:00'); x.setDate(x.getDate()+n); return x.toISOString().slice(0,10); }
 let calDayMap={};   // 'YYYY-MM-DD' -> [{tipo,label,...}]
 let calSelected=null;
 
 function buildDayMap(){
   const map={};
-  const push=(d,obj)=>{ if(!d)return; (map[d]=map[d]||[]).push(obj); };
+  const push=(d,obj)=>{ if(!isValidISO(d))return; (map[d]=map[d]||[]).push(obj); };
   data.forEach(r=>{
-    if(r.tipo==='alloggio' && r.data_inizio){
-      const end=r.data_fine||r.data_inizio;
-      const n=Math.max(daysBetween(r.data_inizio,end),0)||0;
-      // segno ogni notte (dal check-in fino al giorno prima del check-out); se 0 notti, solo il giorno
+    if(r.tipo==='alloggio' && isValidISO(r.data_inizio)){
+      const end=isValidISO(r.data_fine)?r.data_fine:r.data_inizio;
+      let n=Math.max(daysBetween(r.data_inizio,end),0)||0;
+      if(n>366) n=366; // guardia anti-loop
       const lastNight = n>0 ? addDays(r.data_inizio,n-1) : r.data_inizio;
-      for(let d=r.data_inizio; d<=lastNight; d=addDays(d,1)){
+      let d=r.data_inizio, guard=0;
+      while(d<=lastNight && guard<400){
         push(d,{tipo:'allog', label:r.tappa||r.nome_hotel, role:(d===r.data_inizio?'in':'stay')});
+        d=addDays(d,1); guard++;
       }
-      push(end,{tipo:'allog', label:r.tappa||r.nome_hotel, role:'out'}); // check-out
+      push(end,{tipo:'allog', label:r.tappa||r.nome_hotel, role:'out'});
     } else if(r.tipo==='volo'){
       const tr=parseTratte(r.tratte);
-      const legs=[...tr.andata,...tr.ritorno].filter(l=>l.data_dep);
+      const legs=[...tr.andata,...tr.ritorno].filter(l=>isValidISO(l.data_dep));
       if(legs.length) legs.forEach(lg=>push(lg.data_dep,{tipo:'volo',label:`${lg.da}→${lg.a}`,time:lg.ora_dep||''}));
-      else if(r.data_inizio) push(r.data_inizio,{tipo:'volo',label:r.nome_hotel,time:''});
-    } else if(r.tipo==='attivita' && r.data_inizio){
+      else if(isValidISO(r.data_inizio)) push(r.data_inizio,{tipo:'volo',label:r.nome_hotel,time:''});
+    } else if(r.tipo==='attivita' && isValidISO(r.data_inizio)){
       push(r.data_inizio,{tipo:'att',label:r.luogo||r.nome_hotel,time:r.ora_inizio||''});
     }
   });
@@ -810,53 +842,53 @@ function buildDayMap(){
 
 function renderCalendar(){
   const cal=$('calendar');
-  calDayMap=buildDayMap();
-  const days=Object.keys(calDayMap);
-  if(!days.length){
-    cal.innerHTML='<div class="cal-empty">Nessuna data inserita.<br>Aggiungi prenotazioni con le date per vederle sul calendario.</div>'; return;
-  }
-  // range -> elenco di mesi da coprire
-  let min=days[0],max=days[0];
-  days.forEach(d=>{ if(d<min)min=d; if(d>max)max=d; });
-  const today=new Date().toISOString().slice(0,10);
-  const wdHead=['L','M','M','G','V','S','D'];
-
-  // mesi coinvolti
-  const months=[];
-  let cur=min.slice(0,7);
-  const endM=max.slice(0,7);
-  while(cur<=endM){ months.push(cur); const [y,m]=cur.split('-').map(Number); cur=(m===12?(y+1)+'-01':y+'-'+String(m+1).padStart(2,'0')); }
-
-  let html='';
-  months.forEach(mk=>{
-    const [Y,M]=mk.split('-').map(Number);
-    const monthName=new Date(Y,M-1,1).toLocaleDateString('it-IT',{month:'long',year:'numeric'});
-    const firstDow=(new Date(Y,M-1,1).getDay()+6)%7; // 0=lun
-    const daysInMonth=new Date(Y,M,0).getDate();
-    html+=`<div class="mcal"><div class="mcal-title">${monthName.charAt(0).toUpperCase()+monthName.slice(1)}</div>`;
-    html+='<div class="mcal-grid">'+wdHead.map(w=>`<div class="mcal-wd">${w}</div>`).join('');
-    for(let i=0;i<firstDow;i++) html+='<div class="mcal-cell empty"></div>';
-    for(let day=1;day<=daysInMonth;day++){
-      const d=`${Y}-${String(M).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-      const items=calDayMap[d]||[];
-      const types=[...new Set(items.map(x=>x.tipo))];
-      const dots=types.map(t=>`<i class="dot ${t}"></i>`).join('');
-      const hasStay=items.some(x=>x.tipo==='allog'&&(x.role==='in'||x.role==='stay'));
-      html+=`<div class="mcal-cell${items.length?' has':''}${d===today?' today':''}${d===calSelected?' sel':''}${hasStay?' stay':''}" onclick="selectCalDay('${d}')">
-        <span class="dnum">${day}</span><div class="dots">${dots}</div></div>`;
+  try{
+    calDayMap=buildDayMap();
+    const days=Object.keys(calDayMap);
+    if(!days.length){
+      cal.innerHTML='<div class="cal-empty">Nessuna data inserita.<br>Aggiungi prenotazioni con le date per vederle sul calendario.</div>'; return;
     }
-    html+='</div></div>';
-  });
+    let min=days[0],max=days[0];
+    days.forEach(d=>{ if(d<min)min=d; if(d>max)max=d; });
+    const today=new Date().toISOString().slice(0,10);
+    const wdHead=['L','M','M','G','V','S','D'];
 
-  const legend='<div class="cal-legend"><span><i class="dot allog"></i>Alloggi</span><span><i class="dot volo"></i>Voli</span><span><i class="dot att"></i>Attività</span></div>';
-  // dettaglio giorno selezionato
-  let detail='';
-  if(calSelected && calDayMap[calSelected]){
-    detail=dayDetailHtml(calSelected);
-  } else {
-    detail='<div class="cal-hint">Tocca un giorno per vederne i dettagli</div>';
+    // mesi coinvolti (con guardia anti-loop)
+    const months=[];
+    let cur=min.slice(0,7);
+    const endM=max.slice(0,7);
+    let guard=0;
+    while(cur<=endM && guard<60){ months.push(cur); const [y,m]=cur.split('-').map(Number); cur=(m===12?(y+1)+'-01':y+'-'+String(m+1).padStart(2,'0')); guard++; }
+
+    let html='';
+    months.forEach(mk=>{
+      const [Y,M]=mk.split('-').map(Number);
+      const monthName=new Date(Y,M-1,1).toLocaleDateString('it-IT',{month:'long',year:'numeric'});
+      const firstDow=(new Date(Y,M-1,1).getDay()+6)%7;
+      const daysInMonth=new Date(Y,M,0).getDate();
+      html+=`<div class="mcal"><div class="mcal-title">${monthName.charAt(0).toUpperCase()+monthName.slice(1)}</div>`;
+      html+='<div class="mcal-grid">'+wdHead.map(w=>`<div class="mcal-wd">${w}</div>`).join('');
+      for(let i=0;i<firstDow;i++) html+='<div class="mcal-cell empty"></div>';
+      for(let day=1;day<=daysInMonth;day++){
+        const d=`${Y}-${String(M).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const items=calDayMap[d]||[];
+        const types=[...new Set(items.map(x=>x.tipo))];
+        const dots=types.map(t=>`<i class="dot ${t}"></i>`).join('');
+        const hasStay=items.some(x=>x.tipo==='allog'&&(x.role==='in'||x.role==='stay'));
+        html+=`<div class="mcal-cell${items.length?' has':''}${d===today?' today':''}${d===calSelected?' sel':''}${hasStay?' stay':''}" onclick="selectCalDay('${d}')">
+          <span class="dnum">${day}</span><div class="dots">${dots}</div></div>`;
+      }
+      html+='</div></div>';
+    });
+
+    const legend='<div class="cal-legend"><span><i class="dot allog"></i>Alloggi</span><span><i class="dot volo"></i>Voli</span><span><i class="dot att"></i>Attività</span></div>';
+    let detail='';
+    if(calSelected && calDayMap[calSelected]){ detail=dayDetailHtml(calSelected); }
+    else { detail='<div class="cal-hint">Tocca un giorno per vederne i dettagli</div>'; }
+    cal.innerHTML=html+legend+'<div id="cal-detail">'+detail+'</div>';
+  }catch(e){
+    cal.innerHTML='<div class="cal-empty">⚠️ Errore nel calendario: '+esc(e.message)+'<br>Controlla le date inserite nelle prenotazioni.</div>';
   }
-  cal.innerHTML=html+legend+'<div id="cal-detail">'+detail+'</div>';
 }
 
 function dayDetailHtml(d){
@@ -1001,9 +1033,14 @@ function postoOf(r){
 function renderPagamenti(){
   // voci con qualcosa ancora da pagare: da pagare, acconto, e pagare in loco
   const items=data.filter(r=>!r.escluso_totale && !r.da_prenotare && (r.stato_pagamento==='dapagare'||r.stato_pagamento==='acconto'||r.stato_pagamento==='inloco'||(!r.stato_pagamento&&!r.pagato)))
-    .map(r=>{ const p=Number(r.prezzo)||0; const acc=r.stato_pagamento==='acconto'?(Number(r.acconto)||0):0; return {...r, resto:Math.max(p-acc,0)}; })
+    .map(r=>{
+      const p=Number(r.prezzo)||0; const acc=r.stato_pagamento==='acconto'?(Number(r.acconto)||0):0;
+      // data di riferimento per l'ordinamento: in loco -> check-in; altrimenti -> scadenza pagamento
+      const refDate = r.stato_pagamento==='inloco' ? (r.data_inizio||'9999') : (r.data_pagamento||'9999');
+      return {...r, resto:Math.max(p-acc,0), refDate};
+    })
     .filter(r=>r.resto>0)
-    .sort((a,b)=>(a.data_pagamento||'9999').localeCompare(b.data_pagamento||'9999'));
+    .sort((a,b)=>a.refDate.localeCompare(b.refDate));
   if(!items.length) return '<div class="empty">🎉 Nessun pagamento in sospeso.</div>';
   const tot=items.reduce((s,r)=>s+r.resto,0);
   let html=`<div class="liststat">Totale ancora da pagare: <b>${eur(tot)}</b> · a testa ${eur(tot/2)}</div>`;
@@ -1013,7 +1050,7 @@ function renderPagamenti(){
     const scaduto = !inloco && r.data_pagamento && r.data_pagamento < oggi;
     const posto=postoOf(r);
     let sub;
-    if(inloco) sub='📍 da pagare in loco';
+    if(inloco) sub=r.data_inizio?`📍 in loco al check-in (<b>${fdate(r.data_inizio)}</b>)`:'📍 da pagare in loco';
     else if(r.data_pagamento) sub=(scaduto?'⚠️ scaduto il ':'entro ')+'<b>'+fdate(r.data_pagamento)+'</b>';
     else sub='senza scadenza';
     if(r.stato_pagamento==='acconto') sub+=' · acconto '+eur(Number(r.acconto)||0);
