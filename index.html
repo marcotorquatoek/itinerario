@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.7.1 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.8.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -23,6 +23,7 @@ body{
 }
 header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
 header h1{font-size:1.45rem;font-weight:700;letter-spacing:-.5px}
+.vbadge{font-size:.6rem;font-weight:600;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);padding:2px 7px;border-radius:999px;vertical-align:middle;letter-spacing:0}
 header h1 span{color:var(--teal)}
 header .sub{font-size:.72rem;color:var(--muted)}
 
@@ -61,7 +62,25 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .card.warn{border-color:var(--amber-line);border-width:2px}
 .card.nocanc-card{border-left:4px solid var(--red)}
 .card.excluded{opacity:.72;border-style:dashed}
-.excl-banner{background:repeating-linear-gradient(45deg,var(--surface-2),var(--surface-2) 8px,#e4ecea 8px,#e4ecea 16px);color:var(--muted);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:5px 10px;border-radius:9px;margin-bottom:10px;text-align:center}
+/* segnaposto da prenotare */
+.card.tobook{border:2px solid var(--red);background:#fff5f5}
+.tobook-banner{background:var(--red);color:#fff;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;padding:6px 10px;border-radius:9px;text-align:center;margin-bottom:10px}
+.tobook-msg{font-size:.78rem;color:var(--red);font-weight:600;margin-top:8px}
+/* more toggle */
+.more-toggle{width:100%;background:var(--surface-2);border:1px solid var(--line);color:var(--teal-deep);font-size:.85rem;font-weight:700;padding:11px;border-radius:11px;cursor:pointer;margin:6px 0 13px;text-align:left}
+.hint{font-size:.72rem;color:var(--teal);margin-top:5px;font-weight:600}
+.disclaimer.book{background:#fff5f5;border-color:#f5c6c6;color:var(--red)}
+/* liste pagamenti/cancellazioni */
+.liststat{font-size:.8rem;color:var(--muted);padding:6px 4px 12px}
+.liststat b{color:var(--text)}
+.lrow{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:13px 14px;margin-bottom:9px}
+.lrow.late{border-color:#f5c6c6;background:var(--red-bg)}
+.lrow-main{flex:1;min-width:0}
+.lrow-title{font-size:.92rem;font-weight:700}
+.lrow-sub{font-size:.75rem;color:var(--muted);margin-top:3px}
+.lrow.late .lrow-sub{color:var(--red);font-weight:600}
+.lrow-amt{font-size:1rem;font-weight:700;color:var(--text);white-space:nowrap}
+.sito a{color:var(--teal);text-decoration:none;font-weight:600}.excl-banner{background:repeating-linear-gradient(45deg,var(--surface-2),var(--surface-2) 8px,#e4ecea 8px,#e4ecea 16px);color:var(--muted);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:5px 10px;border-radius:9px;margin-bottom:10px;text-align:center}
 .info.nocanc{color:var(--red);font-weight:700}.daygroup{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:14px 2px 2px}
 .typetag{font-size:.62rem;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.4px}
 .typetag.allog{background:#e0f2f1;color:var(--teal-deep)}
@@ -186,7 +205,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div>
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.8.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
 </header>
@@ -205,6 +224,10 @@ header .sub{font-size:.72rem;color:var(--muted)}
   <button class="tab" data-tab="alloggi" onclick="setTab('alloggi')">🏨</button>
   <button class="tab" data-tab="voli" onclick="setTab('voli')">✈️</button>
   <button class="tab" data-tab="attivita" onclick="setTab('attivita')">🎟️</button>
+</div>
+<div class="tabs">
+  <button class="tab" data-tab="pagamenti" onclick="setTab('pagamenti')">💳 Pagamenti</button>
+  <button class="tab" data-tab="cancellazioni" onclick="setTab('cancellazioni')">⏳ Cancellazioni</button>
 </div>
 
 <div id="disclaimer"></div>
@@ -266,36 +289,19 @@ header .sub{font-size:.72rem;color:var(--muted)}
 
     <!-- ALLOGGIO -->
     <div class="grp" id="grp-allog">
-      <div class="field"><label>Tappa</label><input id="f-tappa" placeholder="es. Lisbona"></div>
-      <div class="field"><label>Tipo sistemazione</label><input id="f-sistemazione" placeholder="es. Hotel, Casa, Bungalow, B&B…" list="sist-list"></div>
-      <datalist id="sist-list">
-        <option value="Hotel"><option value="Appartamento"><option value="Casa"><option value="B&B"><option value="Bungalow"><option value="Ostello"><option value="Resort"><option value="Agriturismo">
-      </datalist>
-      <div class="two">
-        <div class="field"><label>Orario check-in</label><input type="time" id="f-orainizio"></div>
-        <div class="field"><label>Orario check-out</label><input type="time" id="f-orafine"></div>
-      </div>
-      <div class="field"><label>Colazione</label>
-        <select id="f-colazione" onchange="toggleColazionePrezzo()" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:11px;color:var(--text);font-size:.95rem;font-family:inherit">
-          <option value="no">Non disponibile</option>
-          <option value="inclusa">Inclusa</option>
-          <option value="pagamento">A pagamento</option>
-        </select>
-      </div>
-      <div class="field" id="fld-colaz-prezzo"><label>Costo colazione (a persona/notte)</label><input id="f-colazioneprezzo" placeholder="es. €12"></div>
+      <div class="field check" id="fld-daprenotare"><input type="checkbox" id="f-daprenotare" onchange="toggleDaPrenotare()"><label>📍 Solo segnaposto (ancora da prenotare)</label></div>
+      <div class="field"><label>Tappa / luogo</label><input id="f-tappa" placeholder="es. Lisbona"></div>
     </div>
 
     <!-- VOLO -->
     <div class="grp hide" id="grp-volo">
       <div class="field"><label>Compagnia</label><input id="f-compagnia" placeholder="es. ITA Airways"></div>
       <div class="field check"><input type="checkbox" id="f-andataritorno" onchange="toggleRitorno()"><label>🔁 Andata e ritorno</label></div>
-
       <div class="leg-section">
         <div class="leg-head">✈️ Andata</div>
         <div id="legs-andata"></div>
         <button type="button" class="add-leg" onclick="addLeg('andata')">+ Aggiungi tratta (scalo)</button>
       </div>
-
       <div class="leg-section hide" id="sec-ritorno">
         <div class="leg-head">🔙 Ritorno</div>
         <div id="legs-ritorno"></div>
@@ -309,36 +315,66 @@ header .sub{font-size:.72rem;color:var(--muted)}
       <div class="field"><label>Durata</label><input id="f-durata" placeholder="es. 3 ore"></div>
     </div>
 
-    <!-- Date: alloggi=2 date, voli/att=1 data -->
+    <!-- ===== ESSENZIALI ===== -->
+    <!-- Date (giorno/mese: l'anno è quello del viaggio) -->
     <div class="two" id="row-duedate">
-      <div class="field"><label id="lbl-d1">Data inizio</label><input type="date" id="f-inizio"></div>
-      <div class="field" id="fld-fine"><label>Data fine</label><input type="date" id="f-fine"></div>
+      <div class="field"><label id="lbl-d1">Data inizio (gg/mm)</label><input id="f-inizio" class="datein" placeholder="gg/mm" inputmode="numeric" maxlength="5"></div>
+      <div class="field" id="fld-fine"><label>Data fine (gg/mm)</label><input id="f-fine" class="datein" placeholder="gg/mm" inputmode="numeric" maxlength="5"></div>
     </div>
-
-    <div class="field"><label>Prenotato su (sito)</label><input id="f-sito" placeholder="es. Booking.com"></div>
 
     <div class="field"><label>Prezzo totale (€)</label><input type="number" inputmode="decimal" step="0.01" id="f-prezzo" placeholder="0.00"></div>
-    <div class="three">
-      <div class="field"><label>Importo valuta locale</label><input type="number" inputmode="decimal" step="0.01" id="f-prezzoloc" placeholder="es. 12000"></div>
-      <div class="field"><label>Valuta</label><input id="f-valuta" placeholder="es. JPY" maxlength="6"></div>
-    </div>
-    <div class="field check"><input type="checkbox" id="f-esclusototale"><label>🚫 Escludi dal calcolo del totale</label></div>
 
-    <div class="field check" id="fld-noncanc"><input type="checkbox" id="f-noncancellabile" onchange="toggleScadField()"><label>🔒 Non cancellabile</label></div>
-    <div class="field" id="fld-scad"><label>Scad. cancellazione</label><input type="date" id="f-scad"></div>
+    <div class="field"><label id="lbl-scad">Cancellazione</label>
+      <div class="two" style="margin-bottom:0">
+        <div class="field check" id="fld-noncanc" style="margin:0"><input type="checkbox" id="f-noncancellabile" onchange="toggleScadField()"><label>🔒 Non cancellabile</label></div>
+        <div class="field" id="fld-scad" style="margin:0"><input id="f-scad" class="datein" placeholder="gg/mm" inputmode="numeric" maxlength="5"></div>
+      </div>
+    </div>
 
     <div class="field"><label>Stato pagamento</label>
       <select id="f-statopag" onchange="togglePayField()" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:11px;color:var(--text);font-size:.95rem;font-family:inherit">
         <option value="dapagare">Da pagare</option>
-        <option value="pagato">Già pagato</option>
+        <option value="acconto">Acconto versato</option>
+        <option value="pagato">Saldato (totale)</option>
         <option value="inloco">Pagare in loco</option>
       </select>
     </div>
-    <div class="field" id="pay-wrap"><label>Da pagare entro il</label><input type="date" id="f-datapagamento"></div>
+    <div class="field" id="acconto-wrap"><label>Acconto già versato (€)</label><input type="number" inputmode="decimal" step="0.01" id="f-acconto" placeholder="0.00" oninput="updateAccontoHint()"><div class="hint" id="acconto-hint"></div></div>
+    <div class="field" id="pay-wrap"><label>Da pagare entro (gg/mm)</label><input id="f-datapagamento" class="datein" placeholder="gg/mm" inputmode="numeric" maxlength="5"></div>
 
-    <div class="field check warn" id="fld-valuta-canc"><input type="checkbox" id="f-valutacanc"><label>⚠️ Da valutare cancellazione (alloggio doppio)</label></div>
+    <!-- ===== INFORMAZIONI AGGIUNTIVE (collassabili) ===== -->
+    <button type="button" class="more-toggle" id="more-toggle" onclick="toggleMore()">▸ Informazioni aggiuntive</button>
+    <div id="more-fields" class="hide">
+      <div class="field"><label>Sito di prenotazione</label><input id="f-sito" placeholder="es. Booking.com"></div>
+      <div class="field" id="fld-link"><label>🔗 Link struttura</label><input id="f-link" type="url" placeholder="https://…"></div>
 
-    <div class="field" id="fld-note"><label>Note</label><textarea id="f-note" placeholder="Annotazioni…"></textarea></div>
+      <div class="grp-extra" id="extra-allog">
+        <div class="field"><label>Tipo sistemazione</label><input id="f-sistemazione" placeholder="es. Hotel, Casa, Bungalow…" list="sist-list"></div>
+        <datalist id="sist-list">
+          <option value="Hotel"><option value="Appartamento"><option value="Casa"><option value="B&B"><option value="Bungalow"><option value="Ostello"><option value="Resort"><option value="Agriturismo">
+        </datalist>
+        <div class="two">
+          <div class="field"><label>Orario check-in</label><input type="time" id="f-orainizio"></div>
+          <div class="field"><label>Orario check-out</label><input type="time" id="f-orafine"></div>
+        </div>
+        <div class="field"><label>Colazione</label>
+          <select id="f-colazione" onchange="toggleColazionePrezzo()" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:11px;color:var(--text);font-size:.95rem;font-family:inherit">
+            <option value="no">Non disponibile</option>
+            <option value="inclusa">Inclusa</option>
+            <option value="pagamento">A pagamento</option>
+          </select>
+        </div>
+        <div class="field" id="fld-colaz-prezzo"><label>Costo colazione (a persona/notte)</label><input id="f-colazioneprezzo" placeholder="es. €12"></div>
+        <div class="field check warn" id="fld-valuta-canc"><input type="checkbox" id="f-valutacanc"><label>⚠️ Da valutare cancellazione (alloggio doppio)</label></div>
+      </div>
+
+      <div class="three">
+        <div class="field"><label>Importo valuta locale</label><input type="number" inputmode="decimal" step="0.01" id="f-prezzoloc" placeholder="es. 12000"></div>
+        <div class="field"><label>Valuta</label><input id="f-valuta" placeholder="es. JPY" maxlength="6"></div>
+      </div>
+      <div class="field check"><input type="checkbox" id="f-esclusototale"><label>🚫 Escludi dal calcolo del totale</label></div>
+      <div class="field" id="fld-note"><label>Note</label><textarea id="f-note" placeholder="Annotazioni…"></textarea></div>
+    </div>
 
     <div class="modal-actions">
       <button class="btn ghost" onclick="closeForm()">Annulla</button>
@@ -374,6 +410,51 @@ const eur = n => '€' + (Number(n)||0).toLocaleString('it-IT',{minimumFractionD
 const num = n => (Number(n)||0).toLocaleString('it-IT',{minimumFractionDigits:0,maximumFractionDigits:2});
 const fdate = d => d ? new Date(d+'T00:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'short'}) : '—';
 const flong = d => d ? new Date(d+'T00:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'2-digit',month:'long'}) : '';
+
+// --- Date in formato gg/mm, anno derivato dal viaggio ---
+function tripYear(){ // anno base del viaggio
+  if(currentTrip && currentTrip.data_inizio) return Number(currentTrip.data_inizio.slice(0,4));
+  return new Date().getFullYear();
+}
+function tripStartMonth(){ return currentTrip && currentTrip.data_inizio ? Number(currentTrip.data_inizio.slice(5,7)) : 1; }
+// converte 'gg/mm' (o 'ggmm') in ISO 'YYYY-MM-DD' scegliendo l'anno giusto (gestisce viaggi a cavallo di capodanno)
+function ddmmToIso(s){
+  if(!s) return null;
+  s=s.trim().replace(/[^\d/]/g,'');
+  let dd,mm;
+  if(s.includes('/')){ [dd,mm]=s.split('/'); }
+  else if(s.length===4){ dd=s.slice(0,2); mm=s.slice(2,4); }
+  else if(s.length===3){ dd=s.slice(0,1); mm=s.slice(1,3); }
+  else return null;
+  dd=parseInt(dd,10); mm=parseInt(mm,10);
+  if(!dd||!mm||dd>31||mm>12) return null;
+  let year=tripYear();
+  // se il viaggio inizia (es.) a dicembre e questo mese è gennaio-giugno, è l'anno dopo
+  const sm=tripStartMonth();
+  if(currentTrip && currentTrip.data_fine){
+    // uso direttamente l'intervallo del viaggio per disambiguare
+    const y0=Number(currentTrip.data_inizio.slice(0,4)), y1=Number(currentTrip.data_fine.slice(0,4));
+    if(y1>y0 && mm < sm) year=y1; else year=y0;
+  } else if(sm>=7 && mm<sm){ year=year+1; }
+  return `${year}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+}
+// ISO 'YYYY-MM-DD' -> 'gg/mm'
+function isoToDdmm(iso){
+  if(!iso) return '';
+  const p=iso.split('-'); if(p.length<3) return '';
+  return p[2]+'/'+p[1];
+}
+// auto-inserisce lo slash mentre si digita
+function attachDateMask(){
+  document.querySelectorAll('.datein').forEach(inp=>{
+    if(inp._masked) return; inp._masked=true;
+    inp.addEventListener('input',()=>{
+      let v=inp.value.replace(/[^\d]/g,'').slice(0,4);
+      if(v.length>=3) v=v.slice(0,2)+'/'+v.slice(2);
+      inp.value=v;
+    });
+  });
+}
 const frange = (a,b)=> a||b ? `${a?fdate(a):'?'} → ${b?fdate(b):'?'}` : 'Date da definire';
 
 const TYPE_LABELS = {alloggio:'Alloggio', volo:'Volo', attivita:'Attività'};
@@ -582,11 +663,19 @@ function tipoOfTab(t){ return t==='alloggi'?'alloggio':t==='voli'?'volo':t==='at
 
 function render(){
   const isCal = tab==='calendario';
-  const filtered = (tab==='tutto'||isCal) ? data : data.filter(r=>r.tipo===tipoOfTab(tab));
+  const isList = (tab==='pagamenti'||tab==='cancellazioni');
+  const filtered = (tab==='tutto'||isCal||isList) ? data : data.filter(r=>r.tipo===tipoOfTab(tab));
 
-  // Totali sul set filtrato
+  // Totali sul set filtrato (per pagamenti/cancellazioni uso tutti i dati)
+  const totSet = isList ? data : filtered;
   let tot=0, paid=0;
-  filtered.forEach(r=>{ if(r.escluso_totale) return; const p=Number(r.prezzo)||0; tot+=p; if(r.pagato) paid+=p; });
+  totSet.forEach(r=>{
+    if(r.escluso_totale) return;
+    const p=Number(r.prezzo)||0;
+    tot+=p;
+    if(r.stato_pagamento==='pagato'||r.pagato) paid+=p;
+    else if(r.stato_pagamento==='acconto') paid+=Math.min(Number(r.acconto)||0, p);
+  });
   const due=tot-paid;
   const d = mode==='half' ? 2 : 1;
   $('s-tot').textContent=eur(tot/d);
@@ -596,16 +685,21 @@ function render(){
 
   // Disclaimer cancellazioni (sempre globale, su tutti i dati)
   const toCancel = data.filter(r=>r.valuta_cancellazione);
-  $('disclaimer').innerHTML = toCancel.length
-    ? `<div class="disclaimer"><span class="ic">⚠️</span><span>Hai ${toCancel.length} ${toCancel.length===1?'prenotazione':'prenotazioni'} da valutare per la cancellazione (doppi alloggi): ${toCancel.map(r=>esc(r.nome_hotel)).join(', ')}. Ricordati di cancellarne una!</span></div>`
-    : '';
+  const toBook = data.filter(r=>r.da_prenotare);
+  let disc='';
+  if(toCancel.length) disc+=`<div class="disclaimer"><span class="ic">⚠️</span><span>Hai ${toCancel.length} ${toCancel.length===1?'prenotazione':'prenotazioni'} da valutare per la cancellazione (doppi alloggi): ${toCancel.map(r=>esc(r.nome_hotel)).join(', ')}.</span></div>`;
+  if(toBook.length) disc+=`<div class="disclaimer book"><span class="ic">📍</span><span>Hai ${toBook.length} ${toBook.length===1?'alloggio ancora da prenotare':'alloggi ancora da prenotare'}: ${toBook.map(r=>esc(r.tappa||r.nome_hotel)).join(', ')}.</span></div>`;
+  $('disclaimer').innerHTML=disc;
 
-  // Switch vista calendario / lista
+  // Switch viste
   $('calendar').classList.toggle('hide', !isCal);
   $('list').classList.toggle('hide', isCal);
   if(isCal){ renderCalendar(); return; }
 
   const list=$('list');
+  if(tab==='pagamenti'){ list.innerHTML=renderPagamenti(); return; }
+  if(tab==='cancellazioni'){ list.innerHTML=renderCancellazioni(); return; }
+
   if(!filtered.length){ list.innerHTML='<div class="empty">Nessuna voce.<br>'+(tab==='tutto'?'Aggiungi qualcosa dalle altre tab.':'Tocca + per iniziare.')+'</div>'; return; }
 
   // Ordina cronologicamente per data_inizio
@@ -763,8 +857,34 @@ function cardHtml(r){
   }
 
   const st = r.stato_pagamento||(r.pagato?'pagato':'dapagare');
-  const cfg = {pagato:['paid','✓ Pagato'],inloco:['loco','📍 In loco'],dapagare:['unpaid','Da pagare']}[st];
-  const badgeHtml = `<span class="badge ${cfg[0]}" onclick="cyclePay('${r.id}','${st}')">${cfg[1]}</span>`;
+  const cfg = {pagato:['paid','✓ Saldato'],acconto:['loco','◐ Acconto'],inloco:['loco','📍 In loco'],dapagare:['unpaid','Da pagare']}[st]||['unpaid','Da pagare'];
+  const badgeHtml = r.da_prenotare ? '<span class="badge unpaid">📍 Da prenotare</span>' : `<span class="badge ${cfg[0]}" onclick="cyclePay('${r.id}','${st}')">${cfg[1]}</span>`;
+
+  // resto da pagare (acconto)
+  const acc=Number(r.acconto)||0;
+  const restoTxt = (st==='acconto' && acc>0) ? `<div class="info pay">💰 Acconto ${eur(acc)} versato · resta <b>${eur(Math.max(p-acc,0))}</b>${r.data_pagamento?` entro <b>${fdate(r.data_pagamento)}</b>`:''}</div>` : '';
+
+  if(r.da_prenotare){
+    return `
+    <div class="card tobook">
+      <div class="tobook-banner">📍 DA PRENOTARE</div>
+      <div class="top">
+        <div>
+          ${tag?tag+'<div style="height:6px"></div>':''}
+          <div class="title">${esc(r.nome_hotel)}</div>
+          <div class="meta">📍 ${esc(r.tappa)||'—'}</div>
+        </div>
+        ${badgeHtml}
+      </div>
+      ${(r.data_inizio||r.data_fine)?`<div class="row" style="margin-top:10px"><span>📅 <b>${fdate(r.data_inizio)}</b> → <b>${fdate(r.data_fine)}</b></span></div>`:''}
+      <div class="tobook-msg">Alloggio ancora da prenotare per queste date.</div>
+      ${r.note?`<div class="notes">📝 ${esc(r.note)}</div>`:''}
+      <div class="actions">
+        <button class="btn-sm" onclick='editRow(${JSON.stringify(r).replace(/'/g,"&#39;")})'>✎ Modifica</button>
+        <button class="btn-sm del" onclick="delRow('${r.id}')">🗑 Elimina</button>
+      </div>
+    </div>`;
+  }
 
   return `
   <div class="card ${r.valuta_cancellazione?'warn':''} ${r.non_cancellabile?'nocanc-card':''} ${r.escluso_totale?'excluded':''}">
@@ -775,13 +895,15 @@ function cardHtml(r){
         <div class="title">${esc(r.nome_hotel)}</div>
         <div class="meta">${meta}</div>
         ${r.sito_prenotazione?`<div class="sito">🔗 ${esc(r.sito_prenotazione)}</div>`:''}
+        ${r.link?`<div class="sito"><a href="${esc(r.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🌐 Apri link struttura</a></div>`:''}
       </div>
       ${badgeHtml}
     </div>
     ${dates}
     <div class="price">${eur(p)} ${loc}${r.escluso_totale?'<span class="excl">escluso dal totale</span>':`<span class="split">a testa ${eur(p/2)}</span>`}</div>
-    ${(r.stato_pagamento==='dapagare'||(!r.stato_pagamento&&!r.pagato)) && r.data_pagamento?`<div class="info pay">💳 Da pagare entro <b>${fdate(r.data_pagamento)}</b></div>`:''}
-    ${(r.stato_pagamento==='inloco')?`<div class="info">📍 Si paga in loco</div>`:''}
+    ${restoTxt}
+    ${(st==='dapagare') && r.data_pagamento?`<div class="info pay">💳 Da pagare entro <b>${fdate(r.data_pagamento)}</b></div>`:''}
+    ${(st==='inloco')?`<div class="info">📍 Si paga in loco</div>`:''}
     ${r.non_cancellabile?`<div class="info nocanc">🔒 Non cancellabile</div>`:(r.scadenza_cancellazione?`<div class="info">Cancellazione gratuita entro <b>${fdate(r.scadenza_cancellazione)}</b></div>`:'')}
     ${r.valuta_cancellazione?`<div class="warnflag">⚠️ Da valutare cancellazione (alloggio doppio)</div>`:''}
     ${r.note?`<div class="notes">📝 ${esc(r.note)}</div>`:''}
@@ -792,6 +914,58 @@ function cardHtml(r){
   </div>`;
 }
 function esc(s){return (s||'').toString().replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));}
+
+// ---------- LISTE PAGAMENTI / CANCELLAZIONI ----------
+function renderPagamenti(){
+  // voci con qualcosa ancora da pagare (da pagare o acconto), ordinate per data pagamento
+  const items=data.filter(r=>!r.escluso_totale && !r.da_prenotare && (r.stato_pagamento==='dapagare'||r.stato_pagamento==='acconto'||(!r.stato_pagamento&&!r.pagato)))
+    .map(r=>{ const p=Number(r.prezzo)||0; const acc=r.stato_pagamento==='acconto'?(Number(r.acconto)||0):0; return {...r, resto:Math.max(p-acc,0)}; })
+    .filter(r=>r.resto>0)
+    .sort((a,b)=>(a.data_pagamento||'9999').localeCompare(b.data_pagamento||'9999'));
+  if(!items.length) return '<div class="empty">🎉 Nessun pagamento in sospeso.</div>';
+  const tot=items.reduce((s,r)=>s+r.resto,0);
+  let html=`<div class="liststat">Totale ancora da pagare: <b>${eur(tot)}</b> · a testa ${eur(tot/2)}</div>`;
+  items.forEach(r=>{
+    const scaduto = r.data_pagamento && r.data_pagamento < new Date().toISOString().slice(0,10);
+    html+=`<div class="lrow ${scaduto?'late':''}">
+      <div class="lrow-main">
+        <div class="lrow-title">${TYPE_LABELS[r.tipo]?'<span class="typetag '+TYPE_TAGCLASS[r.tipo]+'">'+TYPE_LABELS[r.tipo]+'</span> ':''}${esc(r.nome_hotel)}</div>
+        <div class="lrow-sub">${r.data_pagamento?(scaduto?'⚠️ scaduto il ':'entro ')+'<b>'+fdate(r.data_pagamento)+'</b>':'senza scadenza'}${r.stato_pagamento==='acconto'?' · acconto versato '+eur(Number(r.acconto)||0):''}</div>
+      </div>
+      <div class="lrow-amt">${eur(r.resto)}</div>
+    </div>`;
+  });
+  return html;
+}
+function renderCancellazioni(){
+  // alloggi cancellabili con scadenza, ordinati per data scadenza; escludo non cancellabili e senza data
+  const items=data.filter(r=>r.tipo==='alloggio' && !r.non_cancellabile && r.scadenza_cancellazione)
+    .sort((a,b)=>a.scadenza_cancellazione.localeCompare(b.scadenza_cancellazione));
+  const noncanc=data.filter(r=>r.tipo==='alloggio' && r.non_cancellabile);
+  if(!items.length && !noncanc.length) return '<div class="empty">Nessuna scadenza di cancellazione registrata.</div>';
+  let html='';
+  if(items.length){
+    items.forEach(r=>{
+      const oggi=new Date().toISOString().slice(0,10);
+      const scaduto=r.scadenza_cancellazione<oggi;
+      const gg=daysBetween(oggi,r.scadenza_cancellazione);
+      html+=`<div class="lrow ${scaduto?'late':''}">
+        <div class="lrow-main">
+          <div class="lrow-title">${esc(r.nome_hotel)}${r.valuta_cancellazione?' ⚠️':''}</div>
+          <div class="lrow-sub">${scaduto?'scaduta il ':'cancellabile entro '}<b>${fdate(r.scadenza_cancellazione)}</b>${!scaduto&&gg>=0?` · ${gg===0?'oggi!':'tra '+gg+'gg'}`:''}</div>
+        </div>
+        <div class="lrow-amt">${eur(Number(r.prezzo)||0)}</div>
+      </div>`;
+    });
+  }
+  if(noncanc.length){
+    html+=`<div class="liststat" style="margin-top:14px">🔒 Non cancellabili</div>`;
+    noncanc.forEach(r=>{
+      html+=`<div class="lrow"><div class="lrow-main"><div class="lrow-title">${esc(r.nome_hotel)}</div><div class="lrow-sub">non rimborsabile</div></div><div class="lrow-amt">${eur(Number(r.prezzo)||0)}</div></div>`;
+    });
+  }
+  return html;
+}
 
 // ---------- VOLI: parsing e rendering ----------
 function parseTratte(raw){
@@ -882,8 +1056,15 @@ function collectLegs(dir){
 
 function togglePayField(){
   const s=$('f-statopag').value;
-  // data limite pagamento ha senso solo se "da pagare"
-  $('pay-wrap').style.display = s==='dapagare' ? 'block' : 'none';
+  $('pay-wrap').style.display = (s==='dapagare'||s==='acconto') ? 'block' : 'none';
+  $('acconto-wrap').style.display = s==='acconto' ? 'block' : 'none';
+  updateAccontoHint();
+}
+function updateAccontoHint(){
+  const tot=Number($('f-prezzo').value)||0;
+  const acc=Number($('f-acconto').value)||0;
+  const resto=Math.max(tot-acc,0);
+  $('acconto-hint').textContent = (tot&&acc)?`Resto da pagare: ${eur(resto)}`:'';
 }
 function toggleColazionePrezzo(){
   $('fld-colaz-prezzo').style.display = $('f-colazione').value==='pagamento' ? 'block' : 'none';
@@ -893,11 +1074,27 @@ function toggleScadField(){
   $('fld-scad').style.display = nc ? 'none' : 'block';
   if(nc) $('f-scad').value='';
 }
+function toggleMore(){
+  const m=$('more-fields'); const open=m.classList.toggle('hide')===false;
+  $('more-toggle').innerHTML=(open?'▾':'▸')+' Informazioni aggiuntive';
+}
+function toggleDaPrenotare(){
+  const on=$('f-daprenotare').checked;
+  // in modalità segnaposto restano solo nome/tappa + date; nascondo prezzo, pagamento, cancellazione, aggiuntive
+  ['f-prezzo'].forEach(id=>$(id).closest('.field').classList.toggle('hide',on));
+  $('f-statopag').closest('.field').classList.toggle('hide',on);
+  $('pay-wrap').classList.toggle('hide',on);
+  $('acconto-wrap').classList.toggle('hide',on);
+  $('lbl-scad').closest('.field').classList.toggle('hide',on);
+  $('more-toggle').classList.toggle('hide',on);
+  $('more-fields').classList.toggle('hide',on||$('more-fields').classList.contains('hide'));
+}
 
 async function cyclePay(id,cur){
-  const next={dapagare:'pagato',pagato:'inloco',inloco:'dapagare'}[cur]||'pagato';
+  const next={dapagare:'pagato',pagato:'inloco',inloco:'dapagare',acconto:'pagato'}[cur]||'pagato';
   const upd={stato_pagamento:next, pagato: next==='pagato'};
   if(next!=='dapagare') upd.data_pagamento=null;
+  if(next==='pagato') upd.acconto=0;
   const { error } = await db.from(TABLE).update(upd).eq('id',id);
   if(error){ alert('Errore: '+error.message); return; }
   load();
@@ -917,15 +1114,15 @@ function applyTypeUI(tipo){
   $('grp-att').classList.toggle('hide', tipo!=='attivita');
   // data fine solo alloggi
   $('fld-fine').classList.toggle('hide', tipo!=='alloggio');
-  $('lbl-d1').textContent = tipo==='alloggio'?'Data inizio':'Data';
+  $('lbl-d1').textContent = tipo==='alloggio'?'Data inizio (gg/mm)':'Data (gg/mm)';
   // blocco date standard nascosto per i voli (le date sono nelle tratte)
   $('row-duedate').classList.toggle('hide', tipo==='volo');
-  // scadenza cancellazione + flag valuta-cancellazione + non cancellabile: solo alloggi
-  $('fld-scad').classList.toggle('hide', tipo!=='alloggio');
-  $('fld-noncanc').classList.toggle('hide', tipo!=='alloggio');
-  $('fld-valuta-canc').classList.toggle('hide', tipo!=='alloggio');
-  // note solo attività
-  $('fld-note').classList.toggle('hide', tipo!=='attivita');
+  // cancellazione: solo alloggi
+  $('lbl-scad').closest('.field').classList.toggle('hide', tipo!=='alloggio');
+  // sezione extra alloggio (sistemazione, orari, colazione, doppio): solo alloggi
+  $('extra-allog').classList.toggle('hide', tipo!=='alloggio');
+  // segnaposto da prenotare: solo alloggi
+  $('fld-daprenotare').classList.toggle('hide', tipo!=='alloggio');
   // label nome
   $('lbl-nome').textContent = tipo==='alloggio'?'Nome hotel':tipo==='volo'?'Nome volo / riferimento':'Nome attività';
   $('f-nome').placeholder = tipo==='alloggio'?'es. Hotel Splendid':tipo==='volo'?'es. Andata Tokyo':'es. Tour Fushimi Inari';
@@ -933,22 +1130,25 @@ function applyTypeUI(tipo){
 
 function openForm(){
   let tipo=tipoOfTab(tab);
-  const fromAll = !tipo;            // creazione dalla tab "Tutto"
-  if(!tipo) tipo='alloggio';        // default
+  const fromAll = !tipo;
+  if(!tipo) tipo='alloggio';
   $('fld-tiposel').classList.toggle('hide', !fromAll);
   $('f-tiposel').value=tipo;
   $('modal-title').textContent='Nuova voce';
   applyTypeUI(tipo);
   $('f-id').value='';
-  ['f-nome','f-tappa','f-sistemazione','f-orainizio','f-orafine','f-compagnia','f-luogo','f-durata','f-inizio','f-fine','f-sito','f-prezzo','f-prezzoloc','f-valuta','f-scad','f-datapagamento','f-note','f-colazioneprezzo'].forEach(i=>$(i).value='');
+  ['f-nome','f-tappa','f-sistemazione','f-orainizio','f-orafine','f-compagnia','f-luogo','f-durata','f-inizio','f-fine','f-sito','f-link','f-prezzo','f-prezzoloc','f-valuta','f-scad','f-datapagamento','f-note','f-colazioneprezzo','f-acconto'].forEach(i=>$(i).value='');
   $('f-valutacanc').checked=false;
   $('f-esclusototale').checked=false;
+  $('f-daprenotare').checked=false;
   $('f-noncancellabile').checked=false; toggleScadField();
   $('f-colazione').value='no'; toggleColazionePrezzo();
   $('f-statopag').value='dapagare';
   $('f-andataritorno').checked=false; $('sec-ritorno').classList.add('hide');
   clearLegs(); addLeg('andata');
-  togglePayField();
+  $('more-fields').classList.add('hide'); $('more-toggle').innerHTML='▸ Informazioni aggiuntive';
+  togglePayField(); toggleDaPrenotare();
+  attachDateMask();
   $('overlay').classList.add('show');
 }
 
@@ -963,7 +1163,6 @@ function editRow(r){
   $('f-orainizio').value=r.ora_inizio||''; $('f-orafine').value=r.ora_fine||'';
   $('f-colazione').value=r.colazione||'no'; $('f-colazioneprezzo').value=r.colazione_prezzo||''; toggleColazionePrezzo();
   $('f-compagnia').value=r.compagnia||'';
-  // tratte volo
   clearLegs();
   const tr=parseTratte(r.tratte);
   if(r.tipo==='volo'){
@@ -974,16 +1173,24 @@ function editRow(r){
     tr.ritorno.forEach(l=>addLeg('ritorno',l));
   }
   $('f-luogo').value=r.luogo||''; $('f-durata').value=r.durata||'';
-  $('f-inizio').value=r.data_inizio||''; $('f-fine').value=r.data_fine||'';
-  $('f-sito').value=r.sito_prenotazione||'';
+  $('f-inizio').value=isoToDdmm(r.data_inizio); $('f-fine').value=isoToDdmm(r.data_fine);
+  $('f-sito').value=r.sito_prenotazione||''; $('f-link').value=r.link||'';
   $('f-prezzo').value=r.prezzo??''; $('f-prezzoloc').value=r.prezzo_locale??''; $('f-valuta').value=r.valuta||'';
-  $('f-scad').value=r.scadenza_cancellazione||'';
+  $('f-scad').value=isoToDdmm(r.scadenza_cancellazione);
   $('f-noncancellabile').checked=!!r.non_cancellabile; toggleScadField();
-  $('f-statopag').value = r.stato_pagamento || (r.pagato?'pagato':'dapagare'); $('f-datapagamento').value=r.data_pagamento||'';
+  $('f-statopag').value = r.stato_pagamento || (r.pagato?'pagato':'dapagare');
+  $('f-acconto').value = r.acconto??'';
+  $('f-datapagamento').value=isoToDdmm(r.data_pagamento);
   $('f-valutacanc').checked=!!r.valuta_cancellazione;
   $('f-esclusototale').checked=!!r.escluso_totale;
+  $('f-daprenotare').checked=!!r.da_prenotare;
   $('f-note').value=r.note||'';
-  togglePayField();
+  // apro le aggiuntive se contengono dati valorizzati
+  const hasExtra = r.link||r.tipo_sistemazione||r.ora_inizio||r.colazione&&r.colazione!=='no'||r.prezzo_locale||r.note||r.valuta_cancellazione||r.escluso_totale;
+  $('more-fields').classList.toggle('hide', !hasExtra);
+  $('more-toggle').innerHTML=(hasExtra?'▾':'▸')+' Informazioni aggiuntive';
+  togglePayField(); toggleDaPrenotare();
+  attachDateMask();
   $('overlay').classList.add('show');
 }
 function closeForm(){ $('overlay').classList.remove('show'); }
@@ -992,8 +1199,10 @@ async function save(){
   const tipo=$('f-tipo').value;
   const nome=$('f-nome').value.trim();
   if(!nome){ alert('Inserisci il nome'); return; }
-  const statoPag=$('f-statopag').value;        // dapagare | pagato | inloco
+  const daPrenotare = (tipo==='alloggio') && $('f-daprenotare').checked;
+  const statoPag = daPrenotare ? 'dapagare' : $('f-statopag').value;  // dapagare|acconto|pagato|inloco
   const pagato = statoPag==='pagato';
+  const acconto = statoPag==='acconto' ? (Number($('f-acconto').value)||0) : 0;
 
   // Voli: raccolgo le tratte
   let tratteJson=null, voloDataInizio=null, voloDa=null, voloA=null;
@@ -1005,6 +1214,8 @@ async function save(){
     voloDa = andata[0]?andata[0].da:null;
     voloA = andata.length?andata[andata.length-1].a:null;
   }
+
+  const prezzo = daPrenotare ? 0 : ($('f-prezzo').value?Number($('f-prezzo').value):0);
 
   const rec={
     viaggio_id: currentTrip ? currentTrip.id : null,
@@ -1022,20 +1233,23 @@ async function save(){
     tratte: tipo==='volo'?tratteJson:null,
     luogo: tipo==='attivita'?($('f-luogo').value.trim()||null):null,
     durata: tipo==='attivita'?($('f-durata').value.trim()||null):null,
-    data_inizio: tipo==='volo'?voloDataInizio:($('f-inizio').value||null),
-    data_fine: tipo==='alloggio'?($('f-fine').value||null):null,
+    data_inizio: tipo==='volo'?voloDataInizio:ddmmToIso($('f-inizio').value),
+    data_fine: tipo==='alloggio'?ddmmToIso($('f-fine').value):null,
     sito_prenotazione:$('f-sito').value.trim()||null,
-    prezzo:$('f-prezzo').value?Number($('f-prezzo').value):0,
+    link:$('f-link').value.trim()||null,
+    prezzo:prezzo,
     prezzo_locale:$('f-prezzoloc').value?Number($('f-prezzoloc').value):null,
     valuta:$('f-valuta').value.trim().toUpperCase()||null,
     pagato:pagato,
     stato_pagamento:statoPag,
-    scadenza_cancellazione: (tipo==='alloggio' && !$('f-noncancellabile').checked)?($('f-scad').value||null):null,
+    acconto:acconto,
+    scadenza_cancellazione: (tipo==='alloggio' && !$('f-noncancellabile').checked && !daPrenotare)?ddmmToIso($('f-scad').value):null,
     non_cancellabile: tipo==='alloggio'?$('f-noncancellabile').checked:false,
-    data_pagamento: statoPag==='dapagare'?($('f-datapagamento').value||null):null,
+    data_pagamento: (statoPag==='dapagare'||statoPag==='acconto')&&!daPrenotare?ddmmToIso($('f-datapagamento').value):null,
     valuta_cancellazione: tipo==='alloggio'?$('f-valutacanc').checked:false,
-    escluso_totale: $('f-esclusototale').checked,
-    note: tipo==='attivita'?($('f-note').value.trim()||null):null
+    escluso_totale: daPrenotare ? true : $('f-esclusototale').checked,
+    da_prenotare: daPrenotare,
+    note: $('f-note').value.trim()||null
   };
   const id=$('f-id').value;
   $('save-btn').textContent='…';
