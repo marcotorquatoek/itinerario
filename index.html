@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<!-- App Prenotazioni Viaggio — versione interna: v4.6.0 -->
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Itinerario · Prenotazioni</title>
+<style>
+:root{
+  --bg:#f4f7f6; --surface:#ffffff; --surface-2:#eef5f3;
+  --line:#dbe7e4; --teal:#0d9488; --teal-deep:#0f766e;
+  --text:#16302d; --muted:#6b8a85;
+  --green:#16a34a; --green-bg:#e7f6ec;
+  --red:#dc2626; --red-bg:#fdeaea;
+  --amber:#b45309; --amber-bg:#fef3c7; --amber-line:#fcd34d;
+  --shadow:0 6px 18px rgba(13,148,136,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg); color:var(--text);
+  padding:18px 14px 110px; max-width:520px; margin:0 auto; min-height:100vh;
+}
+header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+header h1{font-size:1.45rem;font-weight:700;letter-spacing:-.5px}
+header h1 span{color:var(--teal)}
+header .sub{font-size:.72rem;color:var(--muted)}
+
+/* Tabs */
+.tabs{display:flex;gap:6px;background:var(--surface-2);padding:5px;border-radius:14px;margin-bottom:16px}
+.tab{flex:1;text-align:center;font-size:.78rem;font-weight:600;padding:9px 4px;border-radius:10px;color:var(--muted);cursor:pointer;border:none;background:none}
+.tab.active{background:var(--surface);color:var(--teal);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+
+/* Disclaimer */
+.disclaimer{background:var(--amber-bg);border:1px solid var(--amber-line);border-radius:14px;padding:13px 14px;margin-bottom:14px;font-size:.82rem;color:var(--amber);font-weight:600;display:flex;gap:9px;align-items:flex-start}
+.disclaimer .ic{font-size:1.2rem;line-height:1}
+
+/* Summary */
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.scard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+.scard .lbl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.scard .val{font-size:1.35rem;font-weight:700;margin-top:4px}
+.scard .half{font-size:.72rem;color:var(--muted);margin-top:3px}
+.scard .half b{color:var(--teal);font-weight:700}
+.scard.full{grid-column:1/-1;background:var(--teal);border-color:var(--teal)}
+.scard.full .lbl{color:rgba(255,255,255,.8)}
+.scard.full .val{color:#fff}
+.scard.full .half{color:rgba(255,255,255,.9)}
+.scard.full .half b{color:#fff}
+.val.green{color:var(--green)} .val.red{color:var(--red)}
+
+/* Mode tabs (Totale / A testa) dentro la card piena */
+.modetabs{display:flex;gap:4px;background:rgba(255,255,255,.18);padding:4px;border-radius:11px}
+.mtab{flex:1;text-align:center;font-size:.74rem;font-weight:700;padding:8px 4px;border-radius:8px;color:rgba(255,255,255,.85);cursor:pointer;border:none;background:none}
+.mtab.active{background:#fff;color:var(--teal-deep)}
+
+#status{font-size:.75rem;color:var(--muted);margin:14px 2px 6px}
+
+.list{display:flex;flex-direction:column;gap:12px;margin-top:6px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);position:relative}
+.card.warn{border-color:var(--amber-line);border-width:2px}
+.card.nocanc-card{border-left:4px solid var(--red)}
+.info.nocanc{color:var(--red);font-weight:700}.daygroup{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:14px 2px 2px}
+.typetag{font-size:.62rem;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.4px}
+.typetag.allog{background:#e0f2f1;color:var(--teal-deep)}
+.typetag.volo{background:#e0e7ff;color:#4338ca}
+.typetag.att{background:#fce7f3;color:#be185d}
+.card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.card .title{font-size:1.05rem;font-weight:700;line-height:1.2}
+.card .meta{font-size:.78rem;color:var(--teal);margin-top:2px}
+.card .sito{font-size:.72rem;color:var(--muted);margin-top:3px}
+.badge{font-size:.68rem;font-weight:700;padding:5px 10px;border-radius:999px;white-space:nowrap;cursor:pointer;border:1px solid transparent;user-select:none}
+.badge.paid{background:var(--green-bg);color:var(--green);border-color:#bce5cb}
+.badge.unpaid{background:var(--red-bg);color:var(--red);border-color:#f5c6c6}
+.badge.loco{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-line)}
+
+/* Calendario / agenda verticale */
+.cal{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:6px}
+.agenda{padding:4px}
+.ag-row{display:grid;grid-template-columns:48px 1fr;gap:10px;padding:7px 8px;border-radius:10px;align-items:stretch}
+.ag-row+.ag-row{border-top:1px solid var(--line)}
+.ag-row.today{background:rgba(13,148,136,.07)}
+.ag-date{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:2px;line-height:1.05}
+.ag-date .wd{font-size:.6rem;color:var(--muted);text-transform:uppercase}
+.ag-date .dn{font-size:1.15rem;font-weight:800;color:var(--text)}
+.ag-date .mo{font-size:.58rem;color:var(--muted);text-transform:uppercase}
+.ag-row.today .ag-date .dn,.ag-row.today .ag-date .wd{color:var(--teal)}
+.ag-body{display:flex;flex-direction:column;gap:5px;min-width:0;justify-content:center}
+.ag-lanes{display:grid;gap:3px}
+.ag-seg{height:22px;display:flex;align-items:center;padding:0 8px;font-size:.72rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ag-seg.empty{background:none}
+.ag-seg.one{background:var(--teal);border-radius:7px}
+.ag-seg.start{background:var(--teal);border-radius:7px 0 0 7px}
+.ag-seg.mid{background:var(--teal);opacity:.55}
+.ag-seg.end{background:var(--teal);opacity:.55;border-radius:0 7px 7px 0;justify-content:flex-end}
+.ag-seg.paid.one,.ag-seg.paid.start{background:var(--teal-deep)}
+.ag-seg.paid.mid,.ag-seg.paid.end{background:var(--teal-deep);opacity:.55}
+.ag-seg .endlbl{font-size:.62rem;font-weight:600;opacity:.95}
+.ag-ev{font-size:.76rem;color:var(--text);padding:4px 9px;border-radius:8px;border-left:3px solid;background:var(--surface-2)}
+.ag-ev b{font-weight:700}
+.ag-ev .t{color:var(--muted);font-size:.7rem;margin-left:4px}
+.ag-ev.volo{border-color:#4338ca}
+.ag-ev.att{border-color:#be185d}
+.ag-free{font-size:.8rem;color:var(--line)}
+.cal-legend{display:flex;gap:14px;margin-top:12px;font-size:.72rem;color:var(--muted);flex-wrap:wrap;padding-left:4px}
+.cal-legend span{display:inline-flex;align-items:center;gap:5px}
+.cal-legend i{width:12px;height:12px;border-radius:4px;display:inline-block}
+.cal-empty{text-align:center;color:var(--muted);padding:30px;font-size:.85rem}
+.card .row{display:flex;justify-content:space-between;font-size:.82rem;color:var(--muted);margin-top:12px;gap:8px}
+.card .row b{color:var(--text);font-weight:600}
+.card .price{font-size:1.15rem;font-weight:700;color:var(--text);margin-top:10px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.card .price .loc{font-size:.8rem;font-weight:600;color:var(--muted)}
+.card .price .split{font-size:.74rem;font-weight:600;color:var(--teal);margin-left:auto}
+.card .price .excl{font-size:.7rem;font-weight:600;color:var(--muted);margin-left:auto;background:var(--surface-2);padding:3px 8px;border-radius:7px}
+.card .info{font-size:.72rem;color:var(--muted);margin-top:8px}
+.card .info b{color:var(--amber);font-weight:600}
+.card .info.pay b{color:var(--red);font-weight:700}
+.card .warnflag{font-size:.74rem;font-weight:700;color:var(--amber);background:var(--amber-bg);border-radius:9px;padding:7px 10px;margin-top:10px;display:flex;gap:7px;align-items:center}
+.card .notes{font-size:.78rem;color:var(--muted);margin-top:8px;font-style:italic}
+.card .actions{display:flex;gap:8px;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.btn-sm{flex:1;font-size:.8rem;font-weight:600;padding:9px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);cursor:pointer}
+.btn-sm.del{color:var(--red);border-color:#f3d3d3}
+
+.empty{text-align:center;color:var(--muted);padding:50px 20px;font-size:.9rem}
+
+.fab{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+  background:var(--teal);color:#fff;border:none;width:60px;height:60px;border-radius:50%;
+  font-size:2rem;font-weight:300;line-height:1;box-shadow:0 6px 20px rgba(13,148,136,.4);cursor:pointer;z-index:20}
+.fab[disabled]{opacity:.35;pointer-events:none}
+
+.overlay{position:fixed;inset:0;background:rgba(22,48,45,.4);display:none;align-items:flex-end;justify-content:center;z-index:30}
+.overlay.show{display:flex}
+.modal{background:var(--surface);width:100%;max-width:520px;border-radius:22px 22px 0 0;padding:22px 18px 30px;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:1.1rem;margin-bottom:16px}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:.74rem;color:var(--muted);margin-bottom:5px}
+.field input,.field textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:11px;color:var(--text);font-size:.95rem;font-family:inherit}
+.field textarea{resize:vertical;min-height:60px}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--teal)}
+.field.check{display:flex;align-items:center;gap:9px}
+.field.check input{width:20px;height:20px;accent-color:var(--teal)}
+.field.check.warn input{accent-color:var(--amber)}
+.field.check label{margin:0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.three{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+.modal-actions{display:flex;gap:10px;margin-top:18px}
+.btn{flex:1;padding:13px;border-radius:13px;border:none;font-size:.95rem;font-weight:700;cursor:pointer}
+.btn.primary{background:var(--teal);color:#fff}
+.btn.ghost{background:var(--surface-2);color:var(--text);border:1px solid var(--line)}
+.hide{display:none!important}
+
+/* Editor tratte volo */
+.leg-section{margin:14px 0;padding:12px;background:var(--surface-2);border-radius:13px}
+.leg-head{font-size:.85rem;font-weight:700;color:var(--teal-deep);margin-bottom:10px}
+.leg{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:10px;position:relative}
+.leg .legnum{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.leg .legdel{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--red);font-size:.95rem;cursor:pointer;padding:2px}
+.leg .two{margin-bottom:8px}
+.leg .field{margin-bottom:8px}
+.leg .field label{font-size:.68rem}
+.leg .field input{padding:9px;font-size:.9rem}
+.add-leg{width:100%;background:none;border:1px dashed var(--teal);color:var(--teal);font-size:.82rem;font-weight:600;padding:9px;border-radius:10px;cursor:pointer}
+
+/* Rendering volo card */
+.fl-block{margin-top:12px;background:var(--surface-2);border-radius:12px;padding:11px}
+.fl-title{font-size:.74rem;font-weight:700;color:var(--teal-deep);margin-bottom:8px}
+.fl-leg{border-left:2px solid var(--line);padding-left:10px;margin-left:3px}
+.fl-row{display:flex;justify-content:space-between;align-items:baseline;font-size:.82rem;gap:8px;margin:2px 0}
+.fl-row .ap{font-weight:700;color:var(--text)}
+.fl-row .tm{color:var(--muted);text-align:right}
+.fl-row .home{color:var(--teal);font-weight:600}
+.fl-dur{font-size:.72rem;color:var(--muted);margin:2px 0 2px 10px}
+.fl-scalo{font-size:.74rem;font-weight:600;color:var(--amber);background:var(--amber-bg);border-radius:8px;padding:5px 9px;margin:8px 0;display:inline-block}
+
+/* Viaggi */
+.back{display:inline-flex;align-items:center;gap:5px;font-size:.8rem;font-weight:600;color:var(--teal);background:none;border:none;cursor:pointer;padding:6px 0;margin-bottom:6px}
+.trip-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);cursor:pointer;position:relative;margin-bottom:12px;transition:transform .1s}
+.trip-card:active{transform:scale(.99)}
+.trip-card .tname{font-size:1.15rem;font-weight:700}
+.trip-card .tdates{font-size:.8rem;color:var(--muted);margin-top:4px}
+.trip-card .tmeta{font-size:.78rem;color:var(--teal);margin-top:10px;font-weight:600}
+.trip-card .tdel{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:4px}
+.trip-card .twarn{font-size:.72rem;color:var(--amber);font-weight:700;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
+    <h1>Itine<span>rario</span></h1>
+    <div class="sub" id="headsub">I tuoi viaggi</div>
+  </div>
+</header>
+
+<!-- VISTA: LISTA VIAGGI -->
+<div id="view-trips">
+  <div id="trips-status">Caricamento…</div>
+  <div id="trips-list"></div>
+</div>
+
+<!-- VISTA: DETTAGLIO VIAGGIO -->
+<div id="view-detail" class="hide">
+<div class="tabs">
+  <button class="tab active" data-tab="tutto" onclick="setTab('tutto')">📋 Tutto</button>
+  <button class="tab" data-tab="calendario" onclick="setTab('calendario')">📅 Cal.</button>
+  <button class="tab" data-tab="alloggi" onclick="setTab('alloggi')">🏨</button>
+  <button class="tab" data-tab="voli" onclick="setTab('voli')">✈️</button>
+  <button class="tab" data-tab="attivita" onclick="setTab('attivita')">🎟️</button>
+</div>
+
+<div id="disclaimer"></div>
+<button class="back" onclick="editTrip()" style="margin-bottom:10px">✎ Modifica dettagli viaggio</button>
+
+<div class="summary">
+  <div class="scard full" style="padding-bottom:12px">
+    <div class="modetabs">
+      <button class="mtab active" id="mt-tot" onclick="setMode('tot')">Totale viaggio</button>
+      <button class="mtab" id="mt-half" onclick="setMode('half')">A testa</button>
+    </div>
+    <div class="val" id="s-tot" style="margin-top:10px">€0</div>
+  </div>
+  <div class="scard"><div class="lbl">Pagato</div><div class="val green" id="s-paid">€0</div></div>
+  <div class="scard"><div class="lbl">Da pagare</div><div class="val red" id="s-due">€0</div></div>
+</div>
+
+<div id="status">Caricamento…</div>
+<div id="calendar" class="hide"></div>
+<div class="list" id="list"></div>
+</div><!-- /view-detail -->
+
+<button class="fab" id="fab" onclick="onFab()">+</button>
+
+<!-- MODAL VIAGGIO -->
+<div class="overlay" id="overlay-trip">
+  <div class="modal">
+    <h2 id="trip-modal-title">Nuovo viaggio</h2>
+    <input type="hidden" id="t-id">
+    <div class="field"><label>Nome viaggio</label><input id="t-nome" placeholder="es. Giappone 2026"></div>
+    <div class="two">
+      <div class="field"><label>Dal</label><input type="date" id="t-inizio"></div>
+      <div class="field"><label>Al</label><input type="date" id="t-fine"></div>
+    </div>
+    <div class="field"><label>Note</label><textarea id="t-note" placeholder="Destinazioni, compagni di viaggio…"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeTripForm()">Annulla</button>
+      <button class="btn primary" id="trip-save-btn" onclick="saveTrip()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="modal-title">Nuova voce</h2>
+    <input type="hidden" id="f-id">
+    <input type="hidden" id="f-tipo">
+
+    <div class="field" id="fld-tiposel"><label>Tipo voce</label>
+      <select id="f-tiposel" onchange="applyTypeUI(this.value)" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:11px;color:var(--text);font-size:.95rem;font-family:inherit">
+        <option value="alloggio">🏨 Alloggio</option>
+        <option value="volo">✈️ Volo</option>
+        <option value="attivita">🎟️ Attività</option>
+      </select>
+    </div>
+
+    <!-- Campi comuni: nome -->
+    <div class="field"><label id="lbl-nome">Nome</label><input id="f-nome" placeholder=""></div>
+
+    <!-- ALLOGGIO -->
+    <div class="grp" id="grp-allog">
+      <div class="field"><label>Tappa</label><input id="f-tappa" placeholder="es. Lisbona"></div>
+      <div class="field"><label>Tipo sistemazione</label><input id="f-sistemazione" placeholder="es. Hotel, Casa, Bungalow, B&B…" list="sist-list"></div>
+      <datalist id="sist-list">
+        <option value="Hotel"><option value="Appartamento"><option value="Casa"><option value="B&B"><option value="Bungalow"><option value="Ostello"><option value="Resort"><option value="Agriturismo">
+      </datalist>
+      <div class="two">
+        <div class="field"><label>Orario check-in</label><input type="time" id="f-orainizio"></div>
+        <div class="field"><label>Orario check-out</label><input type="time" id="f-orafine"></div>
+      </div>
+      <div class="field"><label>Colazione</label>
+        <select id="f-colazione" onchange="toggleColazionePrezzo()" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:11px;color:var(--text);font-size:.95rem;font-family:inherit">
+          <option value="no">Non disponibile</option>
+          <option value="inclusa">Inclusa</option>
+          <option value="pagamento">A pagamento</option>
+        </select>
+      </div>
+      <div class="field" id="fld-colaz-prezzo"><label>Costo colazione (a persona/notte)</label><input id="f-colazioneprezzo" placeholder="es. €12"></div>
+    </div>
+
+    <!-- VOLO -->
+    <div class="grp hide" id="grp-volo">
+      <div class="field"><label>Compagnia</label><input id="f-compagnia" placeholder="es. ITA Airways"></div>
+      <div class="field check"><input type="checkbox" id="f-andataritorno" onchange="toggleRitorno()"><label>🔁 Andata e ritorno</label></div>
+
+      <div class="leg-section">
+        <div class="leg-head">✈️ Andata</div>
+        <div id="legs-andata"></div>
+        <button type="button" class="add-leg" onclick="addLeg('andata')">+ Aggiungi tratta (scalo)</button>
+      </div>
+
+      <div class="leg-section hide" id="sec-ritorno">
+        <div class="leg-head">🔙 Ritorno</div>
+        <div id="legs-ritorno"></div>
+        <button type="button" class="add-leg" onclick="addLeg('ritorno')">+ Aggiungi tratta (scalo)</button>
+      </div>
+    </div>
+
+    <!-- ATTIVITÀ -->
+    <div class="grp hide" id="grp-att">
+      <div class="field"><label>Luogo</label><input id="f-luogo" placeholder="es. Tokyo"></div>
+      <div class="field"><label>Durata</label><input id="f-durata" placeholder="es. 3 ore"></div>
+    </div>
+
+    <!-- Date: alloggi=2 date, voli/att=1 data -->
+    <div class="two" id="row-duedate">
+      <div class="field"><label id="lbl-d1">Data inizio</label><input type="date" id="f-inizio"></div>
+      <div class="field" id="fld-fine"><label>Data fine</label><input type="date" id="f-fine"></div>
+    </div>
+
+    <div class="field"><label>Prenotato su (sito)</label><input id="f-sito" placeholder="es. Booking.com"></div>
+
+    <div class="field"><label>Prezzo totale (€)</label><input type="number" inputmode="decimal" step="0.01" id="f-prezzo" placeholder="0.00"></div>
+    <div class="three">
+      <div class="field"><label>Importo valuta locale</label><input type="number" inputmode="decimal" step="0.01" id="f-prezzoloc" placeholder="es. 12000"></div>
+      <div class="field"><label>Valuta</label><input id="f-valuta" placeholder="es. JPY" maxlength="6"></div>
+    </div>
+    <div class="field check"><input type="checkbox" id="f-esclusototale"><label>🚫 Escludi dal calcolo del totale</label></div>
+
+    <div class="field check" id="fld-noncanc"><input type="checkbox" id="f-noncancellabile" onchange="toggleScadField()"><label>🔒 Non cancellabile</label></div>
+    <div class="field" id="fld-scad"><label>Scad. cancellazione</label><input type="date" id="f-scad"></div>
+
+    <div class="field"><label>Stato pagamento</label>
+      <select id="f-statopag" onchange="togglePayField()" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:11px;color:var(--text);font-size:.95rem;font-family:inherit">
+        <option value="dapagare">Da pagare</option>
+        <option value="pagato">Già pagato</option>
+        <option value="inloco">Pagare in loco</option>
+      </select>
+    </div>
+    <div class="field" id="pay-wrap"><label>Da pagare entro il</label><input type="date" id="f-datapagamento"></div>
+
+    <div class="field check warn" id="fld-valuta-canc"><input type="checkbox" id="f-valutacanc"><label>⚠️ Da valutare cancellazione (alloggio doppio)</label></div>
+
+    <div class="field" id="fld-note"><label>Note</label><textarea id="f-note" placeholder="Annotazioni…"></textarea></div>
+
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeForm()">Annulla</button>
+      <button class="btn primary" id="save-btn" onclick="save()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// =====================================================================
+//  CONFIGURAZIONE SUPABASE — inserisci qui le tue credenziali
+// =====================================================================
+const SUPABASE_URL = 'https://zdwzombpaixkcryfpkxg.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpkd3pvbWJwYWl4a2NyeWZwa3hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MzczMTAsImV4cCI6MjA5NzMxMzMxMH0.ttAPvk-kV_BWC8RH43eVNXsN6HglLIQhp0rieWwjGPw';
+const TABLE = 'itinerario_prenotazioni';
+const TABLE_TRIPS = 'itinerario_viaggi';
+// =====================================================================
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = id => document.getElementById(id);
+const eur = n => '€' + (Number(n)||0).toLocaleString('it-IT',{minimumFractionDigits:0,maximumFractionDigits:2});
+const num = n => (Number(n)||0).toLocaleString('it-IT',{minimumFractionDigits:0,maximumFractionDigits:2});
+const fdate = d => d ? new Date(d+'T00:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'short'}) : '—';
+const flong = d => d ? new Date(d+'T00:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'2-digit',month:'long'}) : '';
+const frange = (a,b)=> a||b ? `${a?fdate(a):'?'} → ${b?fdate(b):'?'}` : 'Date da definire';
+
+const TYPE_LABELS = {alloggio:'Alloggio', volo:'Volo', attivita:'Attività'};
+const TYPE_TAGCLASS = {alloggio:'allog', volo:'volo', attivita:'att'};
+
+// IATA -> timezone IANA (principali aeroporti). Estendibile.
+const IATA_TZ = {
+  MXP:'Europe/Rome', LIN:'Europe/Rome', BGY:'Europe/Rome', FCO:'Europe/Rome', VCE:'Europe/Rome', NAP:'Europe/Rome', BLQ:'Europe/Rome', TRN:'Europe/Rome', CTA:'Europe/Rome', PMO:'Europe/Rome',
+  CDG:'Europe/Paris', ORY:'Europe/Paris', LHR:'Europe/London', LGW:'Europe/London', STN:'Europe/London', AMS:'Europe/Amsterdam', FRA:'Europe/Berlin', MUC:'Europe/Berlin', BER:'Europe/Berlin',
+  MAD:'Europe/Madrid', BCN:'Europe/Madrid', LIS:'Europe/Lisbon', OPO:'Europe/Lisbon', ZRH:'Europe/Zurich', GVA:'Europe/Zurich', VIE:'Europe/Vienna', BRU:'Europe/Brussels', CPH:'Europe/Copenhagen',
+  ARN:'Europe/Stockholm', OSL:'Europe/Oslo', HEL:'Europe/Helsinki', DUB:'Europe/Dublin', ATH:'Europe/Athens', IST:'Europe/Istanbul', SAW:'Europe/Istanbul', PRG:'Europe/Prague', WAW:'Europe/Warsaw', BUD:'Europe/Budapest',
+  JFK:'America/New_York', EWR:'America/New_York', LGA:'America/New_York', BOS:'America/New_York', IAD:'America/New_York', MIA:'America/New_York', ATL:'America/New_York', ORD:'America/Chicago', DFW:'America/Chicago', IAH:'America/Chicago',
+  DEN:'America/Denver', LAX:'America/Los_Angeles', SFO:'America/Los_Angeles', SEA:'America/Los_Angeles', LAS:'America/Los_Angeles', YYZ:'America/Toronto', YVR:'America/Vancouver', YUL:'America/Toronto', MEX:'America/Mexico_City', GRU:'America/Sao_Paulo', GIG:'America/Sao_Paulo', EZE:'America/Argentina/Buenos_Aires', BOG:'America/Bogota', LIM:'America/Lima', SCL:'America/Santiago',
+  DXB:'Asia/Dubai', AUH:'Asia/Dubai', DOH:'Asia/Qatar', MCT:'Asia/Muscat', KWI:'Asia/Kuwait', BAH:'Asia/Bahrain', RUH:'Asia/Riyadh', JED:'Asia/Riyadh', TLV:'Asia/Jerusalem', CAI:'Africa/Cairo', JNB:'Africa/Johannesburg', CPT:'Africa/Johannesburg', NBO:'Africa/Nairobi', ADD:'Africa/Addis_Ababa', CMN:'Africa/Casablanca',
+  DEL:'Asia/Kolkata', BOM:'Asia/Kolkata', BLR:'Asia/Kolkata', MAA:'Asia/Kolkata', CMB:'Asia/Colombo', KTM:'Asia/Kathmandu', DAC:'Asia/Dhaka',
+  BKK:'Asia/Bangkok', DMK:'Asia/Bangkok', SIN:'Asia/Singapore', KUL:'Asia/Kuala_Lumpur', CGK:'Asia/Jakarta', SUB:'Asia/Jakarta', DPS:'Asia/Makassar', LBJ:'Asia/Makassar', LOP:'Asia/Makassar', UPG:'Asia/Makassar', MNL:'Asia/Manila', HAN:'Asia/Ho_Chi_Minh', SGN:'Asia/Ho_Chi_Minh', HKG:'Asia/Hong_Kong',
+  PEK:'Asia/Shanghai', PKX:'Asia/Shanghai', PVG:'Asia/Shanghai', SHA:'Asia/Shanghai', CAN:'Asia/Shanghai', CTU:'Asia/Shanghai', TPE:'Asia/Taipei',
+  NRT:'Asia/Tokyo', HND:'Asia/Tokyo', KIX:'Asia/Tokyo', ICN:'Asia/Seoul', GMP:'Asia/Seoul',
+  SYD:'Australia/Sydney', MEL:'Australia/Melbourne', BNE:'Australia/Brisbane', PER:'Australia/Perth', AKL:'Pacific/Auckland'
+};
+const COUNTRY_FLAG = {
+  'Europe/Rome':'🇮🇹','Europe/Paris':'🇫🇷','Europe/London':'🇬🇧','Europe/Amsterdam':'🇳🇱','Europe/Berlin':'🇩🇪','Europe/Madrid':'🇪🇸','Europe/Lisbon':'🇵🇹','Europe/Zurich':'🇨🇭','Europe/Vienna':'🇦🇹','Europe/Brussels':'🇧🇪','Europe/Copenhagen':'🇩🇰','Europe/Stockholm':'🇸🇪','Europe/Oslo':'🇳🇴','Europe/Helsinki':'🇫🇮','Europe/Dublin':'🇮🇪','Europe/Athens':'🇬🇷','Europe/Istanbul':'🇹🇷','Europe/Prague':'🇨🇿','Europe/Warsaw':'🇵🇱','Europe/Budapest':'🇭🇺',
+  'America/New_York':'🇺🇸','America/Chicago':'🇺🇸','America/Denver':'🇺🇸','America/Los_Angeles':'🇺🇸','America/Toronto':'🇨🇦','America/Vancouver':'🇨🇦','America/Mexico_City':'🇲🇽','America/Sao_Paulo':'🇧🇷','America/Argentina/Buenos_Aires':'🇦🇷','America/Bogota':'🇨🇴','America/Lima':'🇵🇪','America/Santiago':'🇨🇱',
+  'Asia/Dubai':'🇦🇪','Asia/Qatar':'🇶🇦','Asia/Muscat':'🇴🇲','Asia/Kuwait':'🇰🇼','Asia/Bahrain':'🇧🇭','Asia/Riyadh':'🇸🇦','Asia/Jerusalem':'🇮🇱','Africa/Cairo':'🇪🇬','Africa/Johannesburg':'🇿🇦','Africa/Nairobi':'🇰🇪','Africa/Addis_Ababa':'🇪🇹','Africa/Casablanca':'🇲🇦',
+  'Asia/Kolkata':'🇮🇳','Asia/Colombo':'🇱🇰','Asia/Kathmandu':'🇳🇵','Asia/Dhaka':'🇧🇩','Asia/Bangkok':'🇹🇭','Asia/Singapore':'🇸🇬','Asia/Kuala_Lumpur':'🇲🇾','Asia/Jakarta':'🇮🇩','Asia/Makassar':'🇮🇩','Asia/Manila':'🇵🇭','Asia/Ho_Chi_Minh':'🇻🇳','Asia/Hong_Kong':'🇭🇰','Asia/Shanghai':'🇨🇳','Asia/Taipei':'🇹🇼','Asia/Tokyo':'🇯🇵','Asia/Seoul':'🇰🇷',
+  'Australia/Sydney':'🇦🇺','Australia/Melbourne':'🇦🇺','Australia/Brisbane':'🇦🇺','Australia/Perth':'🇦🇺','Pacific/Auckland':'🇳🇿'
+};
+function tzOf(iata){ return IATA_TZ[(iata||'').toUpperCase().trim()] || null; }
+function flagOf(tz){ return COUNTRY_FLAG[tz] || '🌐'; }
+
+// Offset (minuti) di un timezone IANA per un dato istante
+function tzOffsetMin(tz, date){
+  try{
+    const dtf = new Intl.DateTimeFormat('en-US',{timeZone:tz,hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const p = {}; dtf.formatToParts(date).forEach(x=>p[x.type]=x.value);
+    const asUTC = Date.UTC(p.year,p.month-1,p.day,p.hour,p.minute,p.second);
+    return Math.round((asUTC - date.getTime())/60000);
+  }catch(e){ return null; }
+}
+// Converte "data + ora locale di un aeroporto" nell'orario dell'aeroporto di origine (homeTz)
+function localToHome(dateStr, timeStr, localTz, homeTz){
+  if(!dateStr||!timeStr||!localTz||!homeTz) return null;
+  // costruisco l'istante reale: prendo l'ora "wall clock" locale e trovo l'UTC corrispondente
+  const [Y,M,D]=dateStr.split('-').map(Number); const [h,m]=timeStr.split(':').map(Number);
+  const guess = new Date(Date.UTC(Y,M-1,D,h,m));
+  const off = tzOffsetMin(localTz, guess); if(off==null) return null;
+  const realUTC = new Date(guess.getTime() - off*60000); // istante vero
+  // ora come si vede nel fuso di casa
+  const hOff = tzOffsetMin(homeTz, realUTC); if(hOff==null) return null;
+  const homeWall = new Date(realUTC.getTime() + hOff*60000);
+  return { time: pad(homeWall.getUTCHours())+':'+pad(homeWall.getUTCMinutes()), flag: flagOf(homeTz), realUTC };
+}
+function pad(n){ return String(n).padStart(2,'0'); }
+function durBetween(d1,t1,tz1,d2,t2,tz2){
+  if(!d1||!t1||!d2||!t2) return null;
+  const i1=instantOf(d1,t1,tz1), i2=instantOf(d2,t2,tz2);
+  if(!i1||!i2) return null;
+  let min=Math.round((i2-i1)/60000); if(min<0) return null;
+  const h=Math.floor(min/60), mm=min%60;
+  return (h?h+'h ':'')+(mm?mm+'m':(h?'':'0m'));
+}
+function instantOf(dateStr,timeStr,tz){
+  if(!dateStr||!timeStr) return null;
+  const [Y,M,D]=dateStr.split('-').map(Number); const [h,m]=timeStr.split(':').map(Number);
+  if(!tz){ return Date.UTC(Y,M-1,D,h,m); } // senza tz: trattato come "naive", durate relative ok solo se entrambi senza tz
+  const guess=new Date(Date.UTC(Y,M-1,D,h,m));
+  const off=tzOffsetMin(tz,guess); if(off==null) return Date.UTC(Y,M-1,D,h,m);
+  return guess.getTime()-off*60000;
+}
+let data = [];
+let trips = [];
+let currentTrip = null; // oggetto viaggio selezionato
+let tab = 'tutto';
+let mode = 'tot'; // 'tot' | 'half'
+
+function setMode(m){
+  mode=m;
+  $('mt-tot').classList.toggle('active', m==='tot');
+  $('mt-half').classList.toggle('active', m==='half');
+  render();
+}
+
+// ===================== VISTA VIAGGI =====================
+async function loadTrips(){
+  $('trips-status').textContent='Caricamento…';
+  const { data:rows, error } = await db.from(TABLE_TRIPS).select('*').order('data_inizio',{ascending:false});
+  if(error){ $('trips-status').textContent='⚠️ Errore: '+error.message; return; }
+  trips=rows||[];
+  // conteggio voci da cancellare per badge
+  const { data:flags } = await db.from(TABLE).select('viaggio_id,valuta_cancellazione').eq('valuta_cancellazione',true);
+  const cancMap={}; (flags||[]).forEach(f=>{ cancMap[f.viaggio_id]=(cancMap[f.viaggio_id]||0)+1; });
+  renderTrips(cancMap);
+}
+
+function renderTrips(cancMap){
+  $('trips-status').textContent = trips.length ? `${trips.length} viaggi` : '';
+  const el=$('trips-list');
+  if(!trips.length){ el.innerHTML='<div class="empty">Nessun viaggio ancora.<br>Tocca + per crearne uno.</div>'; return; }
+  el.innerHTML=trips.map(t=>`
+    <div class="trip-card" onclick="openTrip('${t.id}')">
+      <button class="tdel" onclick="event.stopPropagation();delTrip('${t.id}','${esc(t.nome)}')">🗑</button>
+      <div class="tname">${esc(t.nome)}</div>
+      <div class="tdates">📅 ${frange(t.data_inizio,t.data_fine)}</div>
+      ${t.note?`<div class="tmeta">${esc(t.note)}</div>`:''}
+      ${cancMap&&cancMap[t.id]?`<div class="twarn">⚠️ ${cancMap[t.id]} da valutare cancellazione</div>`:''}
+    </div>`).join('');
+}
+
+function goTrips(){
+  currentTrip=null;
+  $('view-detail').classList.add('hide');
+  $('view-trips').classList.remove('hide');
+  $('backBtn').classList.add('hide');
+  $('headsub').textContent='I tuoi viaggi';
+  loadTrips();
+}
+
+function openTrip(id){
+  currentTrip=trips.find(t=>t.id===id);
+  if(!currentTrip) return;
+  $('view-trips').classList.add('hide');
+  $('view-detail').classList.remove('hide');
+  $('backBtn').classList.remove('hide');
+  $('headsub').textContent=currentTrip.nome;
+  tab='tutto';
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.tab==='tutto'));
+  setMode('tot');
+  load();
+}
+
+function openTripForm(){
+  $('trip-modal-title').textContent='Nuovo viaggio';
+  $('t-id').value=''; $('t-nome').value=''; $('t-inizio').value=''; $('t-fine').value=''; $('t-note').value='';
+  $('overlay-trip').classList.add('show');
+}
+function editTrip(){
+  $('trip-modal-title').textContent='Modifica viaggio';
+  $('t-id').value=currentTrip.id; $('t-nome').value=currentTrip.nome||'';
+  $('t-inizio').value=currentTrip.data_inizio||''; $('t-fine').value=currentTrip.data_fine||'';
+  $('t-note').value=currentTrip.note||'';
+  $('overlay-trip').classList.add('show');
+}
+function closeTripForm(){ $('overlay-trip').classList.remove('show'); }
+
+async function saveTrip(){
+  const nome=$('t-nome').value.trim();
+  if(!nome){ alert('Inserisci il nome del viaggio'); return; }
+  const rec={ nome, data_inizio:$('t-inizio').value||null, data_fine:$('t-fine').value||null, note:$('t-note').value.trim()||null };
+  const id=$('t-id').value;
+  $('trip-save-btn').textContent='…';
+  const { data:res, error } = id
+    ? await db.from(TABLE_TRIPS).update(rec).eq('id',id).select()
+    : await db.from(TABLE_TRIPS).insert(rec).select();
+  $('trip-save-btn').textContent='Salva';
+  if(error){ alert('Errore: '+error.message); return; }
+  closeTripForm();
+  if(id && currentTrip){ currentTrip={...currentTrip,...rec}; $('headsub').textContent=currentTrip.nome; }
+  loadTrips();
+}
+
+async function delTrip(id,nome){
+  if(!confirm(`Eliminare il viaggio "${nome}" e tutte le sue voci?`)) return;
+  await db.from(TABLE).delete().eq('viaggio_id',id);
+  const { error } = await db.from(TABLE_TRIPS).delete().eq('id',id);
+  if(error){ alert('Errore: '+error.message); return; }
+  loadTrips();
+}
+
+function onFab(){ currentTrip ? openForm() : openTripForm(); }
+// ===================== /VISTA VIAGGI =====================
+
+async function load(){
+  if(!currentTrip) return;
+  $('status').textContent = 'Caricamento…';
+  const { data:rows, error } = await db.from(TABLE).select('*').eq('viaggio_id',currentTrip.id).order('data_inizio',{ascending:true});
+  if(error){ $('status').textContent = '⚠️ Errore: '+error.message; return; }
+  data = rows||[];
+  render();
+}
+
+function setTab(t){
+  tab=t;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
+  render();
+}
+
+function tipoOfTab(t){ return t==='alloggi'?'alloggio':t==='voli'?'volo':t==='attivita'?'attivita':null; }
+
+function render(){
+  const isCal = tab==='calendario';
+  const filtered = (tab==='tutto'||isCal) ? data : data.filter(r=>r.tipo===tipoOfTab(tab));
+
+  // Totali sul set filtrato
+  let tot=0, paid=0;
+  filtered.forEach(r=>{ if(r.escluso_totale) return; const p=Number(r.prezzo)||0; tot+=p; if(r.pagato) paid+=p; });
+  const due=tot-paid;
+  const d = mode==='half' ? 2 : 1;
+  $('s-tot').textContent=eur(tot/d);
+  $('s-paid').textContent=eur(paid/d);
+  $('s-due').textContent=eur(due/d);
+  $('status').textContent = filtered.length ? filtered.length+' voci' : '';
+
+  // Disclaimer cancellazioni (sempre globale, su tutti i dati)
+  const toCancel = data.filter(r=>r.valuta_cancellazione);
+  $('disclaimer').innerHTML = toCancel.length
+    ? `<div class="disclaimer"><span class="ic">⚠️</span><span>Hai ${toCancel.length} ${toCancel.length===1?'prenotazione':'prenotazioni'} da valutare per la cancellazione (doppi alloggi): ${toCancel.map(r=>esc(r.nome_hotel)).join(', ')}. Ricordati di cancellarne una!</span></div>`
+    : '';
+
+  // Switch vista calendario / lista
+  $('calendar').classList.toggle('hide', !isCal);
+  $('list').classList.toggle('hide', isCal);
+  if(isCal){ renderCalendar(); return; }
+
+  const list=$('list');
+  if(!filtered.length){ list.innerHTML='<div class="empty">Nessuna voce.<br>'+(tab==='tutto'?'Aggiungi qualcosa dalle altre tab.':'Tocca + per iniziare.')+'</div>'; return; }
+
+  // Ordina cronologicamente per data_inizio
+  const sorted=[...filtered].sort((a,b)=>(a.data_inizio||'9999').localeCompare(b.data_inizio||'9999'));
+
+  let html=''; let lastDay=null;
+  sorted.forEach(r=>{
+    if(tab==='tutto'){
+      const dk=r.data_inizio||'';
+      if(dk!==lastDay){ lastDay=dk; html+=`<div class="daygroup">${dk?flong(dk):'Data da definire'}</div>`; }
+    }
+    html+=cardHtml(r);
+  });
+  list.innerHTML=html;
+}
+
+// ---------- CALENDARIO ----------
+const DAYW=46;
+function dkey(d){ return d; } // 'YYYY-MM-DD'
+function daysBetween(a,b){ return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000); }
+function addDays(d,n){ const x=new Date(d+'T00:00:00'); x.setDate(x.getDate()+n); return x.toISOString().slice(0,10); }
+
+function renderCalendar(){
+  const cal=$('calendar');
+  // raccolgo le voci con date
+  const alloggi=[], eventi=[]; // eventi = voli + attività (puntuali)
+  data.forEach(r=>{
+    if(r.tipo==='alloggio' && r.data_inizio){
+      alloggi.push({start:r.data_inizio, end:r.data_fine||r.data_inizio, label:r.tappa||r.nome_hotel, paid:(r.stato_pagamento==='pagato'||r.pagato)});
+    } else if(r.tipo==='volo'){
+      const tr=parseTratte(r.tratte);
+      const legs=[...tr.andata,...tr.ritorno].filter(l=>l.data_dep);
+      if(legs.length) legs.forEach(lg=>eventi.push({tipo:'volo', date:lg.data_dep, time:lg.ora_dep||'', label:`${lg.da} → ${lg.a}`, icon:'✈️'}));
+      else if(r.data_inizio) eventi.push({tipo:'volo', date:r.data_inizio, time:'', label:r.nome_hotel, icon:'✈️'});
+    } else if(r.tipo==='attivita' && r.data_inizio){
+      eventi.push({tipo:'att', date:r.data_inizio, time:r.ora_inizio||'', label:r.luogo||r.nome_hotel, icon:'🎟️'});
+    }
+  });
+  if(!alloggi.length && !eventi.length){
+    cal.innerHTML='<div class="cal-empty">Nessuna data inserita.<br>Aggiungi prenotazioni con le date per vederle sul calendario.</div>'; return;
+  }
+
+  // range complessivo
+  let min=null, max=null;
+  const consider=(d)=>{ if(!d)return; if(!min||d<min)min=d; if(!max||d>max)max=d; };
+  alloggi.forEach(a=>{ consider(a.start); consider(a.end); });
+  eventi.forEach(e=>consider(e.date));
+  const total=daysBetween(min,max)+1;
+  const today=new Date().toISOString().slice(0,10);
+
+  // assegno una "corsia" stabile a ciascun alloggio (colore/posizione costante lungo i giorni)
+  const sortedAll=[...alloggi].sort((a,b)=>a.start.localeCompare(b.start));
+  const lanes=[];
+  sortedAll.forEach(a=>{
+    let li=lanes.findIndex(end=>a.start>end);
+    if(li<0){ li=lanes.length; lanes.push(a.end); } else lanes[li]=a.end;
+    a.lane=li;
+  });
+  const laneCount=Math.max(lanes.length,1);
+
+  let rows='';
+  for(let i=0;i<total;i++){
+    const d=addDays(min,i);
+    const dt=new Date(d+'T00:00:00');
+    const wd=dt.toLocaleDateString('it-IT',{weekday:'short'});
+    const isToday=d===today;
+
+    // segmenti alloggio attivi in questo giorno
+    let segs='<div class="ag-lanes" style="grid-template-columns:repeat('+laneCount+',1fr)">';
+    for(let l=0;l<laneCount;l++){
+      const a=sortedAll.find(x=>x.lane===l && x.start<=d && d<=x.end);
+      if(a){
+        const isStart=a.start===d, isEnd=a.end===d;
+        const pos=isStart&&isEnd?'one':isStart?'start':isEnd?'end':'mid';
+        segs+=`<div class="ag-seg ${pos}${a.paid?' paid':''}">${isStart?'🏨 '+esc(a.label):(isEnd?'<span class="endlbl">check-out</span>':'')}</div>`;
+      } else segs+='<div class="ag-seg empty"></div>';
+    }
+    segs+='</div>';
+
+    // eventi del giorno
+    const evs=eventi.filter(e=>e.date===d).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    let evHtml='';
+    evs.forEach(e=>{
+      evHtml+=`<div class="ag-ev ${e.tipo}">${e.icon} <b>${esc(e.label)}</b>${e.time?` <span class="t">${esc(e.time)}</span>`:''}</div>`;
+    });
+
+    rows+=`<div class="ag-row${isToday?' today':''}">
+      <div class="ag-date"><span class="wd">${wd}</span><span class="dn">${dt.getDate()}</span><span class="mo">${dt.toLocaleDateString('it-IT',{month:'short'})}</span></div>
+      <div class="ag-body">${segs}${evHtml||(!evs.length&&!sortedAll.some(x=>x.start<=d&&d<=x.end)?'<div class="ag-free">—</div>':'')}</div>
+    </div>`;
+  }
+
+  const legend='<div class="cal-legend"><span><i style="background:var(--teal)"></i>Alloggi</span><span><i style="background:#4338ca"></i>Voli</span><span><i style="background:#be185d"></i>Attività</span></div>';
+  cal.innerHTML='<div class="cal agenda">'+rows+'</div>'+legend;
+}
+
+function cardHtml(r){
+  const p=Number(r.prezzo)||0;
+  const loc=(r.prezzo_locale&&r.valuta)?`<span class="loc">(${num(r.prezzo_locale)} ${esc(r.valuta)})</span>`:'';
+  const tag=tab==='tutto'?`<span class="typetag ${TYPE_TAGCLASS[r.tipo]}">${TYPE_LABELS[r.tipo]}</span>`:'';
+
+  // riga meta + date specifiche per tipo
+  let meta='', dates='';
+  if(r.tipo==='alloggio'){
+    meta=`${r.tipo_sistemazione?esc(r.tipo_sistemazione)+' · ':''}📍 ${esc(r.tappa)||'—'}`;
+    const ci = fdate(r.data_inizio)+(r.ora_inizio?' '+r.ora_inizio:'');
+    const co = fdate(r.data_fine)+(r.ora_fine?' '+r.ora_fine:'');
+    const colaz = r.colazione==='inclusa' ? '☕ Colazione inclusa'
+      : r.colazione==='pagamento' ? `☕ Colazione a pagamento${r.colazione_prezzo?' ('+esc(r.colazione_prezzo)+')':''}`
+      : 'Colazione non disponibile';
+    dates=`<div class="row"><span>Check-in <b>${ci}</b></span><span>Check-out <b>${co}</b></span></div>`
+      + `<div class="row"><span>${colaz}</span></div>`;
+  } else if(r.tipo==='volo'){
+    const tr = parseTratte(r.tratte);
+    const homeIata = tr.andata[0] && tr.andata[0].da;                          // CASA = prima partenza andata
+    const destIata = tr.andata.length && tr.andata[tr.andata.length-1].a;      // DESTINAZIONE = ultimo arrivo andata
+    const homeTz = tzOf(homeIata);
+    const destTz = tzOf(destIata);
+    meta = `✈️ ${flightRoute(tr.andata)}${tr.ritorno.length?'  •  '+flightRoute(tr.ritorno):''}${r.compagnia?' · '+esc(r.compagnia):''}`;
+    dates = renderTratteBlock('Andata', tr.andata, homeTz, destTz);
+    if(tr.ritorno.length) dates += renderTratteBlock('Ritorno', tr.ritorno, homeTz, destTz);
+  } else {
+    meta=`📍 ${esc(r.luogo)||'—'}${r.durata?' · '+esc(r.durata):''}`;
+    dates=`<div class="row"><span>Data <b>${fdate(r.data_inizio)}</b></span></div>`;
+  }
+
+  const st = r.stato_pagamento||(r.pagato?'pagato':'dapagare');
+  const cfg = {pagato:['paid','✓ Pagato'],inloco:['loco','📍 In loco'],dapagare:['unpaid','Da pagare']}[st];
+  const badgeHtml = `<span class="badge ${cfg[0]}" onclick="cyclePay('${r.id}','${st}')">${cfg[1]}</span>`;
+
+  return `
+  <div class="card ${r.valuta_cancellazione?'warn':''} ${r.non_cancellabile?'nocanc-card':''}">
+    <div class="top">
+      <div>
+        ${tag?tag+'<div style="height:6px"></div>':''}
+        <div class="title">${esc(r.nome_hotel)}</div>
+        <div class="meta">${meta}</div>
+        ${r.sito_prenotazione?`<div class="sito">🔗 ${esc(r.sito_prenotazione)}</div>`:''}
+      </div>
+      ${badgeHtml}
+    </div>
+    ${dates}
+    <div class="price">${eur(p)} ${loc}${r.escluso_totale?'<span class="excl">escluso dal totale</span>':`<span class="split">a testa ${eur(p/2)}</span>`}</div>
+    ${(r.stato_pagamento==='dapagare'||(!r.stato_pagamento&&!r.pagato)) && r.data_pagamento?`<div class="info pay">💳 Da pagare entro <b>${fdate(r.data_pagamento)}</b></div>`:''}
+    ${(r.stato_pagamento==='inloco')?`<div class="info">📍 Si paga in loco</div>`:''}
+    ${r.non_cancellabile?`<div class="info nocanc">🔒 Non cancellabile</div>`:(r.scadenza_cancellazione?`<div class="info">Cancellazione gratuita entro <b>${fdate(r.scadenza_cancellazione)}</b></div>`:'')}
+    ${r.valuta_cancellazione?`<div class="warnflag">⚠️ Da valutare cancellazione (alloggio doppio)</div>`:''}
+    ${r.note?`<div class="notes">📝 ${esc(r.note)}</div>`:''}
+    <div class="actions">
+      <button class="btn-sm" onclick='editRow(${JSON.stringify(r).replace(/'/g,"&#39;")})'>✎ Modifica</button>
+      <button class="btn-sm del" onclick="delRow('${r.id}')">🗑 Elimina</button>
+    </div>
+  </div>`;
+}
+function esc(s){return (s||'').toString().replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));}
+
+// ---------- VOLI: parsing e rendering ----------
+function parseTratte(raw){
+  let o={andata:[],ritorno:[]};
+  if(!raw) return o;
+  try{ const j=typeof raw==='string'?JSON.parse(raw):raw; o.andata=j.andata||[]; o.ritorno=j.ritorno||[]; }catch(e){}
+  return o;
+}
+function flightRoute(legs){
+  if(!legs.length) return '—';
+  return legs[0].da + ' → ' + legs[legs.length-1].a + (legs.length>1?` (${legs.length-1} scalo${legs.length>2?'i':''})`:'');
+}
+function altTimes(dateStr, timeStr, localTz, homeTz, destTz){
+  // restituisce le conversioni verso casa e destinazione, saltando quella uguale al fuso locale
+  const out=[];
+  [['home',homeTz],['dest',destTz]].forEach(([k,tz])=>{
+    if(!tz || tz===localTz) return;                 // salta se coincide col fuso della tappa
+    const r = localToHome(dateStr,timeStr,localTz,tz);
+    if(r) out.push(`${r.flag} ${r.time}`);
+  });
+  // dedup (se casa e dest sono lo stesso fuso)
+  return [...new Set(out)];
+}
+function renderTratteBlock(titolo, legs, homeTz, destTz){
+  if(!legs.length) return '';
+  let h=`<div class="fl-block"><div class="fl-title">${titolo==='Andata'?'✈️ Andata':'🔙 Ritorno'}</div>`;
+  legs.forEach((lg,i)=>{
+    const tzD=tzOf(lg.da), tzA=tzOf(lg.a);
+    const altDep = tzD ? altTimes(lg.data_dep,lg.ora_dep,tzD,homeTz,destTz) : [];
+    const altArr = tzA ? altTimes(lg.data_arr,lg.ora_arr,tzA,homeTz,destTz) : [];
+    const vol = durBetween(lg.data_dep,lg.ora_dep,tzD,lg.data_arr,lg.ora_arr,tzA);
+    const depAlt = altDep.length?` <span class="home">(${altDep.join(' · ')})</span>`:'';
+    const arrAlt = altArr.length?` <span class="home">(${altArr.join(' · ')})</span>`:'';
+    h+=`<div class="fl-leg">`
+     + `<div class="fl-row"><span class="ap">🛫 ${esc(lg.da)}</span><span class="tm">${esc(fdate(lg.data_dep))} · ${esc(lg.ora_dep||'—')}${depAlt}</span></div>`
+     + (vol?`<div class="fl-dur">✈️ ${vol}</div>`:'')
+     + `<div class="fl-row"><span class="ap">🛬 ${esc(lg.a)}</span><span class="tm">${esc(fdate(lg.data_arr))} · ${esc(lg.ora_arr||'—')}${arrAlt}</span></div>`
+     + `</div>`;
+    if(i<legs.length-1){
+      const nx=legs[i+1];
+      const sc=durBetween(lg.data_arr,lg.ora_arr,tzA,nx.data_dep,nx.ora_dep,tzOf(nx.da));
+      h+=`<div class="fl-scalo">⏳ scalo ${sc||'—'}</div>`;
+    }
+  });
+  h+=`</div>`;
+  return h;
+}
+
+// ---------- VOLI: editor form ----------
+let legSeq=0;
+function legTemplate(dir, lg={}){
+  const id='leg_'+dir+'_'+(legSeq++);
+  return `<div class="leg" id="${id}">
+    <div class="legnum">Tratta</div>
+    <button type="button" class="legdel" onclick="document.getElementById('${id}').remove()">✕</button>
+    <div class="two">
+      <div class="field"><label>Da (IATA)</label><input class="lg-da" placeholder="es. MXP" maxlength="4" value="${esc(lg.da||'')}"></div>
+      <div class="field"><label>A (IATA)</label><input class="lg-a" placeholder="es. PEK" maxlength="4" value="${esc(lg.a||'')}"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label>Data partenza</label><input type="date" class="lg-datadep" value="${esc(lg.data_dep||'')}"></div>
+      <div class="field"><label>Ora partenza</label><input type="time" class="lg-oradep" value="${esc(lg.ora_dep||'')}"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label>Data arrivo</label><input type="date" class="lg-dataarr" value="${esc(lg.data_arr||'')}"></div>
+      <div class="field"><label>Ora arrivo</label><input type="time" class="lg-oraarr" value="${esc(lg.ora_arr||'')}"></div>
+    </div>
+  </div>`;
+}
+function addLeg(dir, lg){ $('legs-'+dir).insertAdjacentHTML('beforeend', legTemplate(dir,lg||{})); }
+function clearLegs(){ $('legs-andata').innerHTML=''; $('legs-ritorno').innerHTML=''; }
+function toggleRitorno(){
+  const on=$('f-andataritorno').checked;
+  $('sec-ritorno').classList.toggle('hide', !on);
+  if(on && !$('legs-ritorno').children.length) addLeg('ritorno');
+  if(!on) $('legs-ritorno').innerHTML='';
+}
+function collectLegs(dir){
+  return [...$('legs-'+dir).querySelectorAll('.leg')].map(el=>({
+    da: el.querySelector('.lg-da').value.trim().toUpperCase(),
+    a: el.querySelector('.lg-a').value.trim().toUpperCase(),
+    data_dep: el.querySelector('.lg-datadep').value||null,
+    ora_dep: el.querySelector('.lg-oradep').value||null,
+    data_arr: el.querySelector('.lg-dataarr').value||null,
+    ora_arr: el.querySelector('.lg-oraarr').value||null
+  })).filter(l=>l.da||l.a);
+}
+
+function togglePayField(){
+  const s=$('f-statopag').value;
+  // data limite pagamento ha senso solo se "da pagare"
+  $('pay-wrap').style.display = s==='dapagare' ? 'block' : 'none';
+}
+function toggleColazionePrezzo(){
+  $('fld-colaz-prezzo').style.display = $('f-colazione').value==='pagamento' ? 'block' : 'none';
+}
+function toggleScadField(){
+  const nc=$('f-noncancellabile').checked;
+  $('fld-scad').style.display = nc ? 'none' : 'block';
+  if(nc) $('f-scad').value='';
+}
+
+async function cyclePay(id,cur){
+  const next={dapagare:'pagato',pagato:'inloco',inloco:'dapagare'}[cur]||'pagato';
+  const upd={stato_pagamento:next, pagato: next==='pagato'};
+  if(next!=='dapagare') upd.data_pagamento=null;
+  const { error } = await db.from(TABLE).update(upd).eq('id',id);
+  if(error){ alert('Errore: '+error.message); return; }
+  load();
+}
+async function delRow(id){
+  if(!confirm('Eliminare questa voce?')) return;
+  const { error } = await db.from(TABLE).delete().eq('id',id);
+  if(error){ alert('Errore: '+error.message); return; }
+  load();
+}
+
+// Adatta il form al tipo
+function applyTypeUI(tipo){
+  $('f-tipo').value=tipo;
+  $('grp-allog').classList.toggle('hide', tipo!=='alloggio');
+  $('grp-volo').classList.toggle('hide', tipo!=='volo');
+  $('grp-att').classList.toggle('hide', tipo!=='attivita');
+  // data fine solo alloggi
+  $('fld-fine').classList.toggle('hide', tipo!=='alloggio');
+  $('lbl-d1').textContent = tipo==='alloggio'?'Data inizio':'Data';
+  // blocco date standard nascosto per i voli (le date sono nelle tratte)
+  $('row-duedate').classList.toggle('hide', tipo==='volo');
+  // scadenza cancellazione + flag valuta-cancellazione + non cancellabile: solo alloggi
+  $('fld-scad').classList.toggle('hide', tipo!=='alloggio');
+  $('fld-noncanc').classList.toggle('hide', tipo!=='alloggio');
+  $('fld-valuta-canc').classList.toggle('hide', tipo!=='alloggio');
+  // note solo attività
+  $('fld-note').classList.toggle('hide', tipo!=='attivita');
+  // label nome
+  $('lbl-nome').textContent = tipo==='alloggio'?'Nome hotel':tipo==='volo'?'Nome volo / riferimento':'Nome attività';
+  $('f-nome').placeholder = tipo==='alloggio'?'es. Hotel Splendid':tipo==='volo'?'es. Andata Tokyo':'es. Tour Fushimi Inari';
+}
+
+function openForm(){
+  let tipo=tipoOfTab(tab);
+  const fromAll = !tipo;            // creazione dalla tab "Tutto"
+  if(!tipo) tipo='alloggio';        // default
+  $('fld-tiposel').classList.toggle('hide', !fromAll);
+  $('f-tiposel').value=tipo;
+  $('modal-title').textContent='Nuova voce';
+  applyTypeUI(tipo);
+  $('f-id').value='';
+  ['f-nome','f-tappa','f-sistemazione','f-orainizio','f-orafine','f-compagnia','f-luogo','f-durata','f-inizio','f-fine','f-sito','f-prezzo','f-prezzoloc','f-valuta','f-scad','f-datapagamento','f-note','f-colazioneprezzo'].forEach(i=>$(i).value='');
+  $('f-valutacanc').checked=false;
+  $('f-esclusototale').checked=false;
+  $('f-noncancellabile').checked=false; toggleScadField();
+  $('f-colazione').value='no'; toggleColazionePrezzo();
+  $('f-statopag').value='dapagare';
+  $('f-andataritorno').checked=false; $('sec-ritorno').classList.add('hide');
+  clearLegs(); addLeg('andata');
+  togglePayField();
+  $('overlay').classList.add('show');
+}
+
+function editRow(r){
+  $('fld-tiposel').classList.add('hide');
+  applyTypeUI(r.tipo);
+  $('modal-title').textContent='Modifica '+(TYPE_LABELS[r.tipo]||'voce');
+  $('f-id').value=r.id;
+  $('f-nome').value=r.nome_hotel||'';
+  $('f-tappa').value=r.tappa||'';
+  $('f-sistemazione').value=r.tipo_sistemazione||'';
+  $('f-orainizio').value=r.ora_inizio||''; $('f-orafine').value=r.ora_fine||'';
+  $('f-colazione').value=r.colazione||'no'; $('f-colazioneprezzo').value=r.colazione_prezzo||''; toggleColazionePrezzo();
+  $('f-compagnia').value=r.compagnia||'';
+  // tratte volo
+  clearLegs();
+  const tr=parseTratte(r.tratte);
+  if(r.tipo==='volo'){
+    (tr.andata.length?tr.andata:[{}]).forEach(l=>addLeg('andata',l));
+    const hasRit=tr.ritorno.length>0;
+    $('f-andataritorno').checked=hasRit;
+    $('sec-ritorno').classList.toggle('hide',!hasRit);
+    tr.ritorno.forEach(l=>addLeg('ritorno',l));
+  }
+  $('f-luogo').value=r.luogo||''; $('f-durata').value=r.durata||'';
+  $('f-inizio').value=r.data_inizio||''; $('f-fine').value=r.data_fine||'';
+  $('f-sito').value=r.sito_prenotazione||'';
+  $('f-prezzo').value=r.prezzo??''; $('f-prezzoloc').value=r.prezzo_locale??''; $('f-valuta').value=r.valuta||'';
+  $('f-scad').value=r.scadenza_cancellazione||'';
+  $('f-noncancellabile').checked=!!r.non_cancellabile; toggleScadField();
+  $('f-statopag').value = r.stato_pagamento || (r.pagato?'pagato':'dapagare'); $('f-datapagamento').value=r.data_pagamento||'';
+  $('f-valutacanc').checked=!!r.valuta_cancellazione;
+  $('f-esclusototale').checked=!!r.escluso_totale;
+  $('f-note').value=r.note||'';
+  togglePayField();
+  $('overlay').classList.add('show');
+}
+function closeForm(){ $('overlay').classList.remove('show'); }
+
+async function save(){
+  const tipo=$('f-tipo').value;
+  const nome=$('f-nome').value.trim();
+  if(!nome){ alert('Inserisci il nome'); return; }
+  const statoPag=$('f-statopag').value;        // dapagare | pagato | inloco
+  const pagato = statoPag==='pagato';
+
+  // Voli: raccolgo le tratte
+  let tratteJson=null, voloDataInizio=null, voloDa=null, voloA=null;
+  if(tipo==='volo'){
+    const andata=collectLegs('andata');
+    const ritorno=$('f-andataritorno').checked?collectLegs('ritorno'):[];
+    tratteJson={andata,ritorno};
+    voloDataInizio = andata[0]?andata[0].data_dep:null;
+    voloDa = andata[0]?andata[0].da:null;
+    voloA = andata.length?andata[andata.length-1].a:null;
+  }
+
+  const rec={
+    viaggio_id: currentTrip ? currentTrip.id : null,
+    tipo:tipo,
+    nome_hotel:nome,
+    tappa: tipo==='alloggio'?($('f-tappa').value.trim()||null):null,
+    tipo_sistemazione: tipo==='alloggio'?($('f-sistemazione').value.trim()||null):null,
+    ora_inizio: tipo==='alloggio'?($('f-orainizio').value||null):null,
+    ora_fine: tipo==='alloggio'?($('f-orafine').value||null):null,
+    colazione: tipo==='alloggio'?$('f-colazione').value:'no',
+    colazione_prezzo: (tipo==='alloggio'&&$('f-colazione').value==='pagamento')?($('f-colazioneprezzo').value.trim()||null):null,
+    partenza: voloDa,
+    arrivo: voloA,
+    compagnia: tipo==='volo'?($('f-compagnia').value.trim()||null):null,
+    tratte: tipo==='volo'?tratteJson:null,
+    luogo: tipo==='attivita'?($('f-luogo').value.trim()||null):null,
+    durata: tipo==='attivita'?($('f-durata').value.trim()||null):null,
+    data_inizio: tipo==='volo'?voloDataInizio:($('f-inizio').value||null),
+    data_fine: tipo==='alloggio'?($('f-fine').value||null):null,
+    sito_prenotazione:$('f-sito').value.trim()||null,
+    prezzo:$('f-prezzo').value?Number($('f-prezzo').value):0,
+    prezzo_locale:$('f-prezzoloc').value?Number($('f-prezzoloc').value):null,
+    valuta:$('f-valuta').value.trim().toUpperCase()||null,
+    pagato:pagato,
+    stato_pagamento:statoPag,
+    scadenza_cancellazione: (tipo==='alloggio' && !$('f-noncancellabile').checked)?($('f-scad').value||null):null,
+    non_cancellabile: tipo==='alloggio'?$('f-noncancellabile').checked:false,
+    data_pagamento: statoPag==='dapagare'?($('f-datapagamento').value||null):null,
+    valuta_cancellazione: tipo==='alloggio'?$('f-valutacanc').checked:false,
+    escluso_totale: $('f-esclusototale').checked,
+    note: tipo==='attivita'?($('f-note').value.trim()||null):null
+  };
+  const id=$('f-id').value;
+  $('save-btn').textContent='…';
+  const { error } = id
+    ? await db.from(TABLE).update(rec).eq('id',id)
+    : await db.from(TABLE).insert(rec);
+  $('save-btn').textContent='Salva';
+  if(error){ alert('Errore: '+error.message); return; }
+  closeForm(); load();
+}
+
+$('overlay').addEventListener('click',e=>{ if(e.target===$('overlay')) closeForm(); });
+$('overlay-trip').addEventListener('click',e=>{ if(e.target===$('overlay-trip')) closeTripForm(); });
+goTrips();
+</script>
+</body>
+</html>
