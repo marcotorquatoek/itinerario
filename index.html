@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.31.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.32.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -260,7 +260,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.31.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.32.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -757,6 +757,10 @@ async function saveTrip(){
 
 async function delTrip(id,nome){
   if(!confirm(`Eliminare il viaggio "${nome}" e tutte le sue voci?`)) return;
+  const pwd=prompt('Per confermare l\'eliminazione, inserisci il codice:');
+  if(pwd===null) return; // annullato
+  if(pwd!=='Popoli999'){ alert('Codice errato. Eliminazione annullata.'); return; }
+  await db.from(TABLE_TAPPE).delete().eq('viaggio_id',id);
   await db.from(TABLE).delete().eq('viaggio_id',id);
   const { error } = await db.from(TABLE_TRIPS).delete().eq('id',id);
   if(error){ alert('Errore: '+error.message); return; }
