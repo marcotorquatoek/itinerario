@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.23.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.29.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -260,7 +260,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.23.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.29.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -443,7 +443,8 @@ header .sub{font-size:.72rem;color:var(--muted)}
 
     <div class="field" id="fld-link"><label id="lbl-link">🔗 Link (sito / prenotazione)</label><input id="f-link" type="url" placeholder="https://…" inputmode="url"></div>
 
-    <div class="field"><label>Prezzo totale (€)</label><input type="number" inputmode="decimal" step="0.01" id="f-prezzo" placeholder="0.00"></div>
+    <div class="field"><label id="lbl-prezzo">Prezzo totale (€)</label><input type="number" inputmode="decimal" step="0.01" id="f-prezzo" placeholder="0.00"></div>
+    <div class="field check hide" id="fld-escludi-main"><input type="checkbox" id="f-esclusototale2" onchange="syncEscludi('main')"><label>🚫 Escludi dalle statistiche (è solo una stima)</label></div>
 
     <div class="field"><label id="lbl-scad">Cancellazione</label>
       <div class="two" style="margin-bottom:0">
@@ -492,7 +493,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
         <div class="field"><label>Importo valuta locale</label><input type="number" inputmode="decimal" step="0.01" id="f-prezzoloc" placeholder="es. 12000"></div>
         <div class="field"><label>Valuta</label><input id="f-valuta" placeholder="es. JPY" maxlength="6"></div>
       </div>
-      <div class="field check"><input type="checkbox" id="f-esclusototale"><label>🚫 Escludi dal calcolo del totale</label></div>
+      <div class="field check"><input type="checkbox" id="f-esclusototale" onchange="syncEscludi('extra')"><label>🚫 Escludi dal calcolo del totale</label></div>
       <div class="field" id="fld-note"><label>Note</label><textarea id="f-note" placeholder="Annotazioni…"></textarea></div>
     </div>
 
@@ -857,18 +858,33 @@ function render(){
 
   if(!filtered.length){ list.innerHTML='<div class="empty">Nessuna voce.<br>'+(tab==='tutto'?'Aggiungi qualcosa dalle altre tab.':'Tocca + per iniziare.')+'</div>'; return; }
 
-  // Ordina per giorno, poi per orario reale, poi per priorità logica (volo→trasporto→check-in→attività)
-  const sorted=[...filtered].sort(cmpChrono);
-
   let html=''; let lastDay=null;
-  if(tab==='tutto') html+='<button class="copybtn" onclick="copiaPrenotazioni()">📋 Copia prenotazioni</button>';
-  sorted.forEach(r=>{
-    if(tab==='tutto'){
+  if(tab==='tutto'){
+    html+='<button class="copybtn" onclick="copiaPrenotazioni()">📋 Copia prenotazioni</button>';
+    // espando i voli andata/ritorno in due voci virtuali, ciascuna con la sua data
+    const expanded=[];
+    filtered.forEach(r=>{
+      if(r.tipo==='volo'){
+        const tr=parseTratte(r.tratte);
+        const dAndata=tr.andata[0]&&tr.andata[0].data_dep;
+        const dRitorno=tr.ritorno[0]&&tr.ritorno[0].data_dep;
+        if(dRitorno){
+          expanded.push({...r, __voloDir:'andata', data_inizio:dAndata||r.data_inizio});
+          expanded.push({...r, __voloDir:'ritorno', data_inizio:dRitorno});
+        } else {
+          expanded.push(r);
+        }
+      } else expanded.push(r);
+    });
+    expanded.sort(cmpChrono).forEach(r=>{
       const dk=r.data_inizio||'';
       if(dk!==lastDay){ lastDay=dk; html+=`<div class="daygroup">${dk?flong(dk):'Data da definire'}</div>`; }
-    }
-    html+=cardHtml(r);
-  });
+      html+=cardHtml(r);
+    });
+  } else {
+    const sorted=[...filtered].sort(cmpChrono);
+    sorted.forEach(r=>{ html+=cardHtml(r); });
+  }
   list.innerHTML=html;
 }
 
@@ -914,6 +930,29 @@ function buildDayMap(){
   return map;
 }
 
+// ordina gli eventi di un singolo giorno del calendario, coerente con la tab "Tutto"
+function calEvPrio(x){
+  // fasi logiche della giornata:
+  // 0) check-out (esci la mattina) → 1) voli → 2) trasporti → 3) check-in nuovo alloggio → 4) soggiorno → 5) attività
+  if(x.tipo==='allog' && x.role==='out') return 0;
+  if(x.tipo==='volo') return 1;
+  if(x.tipo==='trasp') return 2;
+  if(x.tipo==='allog' && x.role==='in') return 3;
+  if(x.tipo==='allog' && x.role==='stay') return 4;
+  if(x.tipo==='att') return 5;
+  return 6;
+}
+function cmpCalEv(a,b){
+  // 1) prima ordino per fase logica della giornata (check-out prima di tutto, poi voli/trasporti, poi check-in)
+  const pa=calEvPrio(a), pb=calEvPrio(b);
+  if(pa!==pb) return pa-pb;
+  // 2) dentro la stessa fase, ordino per orario (se presente)
+  const oa=a.time||'', ob=b.time||'';
+  if(oa&&ob&&oa!==ob) return oa<ob?-1:1;
+  if(oa&&!ob) return -1;
+  if(!oa&&ob) return 1;
+  return 0;
+}
 function renderCalendar(){
   const cal=$('calendar');
   try{
@@ -930,7 +969,7 @@ function renderCalendar(){
       const wd=dt.toLocaleDateString('it-IT',{weekday:'short'});
       const dn=dt.getDate();
       const mo=dt.toLocaleDateString('it-IT',{month:'short'});
-      const items=calDayMap[d]||[];
+      const items=(calDayMap[d]||[]).slice().sort(cmpCalEv);
       let rows='';
       // dedup: raggruppo eventi identici (stesso tipo+label+ruolo+ora)
       const seen=new Set();
@@ -1023,9 +1062,17 @@ function cardHtml(r){
     const destIata = tr.andata.length && tr.andata[tr.andata.length-1].a;      // DESTINAZIONE = ultimo arrivo andata
     const homeTz = tzOf(homeIata);
     const destTz = tzOf(destIata);
-    meta = `✈️ ${flightRoute(tr.andata)}${tr.ritorno.length?'  •  '+flightRoute(tr.ritorno):''}${r.compagnia?' · '+esc(r.compagnia):''}`;
-    dates = renderTratteBlock('Andata', tr.andata, homeTz, destTz);
-    if(tr.ritorno.length) dates += renderTratteBlock('Ritorno', tr.ritorno, homeTz, destTz);
+    if(r.__voloDir==='andata'){
+      meta = `✈️ ${flightRoute(tr.andata)}${r.compagnia?' · '+esc(r.compagnia):''} · 🛫 Andata`;
+      dates = renderTratteBlock('Andata', tr.andata, homeTz, destTz);
+    } else if(r.__voloDir==='ritorno'){
+      meta = `✈️ ${flightRoute(tr.ritorno)}${r.compagnia?' · '+esc(r.compagnia):''} · 🔙 Ritorno`;
+      dates = renderTratteBlock('Ritorno', tr.ritorno, homeTz, destTz);
+    } else {
+      meta = `✈️ ${flightRoute(tr.andata)}${tr.ritorno.length?'  •  '+flightRoute(tr.ritorno):''}${r.compagnia?' · '+esc(r.compagnia):''}`;
+      dates = renderTratteBlock('Andata', tr.andata, homeTz, destTz);
+      if(tr.ritorno.length) dates += renderTratteBlock('Ritorno', tr.ritorno, homeTz, destTz);
+    }
   } else if(r.tipo==='trasporto'){
     const MEZZI={traghetto:'⛴️ Traghetto',treno:'🚆 Treno',bus:'🚌 Bus',taxi:'🚕 Taxi/transfer',auto:'🚗 Auto',altro:'🚐 Trasporto'};
     meta=`${MEZZI[r.mezzo]||'🚐 Trasporto'}${r.tappa?' · → '+esc(r.tappa):''}`;
@@ -1068,6 +1115,7 @@ function cardHtml(r){
       </div>
       ${(r.data_inizio||r.data_fine)?`<div class="row" style="margin-top:10px"><span>📅 <b>${fdate(r.data_inizio)}</b>${r.data_fine?` → <b>${fdate(r.data_fine)}</b>`:''}${r.ora_inizio?' · '+esc(r.ora_inizio):''}</span></div>`:''}
       <div class="tobook-msg">${msg}</div>
+      ${(isTrasp && Number(r.prezzo)>0)?`<div class="row" style="margin-top:8px"><span>💰 Previsione: <b>${eur(Number(r.prezzo))}</b> · a testa ${eur(Number(r.prezzo)/2)}</span></div>`:''}
       ${r.link
         ? `<a class="book-link" href="${esc(r.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 Prenota qui</a>`
         : `<div class="book-nolink">⚠️ Nessun link salvato — aggiungilo per ricordarti dove prenotare</div>`}
@@ -1113,7 +1161,7 @@ function esc(s){return (s||'').toString().replace(/[<>&"]/g,c=>({'<':'&lt;','>':
 // Nota: per gli ALLOGGI non uso l'orario di check-in, perché ci si arriva DOPO il viaggio
 // (prima il volo/taxi, poi il check-in), quindi restano ordinati per priorità logica.
 function oraOf(r){
-  if(r.tipo==='volo'){ const tr=parseTratte(r.tratte); return (tr.andata[0]&&tr.andata[0].ora_dep)||''; }
+  if(r.tipo==='volo'){ const tr=parseTratte(r.tratte); const legs=r.__voloDir==='ritorno'?tr.ritorno:tr.andata; return (legs[0]&&legs[0].ora_dep)||''; }
   if(r.tipo==='trasporto') return r.ora_inizio||'';
   if(r.tipo==='attivita') return r.ora_inizio||'';
   return ''; // alloggio: nessun orario ai fini dell'ordine
@@ -1245,50 +1293,54 @@ function renderCancellazioni(){
 
 // ---------- SPOSTAMENTI MANCANTI ----------
 function renderSpostamenti(){
-  const alloggi=data.filter(r=>r.tipo==='alloggio' && !r.da_prenotare);
-  // per ogni alloggio: nessun trasporto/volo collegato = MANCANTE; collegato ma da_prenotare = DA PRENOTARE
-  const mancano=[], daPren=[];
-  alloggi.forEach(r=>{
-    const t=trasportoVersoTappa(r);
-    if(!t) mancano.push(r);
-    else if(t.da_prenotare) daPren.push({allog:r, trasp:t});
-  });
+  const alloggi=data.filter(r=>r.tipo==='alloggio' && !r.da_prenotare && !r.valuta_cancellazione && !r.escluso_totale);
   const M={traghetto:'⛴️ Traghetto',treno:'🚆 Treno',bus:'🚌 Bus',taxi:'🚕 Taxi/transfer',auto:'🚗 Auto',altro:'🚐 Trasporto',volo:'✈️ Volo'};
   const mezzoTxt=(t)=>{
     if(t.tipo==='volo'){ const tr=parseTratte(t.tratte); const rotta=tr.andata.length?`${tr.andata[0].da}→${tr.andata[tr.andata.length-1].a}`:t.nome_hotel; return `✈️ Volo (${esc(rotta)})`; }
     return `${M[t.mezzo]||'🚐 Trasporto'}${t.partenza||t.arrivo?` (${esc(t.partenza)||'?'}→${esc(t.arrivo)||'?'})`:''}`;
   };
-  if(!mancano.length && !daPren.length){
-    return '<div class="empty">🎉 Tutti gli alloggi hanno il loro "come ci arrivo".</div>';
+
+  // Costruisco un'unica lista di voci da sistemare
+  const voci=[]; // {sortDate, target(record da aprire), html}
+  const usati=new Set();
+
+  // 1) alloggi senza mezzo, oppure con mezzo da prenotare
+  alloggi.forEach(r=>{
+    const t=trasportoVersoTappa(r);
+    if(!t){
+      voci.push({ sortDate:r.data_inizio||'9999', target:r, missing:true,
+        title:esc(r.nome_hotel), place:r.tappa,
+        sub:`arrivo ${r.data_inizio?'il <b>'+fdate(r.data_inizio)+'</b>':'(data da definire)'} · ⬜ come ci arrivo?`, icon:'🧭' });
+    } else if(t.da_prenotare && !t.__simple){
+      if(t.id) usati.add(t.id);
+      voci.push({ sortDate:r.data_inizio||'9999', target:t,
+        title:esc(r.nome_hotel), place:r.tappa,
+        sub:`${mezzoTxt(t)} · <b style="color:var(--red)">da prenotare</b>`, icon:'⬜' });
+    }
+  });
+  // 2) trasporti/voli da prenotare non ancora elencati
+  data.filter(r=>(r.tipo==='trasporto'||r.tipo==='volo') && r.da_prenotare && !usati.has(r.id)).forEach(t=>{
+    voci.push({ sortDate:t.data_inizio||'9999', target:t,
+      title:esc(t.nome_hotel), place:t.tappa,
+      sub:`${mezzoTxt(t)}${t.data_inizio?' · il <b>'+fdate(t.data_inizio)+'</b>':''} · <b style="color:var(--red)">da prenotare</b>`, icon:'⬜' });
+  });
+
+  if(!voci.length){
+    return '<div class="empty">🎉 Tutti gli spostamenti sono a posto.</div>';
   }
-  let html='';
-  if(mancano.length){
-    html+=`<div class="liststat">🧭 ${mancano.length} spostament${mancano.length===1?'o':'i'} da inserire (nessun mezzo indicato)</div>`;
-    // ordino per data check-in
-    mancano.sort((a,b)=>(a.data_inizio||'9999').localeCompare(b.data_inizio||'9999')).forEach(r=>{
-      html+=`<div class="lrow late" onclick='editRow(${JSON.stringify(r).replace(/'/g,"&#39;")})' style="cursor:pointer">
-        <div class="lrow-main">
-          <div class="lrow-title">${esc(r.nome_hotel)}</div>
-          ${r.tappa?`<div class="lrow-place">📍 ${esc(r.tappa)}</div>`:''}
-          <div class="lrow-sub">arrivo ${r.data_inizio?'il <b>'+fdate(r.data_inizio)+'</b>':'(data da definire)'} · ⬜ come ci arrivo?</div>
-        </div>
-        <div class="lrow-amt" style="font-size:1.3rem">🧭</div>
-      </div>`;
-    });
-  }
-  if(daPren.length){
-    html+=`<div class="liststat" style="margin-top:14px">⬜ ${daPren.length} mezz${daPren.length===1?'o':'i'} collegat${daPren.length===1?'o':'i'} ma ancora da prenotare</div>`;
-    daPren.sort((a,b)=>(a.allog.data_inizio||'9999').localeCompare(b.allog.data_inizio||'9999')).forEach(({allog,trasp})=>{
-      html+=`<div class="lrow" onclick='editRow(${JSON.stringify(trasp).replace(/'/g,"&#39;")})' style="cursor:pointer">
-        <div class="lrow-main">
-          <div class="lrow-title">${esc(allog.nome_hotel)}</div>
-          ${allog.tappa?`<div class="lrow-place">📍 ${esc(allog.tappa)}</div>`:''}
-          <div class="lrow-sub">${mezzoTxt(trasp)} · <b style="color:var(--red)">da prenotare</b></div>
-        </div>
-        <div class="lrow-amt" style="font-size:1.3rem">⬜</div>
-      </div>`;
-    });
-  }
+
+  voci.sort((a,b)=>a.sortDate.localeCompare(b.sortDate));
+  let html=`<div class="liststat">${voci.length} spostament${voci.length===1?'o':'i'} da sistemare</div>`;
+  voci.forEach(v=>{
+    html+=`<div class="lrow ${v.missing?'late':''}" onclick='editRow(${JSON.stringify(v.target).replace(/'/g,"&#39;")})' style="cursor:pointer">
+      <div class="lrow-main">
+        <div class="lrow-title">${v.title}</div>
+        ${v.place?`<div class="lrow-place">📍 ${esc(v.place)}</div>`:''}
+        <div class="lrow-sub">${v.sub}</div>
+      </div>
+      <div class="lrow-amt" style="font-size:1.3rem">${v.icon}</div>
+    </div>`;
+  });
   return html;
 }
 
@@ -1540,6 +1592,12 @@ function toggleMore(){
   const m=$('more-fields'); const open=m.classList.toggle('hide')===false;
   $('more-toggle').innerHTML=(open?'▾':'▸')+' Informazioni aggiuntive';
 }
+// tiene allineate le due checkbox "escludi dalle statistiche" (una nei campi principali, una nelle aggiuntive)
+function syncEscludi(from){
+  const v = from==='main' ? $('f-esclusototale2').checked : $('f-esclusototale').checked;
+  $('f-esclusototale').checked=v;
+  if($('f-esclusototale2')) $('f-esclusototale2').checked=v;
+}
 function populateTappeSelect(selectedId){
   const sel=$('f-tappaid');
   const sorted=[...tappe].sort((a,b)=>(a.data_inizio||'9999').localeCompare(b.data_inizio||'9999'));
@@ -1624,16 +1682,17 @@ function addTrasportoFromAllog(){
 
 function toggleDaPrenotare(){
   const on=$('f-daprenotare').checked;
-  // in modalità "da prenotare" nascondo prezzo, pagamento, cancellazione — ma NON il link (serve proprio quello!)
-  ['f-prezzo'].forEach(id=>$(id).closest('.field').classList.toggle('hide',on));
+  const isTrasp=$('f-tipo').value==='trasporto';
+  // in modalità "da prenotare" nascondo pagamento e cancellazione — ma NON il link.
+  // Per i TRASPORTI tengo visibile anche il prezzo (è una previsione utile prima di prenotare).
+  $('f-prezzo').closest('.field').classList.toggle('hide', on && !isTrasp);
+  $('fld-escludi-main').classList.toggle('hide', !isTrasp); // resta per i trasporti
   $('f-statopag').closest('.field').classList.toggle('hide',on);
   $('pay-wrap').classList.toggle('hide',on);
   $('acconto-wrap').classList.toggle('hide',on);
   $('lbl-scad').closest('.field').classList.toggle('hide',on);
-  // le info aggiuntive le lascio come sono (chiuse), il link è già fuori e sempre visibile
   $('more-toggle').classList.toggle('hide',on);
   if(on) $('more-fields').classList.add('hide');
-  // enfatizzo il link quando è da prenotare
   const linkField=$('fld-link');
   linkField.classList.toggle('link-highlight',on);
   $('lbl-link').innerHTML = on ? '🔗 Link dove prenotare <span style="color:var(--red)">(importante!)</span>' : '🔗 Link (sito / prenotazione)';
@@ -1679,6 +1738,10 @@ function applyTypeUI(tipo){
   $('extra-allog').classList.toggle('hide', !isAllog);
   // link: visibile per tutti tranne i voli (che hanno le tratte)
   $('fld-link').classList.toggle('hide', isVolo);
+  // trasporti: mostro "escludi dalle statistiche" tra i campi principali + label prezzo come previsione
+  $('fld-escludi-main').classList.toggle('hide', !isTrasp);
+  $('lbl-prezzo').textContent = isTrasp ? 'Prezzo / previsione (€)' : 'Prezzo totale (€)';
+  $('f-prezzo').placeholder = isTrasp ? 'anche solo una stima' : '0.00';
   // label nome
   $('lbl-nome').textContent = isAllog?'Nome hotel':isVolo?'Nome volo / riferimento':isTrasp?'Nome / compagnia (opz.)':'Nome attività';
   $('f-nome').placeholder = isAllog?'es. Hotel Splendid':isVolo?'es. Andata Tokyo':isTrasp?'es. Traghetto veloce':'es. Tour Fushimi Inari';
@@ -1703,7 +1766,7 @@ function openForm(forceTipo){
   ['f-nome','f-tappa','f-sistemazione','f-orainizio','f-orafine','f-compagnia','f-luogo','f-durata','f-inizio','f-fine','f-sito','f-link','f-prezzo','f-prezzoloc','f-valuta','f-scad','f-datapagamento','f-note','f-colazioneprezzo','f-acconto','f-trda','f-tra','f-trdata','f-trora'].forEach(i=>$(i).value='');
   $('f-mezzo').value='traghetto';
   $('f-valutacanc').checked=false;
-  $('f-esclusototale').checked=false;
+  $('f-esclusototale').checked=false; if($('f-esclusototale2')) $('f-esclusototale2').checked=false;
   $('f-daprenotare').checked=false;
   $('f-noncancellabile').checked=false; toggleScadField();
   $('f-colazione').value='no'; toggleColazionePrezzo();
@@ -1759,7 +1822,7 @@ function editRow(r){
   $('f-acconto').value = r.acconto??'';
   $('f-datapagamento').value=isoToDdmm(r.data_pagamento);
   $('f-valutacanc').checked=!!r.valuta_cancellazione;
-  $('f-esclusototale').checked=!!r.escluso_totale;
+  $('f-esclusototale').checked=!!r.escluso_totale; if($('f-esclusototale2')) $('f-esclusototale2').checked=!!r.escluso_totale;
   $('f-daprenotare').checked=!!r.da_prenotare;
   $('f-note').value=r.note||'';
   // apro le aggiuntive se contengono dati valorizzati
@@ -1798,7 +1861,8 @@ async function save(){
     voloA = andata.length?andata[andata.length-1].a:null;
   }
 
-  const prezzo = daPrenotare ? 0 : ($('f-prezzo').value?Number($('f-prezzo').value):0);
+  // il prezzo si azzera per i segnaposto da-prenotare, TRANNE i trasporti (dove è una previsione utile a farsi un'idea)
+  const prezzo = (daPrenotare && tipo!=='trasporto') ? 0 : ($('f-prezzo').value?Number($('f-prezzo').value):0);
 
   // Risolvo la tappa collegata (alloggi e attività)
   let tappaId=null, tappaNome=null;
