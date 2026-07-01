@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.35.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.36.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -49,11 +49,12 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .tab{flex:1;text-align:center;font-size:.78rem;font-weight:600;padding:9px 4px;border-radius:10px;color:var(--muted);cursor:pointer;border:none;background:none;display:inline-flex;align-items:center;justify-content:center;gap:5px}
 .tab i{font-style:normal;font-size:1rem;line-height:1}
 .tab span{transition:max-width .2s,opacity .15s}
-/* modalità compatta: solo icone */
-.tabs-sticky.compact .tab span{max-width:0;opacity:0;overflow:hidden}
-.tabs-sticky.compact .tab{padding:8px 4px;gap:0}
-.tabs-sticky.compact .tab i{font-size:1.15rem}
-.tabs-sticky.compact .tabs{margin-bottom:6px}
+/* modalità compatta: una sola riga con solo le icone */
+.tabs-sticky.compact .tab span{display:none}
+.tabs-sticky.compact{display:flex;gap:6px;background:var(--surface-2);border-radius:14px;padding:5px;padding-top:calc(5px + env(safe-area-inset-top))}
+.tabs-sticky.compact .tabs{display:contents}
+.tabs-sticky.compact .tab{padding:8px 2px;gap:0;margin:0}
+.tabs-sticky.compact .tab i{font-size:1.2rem}
 .tab.active{background:var(--surface);color:var(--teal);box-shadow:0 1px 4px rgba(0,0,0,.08)}
 
 /* Disclaimer */
@@ -268,7 +269,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.35.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.36.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
