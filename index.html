@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.16.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.23.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -85,6 +85,17 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .book-link{display:block;text-align:center;background:var(--red);color:#fff;font-weight:700;font-size:.9rem;padding:11px;border-radius:11px;text-decoration:none;margin-top:10px}
 .book-link:active{opacity:.85}
 .book-nolink{font-size:.74rem;color:var(--amber);background:var(--amber-bg);border-radius:9px;padding:8px 10px;margin-top:10px;font-weight:600}
+/* Come ci arrivo — card */
+.arrivo{font-size:.76rem;font-weight:600;margin-top:8px;padding:6px 10px;border-radius:9px}
+.arrivo.ok{color:var(--green);background:var(--green-bg)}
+.arrivo.miss{color:var(--red);background:var(--red-bg)}
+.arrivo.none{color:var(--teal-deep);background:var(--surface-2);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.arrivo.none .add{font-weight:700;color:var(--teal);white-space:nowrap}
+/* Come ci arrivo — form */
+.arrivo-box{background:var(--surface-2);border:1px dashed var(--teal);border-radius:12px;padding:12px}
+.arrivo-box-title{font-size:.85rem;font-weight:700;color:var(--teal-deep);margin-bottom:8px}
+.arrivo-hint{font-size:.72rem;color:var(--muted);margin-top:6px}
+.arrivo-add{width:100%;background:var(--teal);color:#fff;border:none;font-weight:700;font-size:.85rem;padding:10px;border-radius:10px;cursor:pointer}
 /* more toggle */
 .more-toggle{width:100%;background:var(--surface-2);border:1px solid var(--line);color:var(--teal-deep);font-size:.85rem;font-weight:700;padding:11px;border-radius:11px;cursor:pointer;margin:6px 0 13px;text-align:left}
 .hint{font-size:.72rem;color:var(--teal);margin-top:5px;font-weight:600}
@@ -249,7 +260,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.16.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.23.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -277,6 +288,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <div class="tabs">
   <button class="tab" data-tab="pagamenti" onclick="setTab('pagamenti')">💳 Pagamenti</button>
   <button class="tab" data-tab="cancellazioni" onclick="setTab('cancellazioni')">⏳ Cancellazioni</button>
+  <button class="tab" data-tab="spostamenti" onclick="setTab('spostamenti')">🧭 Spostamenti</button>
 </div>
 
 <div id="disclaimer"></div>
@@ -371,7 +383,12 @@ header .sub{font-size:.72rem;color:var(--muted)}
     </div>
 
     <!-- ALLOGGIO -->
-    <div class="grp hide" id="grp-allog"></div>
+    <div class="grp hide" id="grp-allog">
+      <div class="arrivo-box" id="arrivo-box">
+        <div class="arrivo-box-title">🧭 Come ci arrivo a questo alloggio?</div>
+        <div id="arrivo-box-body"></div>
+      </div>
+    </div>
 
     <!-- VOLO -->
     <div class="grp hide" id="grp-volo">
@@ -795,7 +812,7 @@ function tipoOfTab(t){ return t==='alloggi'?'alloggio':t==='voli'?'volo':t==='tr
 
 function render(){
   const isCal = tab==='calendario';
-  const isList = (tab==='pagamenti'||tab==='cancellazioni'||tab==='itinerario');
+  const isList = (tab==='pagamenti'||tab==='cancellazioni'||tab==='itinerario'||tab==='spostamenti');
   const filtered = (tab==='tutto'||isCal||isList) ? data : data.filter(r=>r.tipo===tipoOfTab(tab));
 
   // Totali sul set filtrato (per pagamenti/cancellazioni uso tutti i dati)
@@ -817,10 +834,14 @@ function render(){
 
   // Disclaimer cancellazioni (sempre globale, su tutti i dati)
   const toCancel = data.filter(r=>r.valuta_cancellazione);
-  const toBook = data.filter(r=>r.da_prenotare);
+  const bookAllog = data.filter(r=>r.da_prenotare && r.tipo==='alloggio');
+  const bookTrasp = data.filter(r=>r.da_prenotare && r.tipo==='trasporto');
+  const bookAtt   = data.filter(r=>r.da_prenotare && r.tipo==='attivita');
   let disc='';
   if(toCancel.length) disc+=`<div class="disclaimer"><span class="ic">⚠️</span><span>Hai ${toCancel.length} ${toCancel.length===1?'prenotazione':'prenotazioni'} da valutare per la cancellazione (doppi alloggi): ${toCancel.map(r=>esc(r.nome_hotel)).join(', ')}.</span></div>`;
-  if(toBook.length) disc+=`<div class="disclaimer book"><span class="ic">📍</span><span>Hai ${toBook.length} ${toBook.length===1?'alloggio ancora da prenotare':'alloggi ancora da prenotare'}: ${toBook.map(r=>esc(r.tappa||r.nome_hotel)).join(', ')}.</span></div>`;
+  if(bookAllog.length) disc+=`<div class="disclaimer book"><span class="ic">🏨</span><span>Hai ${bookAllog.length} ${bookAllog.length===1?'alloggio ancora da prenotare':'alloggi ancora da prenotare'}: ${bookAllog.map(r=>esc(r.tappa||r.nome_hotel)).join(', ')}.</span></div>`;
+  if(bookTrasp.length) disc+=`<div class="disclaimer book"><span class="ic">⛴️</span><span>Hai ${bookTrasp.length} ${bookTrasp.length===1?'trasporto ancora da prenotare':'trasporti ancora da prenotare'}: ${bookTrasp.map(r=>esc(r.tappa||r.nome_hotel)).join(', ')}.</span></div>`;
+  if(bookAtt.length) disc+=`<div class="disclaimer book"><span class="ic">💡</span><span>Hai ${bookAtt.length} ${bookAtt.length===1?'attività da prenotare':'attività da prenotare'}: ${bookAtt.map(r=>esc(r.nome_hotel)).join(', ')}.</span></div>`;
   $('disclaimer').innerHTML=disc;
 
   // Switch viste
@@ -832,11 +853,12 @@ function render(){
   if(tab==='itinerario'){ list.innerHTML=renderItinerario(); return; }
   if(tab==='pagamenti'){ list.innerHTML=renderPagamenti(); return; }
   if(tab==='cancellazioni'){ list.innerHTML=renderCancellazioni(); return; }
+  if(tab==='spostamenti'){ list.innerHTML=renderSpostamenti(); return; }
 
   if(!filtered.length){ list.innerHTML='<div class="empty">Nessuna voce.<br>'+(tab==='tutto'?'Aggiungi qualcosa dalle altre tab.':'Tocca + per iniziare.')+'</div>'; return; }
 
-  // Ordina cronologicamente per data_inizio
-  const sorted=[...filtered].sort((a,b)=>(a.data_inizio||'9999').localeCompare(b.data_inizio||'9999'));
+  // Ordina per giorno, poi per orario reale, poi per priorità logica (volo→trasporto→check-in→attività)
+  const sorted=[...filtered].sort(cmpChrono);
 
   let html=''; let lastDay=null;
   if(tab==='tutto') html+='<button class="copybtn" onclick="copiaPrenotazioni()">📋 Copia prenotazioni</button>';
@@ -856,6 +878,7 @@ function daysBetween(a,b){ if(!isValidISO(a)||!isValidISO(b)) return 0; return M
 function addDays(d,n){ if(!isValidISO(d)) return d; const x=new Date(d+'T00:00:00'); x.setDate(x.getDate()+n); return x.toISOString().slice(0,10); }
 let calDayMap={};   // 'YYYY-MM-DD' -> [{tipo,label,...}]
 let calSelected=null;
+let pendingArrivoRef=null; // ref arrivo da ripristinare in modifica alloggio
 
 function buildDayMap(){
   const map={};
@@ -865,13 +888,17 @@ function buildDayMap(){
       const end=isValidISO(r.data_fine)?r.data_fine:r.data_inizio;
       let n=Math.max(daysBetween(r.data_inizio,end),0)||0;
       if(n>366) n=366; // guardia anti-loop
+      // check-in (con orario) il primo giorno
+      push(r.data_inizio,{tipo:'allog', label:r.tappa||r.nome_hotel, role:'in', time:r.ora_inizio||''});
+      // notti intermedie (soggiorno), senza orario
+      let d=addDays(r.data_inizio,1), guard=0;
       const lastNight = n>0 ? addDays(r.data_inizio,n-1) : r.data_inizio;
-      let d=r.data_inizio, guard=0;
       while(d<=lastNight && guard<400){
-        push(d,{tipo:'allog', label:r.tappa||r.nome_hotel, role:(d===r.data_inizio?'in':'stay')});
+        push(d,{tipo:'allog', label:r.tappa||r.nome_hotel, role:'stay', time:''});
         d=addDays(d,1); guard++;
       }
-      push(end,{tipo:'allog', label:r.tappa||r.nome_hotel, role:'out'});
+      // check-out (con orario) l'ultimo giorno
+      if(end!==r.data_inizio) push(end,{tipo:'allog', label:r.tappa||r.nome_hotel, role:'out', time:r.ora_fine||''});
     } else if(r.tipo==='volo'){
       const tr=parseTratte(r.tratte);
       const legs=[...tr.andata,...tr.ritorno].filter(l=>isValidISO(l.data_dep));
@@ -905,9 +932,18 @@ function renderCalendar(){
       const mo=dt.toLocaleDateString('it-IT',{month:'short'});
       const items=calDayMap[d]||[];
       let rows='';
+      // dedup: raggruppo eventi identici (stesso tipo+label+ruolo+ora)
+      const seen=new Set();
       items.forEach(x=>{
+        const key=`${x.tipo}|${x.label}|${x.role||''}|${x.time||''}`;
+        if(seen.has(key)) return; seen.add(key);
         let ic,cls,txt;
-        if(x.tipo==='allog'){ ic='🏨'; cls='allog'; const ruolo=x.role==='out'?' · check-out':x.role==='in'?' · check-in':''; txt=esc(x.label)+ruolo; }
+        if(x.tipo==='allog'){
+          ic='🏨'; cls='allog';
+          const ruolo=x.role==='out'?' · check-out':x.role==='in'?' · check-in':'';
+          const ora=x.time&&(x.role==='in'||x.role==='out')?' ('+esc(x.time)+')':'';
+          txt=esc(x.label)+ruolo+ora;
+        }
         else if(x.tipo==='volo'){ ic=x.icon||'✈️'; cls='volo'; txt=esc(x.label)+(x.time?' · '+esc(x.time):''); }
         else if(x.tipo==='trasp'){ ic=x.icon||'🚐'; cls='trasp'; txt=esc(x.label)+(x.time?' · '+esc(x.time):''); }
         else { ic='🎟️'; cls='att'; txt=esc(x.label)+(x.time?' · '+esc(x.time):''); }
@@ -960,9 +996,27 @@ function cardHtml(r){
     const notti = (r.data_inizio&&r.data_fine)?Math.max(daysBetween(r.data_inizio,r.data_fine),0):0;
     const perNotte = notti>0?(Number(r.prezzo)||0)/notti:null;
     const nottiTxt = notti>0?`🌙 ${notti} nott${notti===1?'e':'i'}${perNotte!=null?` · ${eur(perNotte)}/notte`:''}`:'';
+    // trasporto verso questa tappa
+    const trasp=trasportoVersoTappa(r);
+    let arrivoTxt='';
+    if(trasp && trasp.__simple){
+      arrivoTxt=`<div class="arrivo ok">🧭 Come arrivo: ${trasp.icon} ${esc(trasp.testo)}</div>`;
+    } else if(trasp && trasp.tipo==='volo'){
+      const tr=parseTratte(trasp.tratte);
+      const rotta = tr.andata.length?`${tr.andata[0].da}→${tr.andata[tr.andata.length-1].a}`:esc(trasp.nome_hotel);
+      const okt=!trasp.da_prenotare;
+      arrivoTxt=`<div class="arrivo ${okt?'ok':'miss'}">🧭 Come arrivo: ✈️ Volo (${esc(rotta)}) · ${okt?'✅ prenotato':'⬜ da prenotare'}</div>`;
+    } else if(trasp){
+      const M={traghetto:'⛴️ Traghetto',treno:'🚆 Treno',bus:'🚌 Bus',taxi:'🚕 Taxi/transfer',auto:'🚗 Auto',altro:'🚐 Trasporto'};
+      const okt=!trasp.da_prenotare;
+      arrivoTxt=`<div class="arrivo ${okt?'ok':'miss'}">🧭 Come arrivo: ${M[trasp.mezzo]||'🚐 Trasporto'}${trasp.partenza||trasp.arrivo?` (${esc(trasp.partenza)||'?'}→${esc(trasp.arrivo)||'?'})`:''} · ${okt?'✅ prenotato':'⬜ da prenotare'}</div>`;
+    } else {
+      arrivoTxt=`<div class="arrivo none" onclick='event.stopPropagation();editRow(${JSON.stringify(r).replace(/'/g,"&#39;")})'>🧭 Come ci arrivo? <span class="add">+ collega o aggiungi</span></div>`;
+    }
     dates=`<div class="row"><span>Check-in <b>${ci}</b></span><span>Check-out <b>${co}</b></span></div>`
       + (nottiTxt?`<div class="row"><span>${nottiTxt}</span></div>`:'')
-      + `<div class="row"><span>${colaz}</span></div>`;
+      + `<div class="row"><span>${colaz}</span></div>`
+      + arrivoTxt;
   } else if(r.tipo==='volo'){
     const tr = parseTratte(r.tratte);
     const homeIata = tr.andata[0] && tr.andata[0].da;                          // CASA = prima partenza andata
@@ -1055,12 +1109,74 @@ function cardHtml(r){
 function esc(s){return (s||'').toString().replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));}
 
 // ---------- LISTE PAGAMENTI / CANCELLAZIONI ----------
+// orario reale di una voce (per l'ordinamento nello stesso giorno)
+// Nota: per gli ALLOGGI non uso l'orario di check-in, perché ci si arriva DOPO il viaggio
+// (prima il volo/taxi, poi il check-in), quindi restano ordinati per priorità logica.
+function oraOf(r){
+  if(r.tipo==='volo'){ const tr=parseTratte(r.tratte); return (tr.andata[0]&&tr.andata[0].ora_dep)||''; }
+  if(r.tipo==='trasporto') return r.ora_inizio||'';
+  if(r.tipo==='attivita') return r.ora_inizio||'';
+  return ''; // alloggio: nessun orario ai fini dell'ordine
+}
+// priorità logica a parità di giorno/orario: prima arrivo (volo/trasporto), poi check-in, poi attività
+function prioOf(r){ return {volo:0, trasporto:1, alloggio:2, attivita:3}[r.tipo] ?? 9; }
+function cmpChrono(a,b){
+  const da=a.data_inizio||'9999', dbb=b.data_inizio||'9999';
+  if(da!==dbb) return da<dbb?-1:1;
+  // stesso giorno: gli alloggi vanno sempre in coda (prima ci si arriva, poi il check-in)
+  const aAllog=a.tipo==='alloggio', bAllog=b.tipo==='alloggio';
+  if(aAllog!==bAllog) return aAllog?1:-1;
+  const oa=oraOf(a), ob=oraOf(b);
+  if(oa&&ob&&oa!==ob) return oa<ob?-1:1;
+  if(oa&&!ob) return -1;
+  if(!oa&&ob) return 1;
+  return prioOf(a)-prioOf(b);
+}
 function postoOf(r){
   if(r.tipo==='alloggio') return r.tappa||'';
   if(r.tipo==='attivita') return r.tappa||r.luogo||'';
   if(r.tipo==='volo'){ const tr=parseTratte(r.tratte); const a=[...tr.andata]; return a.length?`${a[0].da}→${a[a.length-1].a}`:''; }
   if(r.tipo==='trasporto') return r.tappa||((r.partenza||r.arrivo)?`${r.partenza||'?'}→${r.arrivo||'?'}`:'');
   return '';
+}
+// trova il trasporto collegato alla stessa tappa di un alloggio (per id, con fallback nome)
+function trasportoVersoTappa(r){
+  // 0) opzione semplice (a piedi, auto propria, ecc.): non è una prenotazione
+  if(r.arrivo_ref && r.arrivo_ref.indexOf('simple:')===0){
+    const SIMPLE={
+      'simple:piedi':{icon:'🚶',testo:'A piedi'},
+      'simple:auto':{icon:'🚗',testo:'In auto (propria/noleggio)'},
+      'simple:navetta':{icon:'🚐',testo:'Navetta inclusa nell\'alloggio'},
+      'simple:onsite':{icon:'📍',testo:'Già sul posto / stessa zona'},
+    };
+    const s=SIMPLE[r.arrivo_ref]||{icon:'🧭',testo:'Spostamento breve'};
+    return {__simple:true, icon:s.icon, testo:s.testo, da_prenotare:false};
+  }
+  // 1) riferimento esplicito a un volo/trasporto già inserito
+  if(r.arrivo_ref){
+    const ref=data.find(x=>x.id===r.arrivo_ref);
+    if(ref) return ref;
+  }
+  // 2) trasporto legato alla stessa tappa
+  return data.find(x=>x.tipo==='trasporto' && (
+    (r.tappa_id && x.tappa_id && x.tappa_id===r.tappa_id) ||
+    (r.tappa && norm(x.tappa)===norm(r.tappa) && norm(r.tappa)!=='')
+  ));
+}
+// apre il form nuovo trasporto precompilando la tappa di arrivo
+function addTrasportoPerTappa(info){
+  openForm('trasporto');
+  // seleziono la tappa di arrivo
+  if(info && (info.tappa_id||info.tappa)){
+    const sel=$('f-tappaid');
+    if(info.tappa_id && [...sel.options].some(o=>o.value===info.tappa_id)){
+      sel.value=info.tappa_id; onTappaSelect();
+    } else if(info.tappa){
+      const m=tappe.find(t=>norm(t.nome)===norm(info.tappa));
+      if(m){ sel.value=m.id; onTappaSelect(); }
+      else { sel.value='__new'; onTappaSelect(); $('f-tappa').value=info.tappa; }
+    }
+  }
 }
 function renderPagamenti(){
   // voci con qualcosa ancora da pagare: da pagare, acconto, e pagare in loco
@@ -1127,7 +1243,55 @@ function renderCancellazioni(){
   return html;
 }
 
-// ---------- ITINERARIO (tappe) ----------
+// ---------- SPOSTAMENTI MANCANTI ----------
+function renderSpostamenti(){
+  const alloggi=data.filter(r=>r.tipo==='alloggio' && !r.da_prenotare);
+  // per ogni alloggio: nessun trasporto/volo collegato = MANCANTE; collegato ma da_prenotare = DA PRENOTARE
+  const mancano=[], daPren=[];
+  alloggi.forEach(r=>{
+    const t=trasportoVersoTappa(r);
+    if(!t) mancano.push(r);
+    else if(t.da_prenotare) daPren.push({allog:r, trasp:t});
+  });
+  const M={traghetto:'⛴️ Traghetto',treno:'🚆 Treno',bus:'🚌 Bus',taxi:'🚕 Taxi/transfer',auto:'🚗 Auto',altro:'🚐 Trasporto',volo:'✈️ Volo'};
+  const mezzoTxt=(t)=>{
+    if(t.tipo==='volo'){ const tr=parseTratte(t.tratte); const rotta=tr.andata.length?`${tr.andata[0].da}→${tr.andata[tr.andata.length-1].a}`:t.nome_hotel; return `✈️ Volo (${esc(rotta)})`; }
+    return `${M[t.mezzo]||'🚐 Trasporto'}${t.partenza||t.arrivo?` (${esc(t.partenza)||'?'}→${esc(t.arrivo)||'?'})`:''}`;
+  };
+  if(!mancano.length && !daPren.length){
+    return '<div class="empty">🎉 Tutti gli alloggi hanno il loro "come ci arrivo".</div>';
+  }
+  let html='';
+  if(mancano.length){
+    html+=`<div class="liststat">🧭 ${mancano.length} spostament${mancano.length===1?'o':'i'} da inserire (nessun mezzo indicato)</div>`;
+    // ordino per data check-in
+    mancano.sort((a,b)=>(a.data_inizio||'9999').localeCompare(b.data_inizio||'9999')).forEach(r=>{
+      html+=`<div class="lrow late" onclick='editRow(${JSON.stringify(r).replace(/'/g,"&#39;")})' style="cursor:pointer">
+        <div class="lrow-main">
+          <div class="lrow-title">${esc(r.nome_hotel)}</div>
+          ${r.tappa?`<div class="lrow-place">📍 ${esc(r.tappa)}</div>`:''}
+          <div class="lrow-sub">arrivo ${r.data_inizio?'il <b>'+fdate(r.data_inizio)+'</b>':'(data da definire)'} · ⬜ come ci arrivo?</div>
+        </div>
+        <div class="lrow-amt" style="font-size:1.3rem">🧭</div>
+      </div>`;
+    });
+  }
+  if(daPren.length){
+    html+=`<div class="liststat" style="margin-top:14px">⬜ ${daPren.length} mezz${daPren.length===1?'o':'i'} collegat${daPren.length===1?'o':'i'} ma ancora da prenotare</div>`;
+    daPren.sort((a,b)=>(a.allog.data_inizio||'9999').localeCompare(b.allog.data_inizio||'9999')).forEach(({allog,trasp})=>{
+      html+=`<div class="lrow" onclick='editRow(${JSON.stringify(trasp).replace(/'/g,"&#39;")})' style="cursor:pointer">
+        <div class="lrow-main">
+          <div class="lrow-title">${esc(allog.nome_hotel)}</div>
+          ${allog.tappa?`<div class="lrow-place">📍 ${esc(allog.tappa)}</div>`:''}
+          <div class="lrow-sub">${mezzoTxt(trasp)} · <b style="color:var(--red)">da prenotare</b></div>
+        </div>
+        <div class="lrow-amt" style="font-size:1.3rem">⬜</div>
+      </div>`;
+    });
+  }
+  return html;
+}
+
 function copiaTappe(){
   const sorted=[...tappe].sort((a,b)=>(a.data_inizio||'9999').localeCompare(b.data_inizio||'9999'));
   const MEZZI={traghetto:'traghetto',treno:'treno',bus:'bus',taxi:'taxi/transfer',auto:'auto',altro:'trasporto',volo:'volo'};
@@ -1146,7 +1310,7 @@ function copiaTappe(){
   copyText(txt.trim(), 'Itinerario copiato!');
 }
 function copiaPrenotazioni(){
-  const ordered=[...data].filter(r=>r.tipo).sort((a,b)=>(a.data_inizio||'9999').localeCompare(b.data_inizio||'9999'));
+  const ordered=[...data].filter(r=>r.tipo).sort(cmpChrono);
   let txt=`PRENOTAZIONI — ${currentTrip?currentTrip.nome:''}\n\n`;
   const label={alloggio:'🏨 ALLOGGIO',volo:'✈️ VOLO',trasporto:'⛴️ TRASPORTO',attivita:'🎟️ ATTIVITÀ'};
   ordered.forEach(r=>{
@@ -1398,6 +1562,64 @@ function onTappaSelect(){
       if(t.data_fine && !$('f-fine').value) $('f-fine').value=isoToDdmm(t.data_fine);
     }
   } else if(v===''){ $('f-tappa').value=''; }
+  refreshArrivoBox();
+}
+
+function refreshArrivoBox(){
+  const box=$('arrivo-box'); if(!box) return;
+  const tipo=$('f-tipo').value;
+  if(tipo!=='alloggio'){ box.classList.add('hide'); return; }
+  box.classList.remove('hide');
+  const tappaId=$('f-tappaid').value;
+  const tappaNome=$('f-tappa').value.trim();
+  const body=$('arrivo-box-body');
+
+  // opzioni: tutti i voli e i trasporti già inseriti
+  const M={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',auto:'🚗',altro:'🚐'};
+  const mezzi=data.filter(x=>x.tipo==='volo'||x.tipo==='trasporto');
+  // trasporto suggerito per questa tappa (match automatico)
+  let suggested=null;
+  if(tappaId && tappaId!=='__new') suggested=data.find(x=>x.tipo==='trasporto' && x.tappa_id===tappaId);
+  if(!suggested && tappaNome) suggested=data.find(x=>x.tipo==='trasporto' && norm(x.tappa)===norm(tappaNome));
+
+  let opts='<option value="">— nessuno / da decidere —</option>';
+  if(suggested) opts+=`<option value="${suggested.id}">↳ suggerito: ${esc(suggested.nome_hotel)}</option>`;
+  mezzi.forEach(x=>{
+    if(suggested && x.id===suggested.id) return;
+    let et;
+    if(x.tipo==='volo'){ const tr=parseTratte(x.tratte); const rotta=tr.andata.length?`${tr.andata[0].da}→${tr.andata[tr.andata.length-1].a}`:x.nome_hotel; et=`✈️ ${esc(x.nome_hotel)} (${esc(rotta)})`; }
+    else { et=`${M[x.mezzo]||'🚐'} ${esc(x.nome_hotel)}`; }
+    opts+=`<option value="${x.id}">${et}</option>`;
+  });
+  // opzioni "semplici" che non richiedono una prenotazione
+  opts+='<optgroup label="Senza prenotazione">';
+  opts+='<option value="simple:piedi">🚶 A piedi</option>';
+  opts+='<option value="simple:auto">🚗 In auto (propria/noleggio)</option>';
+  opts+='<option value="simple:navetta">🚐 Navetta inclusa nell\'alloggio</option>';
+  opts+='<option value="simple:onsite">📍 Già sul posto / stessa zona</option>';
+  opts+='</optgroup>';
+  const cur=(typeof pendingArrivoRef==='string'&&pendingArrivoRef)?pendingArrivoRef:($('f-arrivoref')?$('f-arrivoref').value:'');
+  body.innerHTML=`
+    <select id="f-arrivoref-sel" onchange="onArrivoRefSelect()" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font-size:.9rem;font-family:inherit">${opts}</select>
+    <input type="hidden" id="f-arrivoref" value="${esc(cur)}">
+    <button type="button" class="arrivo-add" style="margin-top:8px" onclick="addTrasportoFromAllog()">+ Nuovo trasporto verso questa tappa</button>
+    <div class="arrivo-hint">Scegli il volo o il trasporto con cui arrivi, oppure creane uno nuovo.</div>`;
+  // ripristino selezione: se c'è un ref salvato uso quello, altrimenti il suggerito
+  const sel=$('f-arrivoref-sel');
+  if(cur && [...sel.options].some(o=>o.value===cur)) sel.value=cur;
+  else if(suggested){ sel.value=suggested.id; $('f-arrivoref').value=suggested.id; }
+  onArrivoRefSelect();
+  pendingArrivoRef=null;
+}
+function onArrivoRefSelect(){
+  const sel=$('f-arrivoref-sel'); if(!sel) return;
+  $('f-arrivoref').value=sel.value;
+}
+// dal form alloggio: chiudo e apro il form trasporto con la tappa corrente
+function addTrasportoFromAllog(){
+  const info={tappa_id: ($('f-tappaid').value && $('f-tappaid').value!=='__new')?$('f-tappaid').value:null, tappa:$('f-tappa').value.trim()||null};
+  closeForm();
+  addTrasportoPerTappa(info);
 }
 
 function toggleDaPrenotare(){
@@ -1466,13 +1688,14 @@ function applyTypeUI(tipo){
   // per i trasporti la tappa è quella di ARRIVO
   const tappaLbl=$('grp-tappa').querySelector('label');
   if(tappaLbl) tappaLbl.innerHTML = isTrasp?'Tappa di arrivo <span style="font-weight:400;color:var(--muted)">(dall\'itinerario)</span>':'Tappa <span style="font-weight:400;color:var(--muted)">(dall\'itinerario)</span>';
+  if(typeof refreshArrivoBox==='function') refreshArrivoBox();
 }
 
-function openForm(){
-  let tipo=tipoOfTab(tab);
+function openForm(forceTipo){
+  let tipo=(typeof forceTipo==='string'&&forceTipo)?forceTipo:tipoOfTab(tab);
   const fromAll = !tipo;
   if(!tipo) tipo='alloggio';
-  $('fld-tiposel').classList.toggle('hide', !fromAll);
+  $('fld-tiposel').classList.toggle('hide', !fromAll && !forceTipo);
   $('f-tiposel').value=tipo;
   $('modal-title').textContent='Nuova voce';
   applyTypeUI(tipo);
@@ -1488,6 +1711,7 @@ function openForm(){
   $('f-andataritorno').checked=false; $('sec-ritorno').classList.add('hide');
   clearLegs(); addLeg('andata');
   $('more-fields').classList.add('hide'); $('more-toggle').innerHTML='▸ Informazioni aggiuntive';
+  pendingArrivoRef=null;
   populateTappeSelect('');
   togglePayField(); toggleDaPrenotare();
   attachDateMask();
@@ -1496,6 +1720,7 @@ function openForm(){
 
 function editRow(r){
   $('fld-tiposel').classList.add('hide');
+  pendingArrivoRef = r.arrivo_ref||null;
   applyTypeUI(r.tipo);
   $('modal-title').textContent='Modifica '+(TYPE_LABELS[r.tipo]||'voce');
   $('f-id').value=r.id;
@@ -1631,6 +1856,7 @@ async function save(){
     valuta_cancellazione: tipo==='alloggio'?$('f-valutacanc').checked:false,
     escluso_totale: daPrenotare ? true : $('f-esclusototale').checked,
     da_prenotare: daPrenotare,
+    arrivo_ref: tipo==='alloggio' ? (($('f-arrivoref')&&$('f-arrivoref').value)||null) : null,
     note: $('f-note').value.trim()||null
   };
   const id=$('f-id').value;
@@ -1639,7 +1865,13 @@ async function save(){
     ? await db.from(TABLE).update(rec).eq('id',id)
     : await db.from(TABLE).insert(rec);
   $('save-btn').textContent='Salva';
-  if(error){ alert('Errore: '+error.message); return; }
+  if(error){
+    let msg='Errore: '+error.message;
+    if(/uuid/i.test(error.message) && /simple:/i.test(error.message)){
+      msg='Per usare le opzioni "a piedi / in auto / ecc." devi prima aggiornare il database.\n\nEsegui in Supabase:\nalter table itinerario_prenotazioni alter column arrivo_ref type text using arrivo_ref::text;';
+    }
+    alert(msg); return;
+  }
   closeForm(); load();
 }
 
