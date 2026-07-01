@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.29.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.30.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -260,7 +260,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.29.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.30.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -901,15 +901,17 @@ function buildDayMap(){
   const push=(d,obj)=>{ if(!isValidISO(d))return; (map[d]=map[d]||[]).push(obj); };
   data.forEach(r=>{
     if(r.tipo==='alloggio' && isValidISO(r.data_inizio)){
+      // salto i doppioni "da valutare cancellazione" e gli esclusi: sporcano il calendario
+      if(r.valuta_cancellazione || r.escluso_totale || r.da_prenotare) return;
       const end=isValidISO(r.data_fine)?r.data_fine:r.data_inizio;
       let n=Math.max(daysBetween(r.data_inizio,end),0)||0;
       if(n>366) n=366; // guardia anti-loop
       // check-in (con orario) il primo giorno
       push(r.data_inizio,{tipo:'allog', label:r.tappa||r.nome_hotel, role:'in', time:r.ora_inizio||''});
-      // notti intermedie (soggiorno), senza orario
+      // notti intermedie (soggiorno), senza orario — MAI sul giorno di check-in
       let d=addDays(r.data_inizio,1), guard=0;
-      const lastNight = n>0 ? addDays(r.data_inizio,n-1) : r.data_inizio;
-      while(d<=lastNight && guard<400){
+      const lastNight = n>0 ? addDays(r.data_inizio,n-1) : null;
+      while(lastNight && d<=lastNight && guard<400){
         push(d,{tipo:'allog', label:r.tappa||r.nome_hotel, role:'stay', time:''});
         d=addDays(d,1); guard++;
       }
@@ -969,11 +971,23 @@ function renderCalendar(){
       const wd=dt.toLocaleDateString('it-IT',{weekday:'short'});
       const dn=dt.getDate();
       const mo=dt.toLocaleDateString('it-IT',{month:'short'});
-      const items=(calDayMap[d]||[]).slice().sort(cmpCalEv);
-      let rows='';
-      // dedup: raggruppo eventi identici (stesso tipo+label+ruolo+ora)
-      const seen=new Set();
+      const items=(calDayMap[d]||[]).slice();
+      // dedup ALLOGGI: per ogni label nello stesso giorno tengo un solo evento,
+      // scegliendo il ruolo più informativo (check-out > check-in > soggiorno)
+      const allogByLabel={};
+      const rank={out:3, in:2, stay:1};
+      const others=[];
       items.forEach(x=>{
+        if(x.tipo==='allog'){
+          const prev=allogByLabel[x.label];
+          if(!prev || (rank[x.role]||0) > (rank[prev.role]||0)) allogByLabel[x.label]=x;
+        } else others.push(x);
+      });
+      const merged=[...Object.values(allogByLabel), ...others].sort(cmpCalEv);
+      let rows='';
+      // dedup finale per eventi non-alloggio identici
+      const seen=new Set();
+      merged.forEach(x=>{
         const key=`${x.tipo}|${x.label}|${x.role||''}|${x.time||''}`;
         if(seen.has(key)) return; seen.add(key);
         let ic,cls,txt;
