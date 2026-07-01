@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.30.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.31.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -260,7 +260,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.30.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.31.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -1058,11 +1058,11 @@ function cardHtml(r){
       const tr=parseTratte(trasp.tratte);
       const rotta = tr.andata.length?`${tr.andata[0].da}→${tr.andata[tr.andata.length-1].a}`:esc(trasp.nome_hotel);
       const okt=!trasp.da_prenotare;
-      arrivoTxt=`<div class="arrivo ${okt?'ok':'miss'}">🧭 Come arrivo: ✈️ Volo (${esc(rotta)}) · ${okt?'✅ prenotato':'⬜ da prenotare'}</div>`;
+      arrivoTxt=`<div class="arrivo ${okt?'ok':'miss'}">🧭 Come arrivo: ✈️ Volo (${esc(rotta)}) · ${okt?'✅ prenotato':'✗ da prenotare'}</div>`;
     } else if(trasp){
       const M={traghetto:'⛴️ Traghetto',treno:'🚆 Treno',bus:'🚌 Bus',taxi:'🚕 Taxi/transfer',auto:'🚗 Auto',altro:'🚐 Trasporto'};
       const okt=!trasp.da_prenotare;
-      arrivoTxt=`<div class="arrivo ${okt?'ok':'miss'}">🧭 Come arrivo: ${M[trasp.mezzo]||'🚐 Trasporto'}${trasp.partenza||trasp.arrivo?` (${esc(trasp.partenza)||'?'}→${esc(trasp.arrivo)||'?'})`:''} · ${okt?'✅ prenotato':'⬜ da prenotare'}</div>`;
+      arrivoTxt=`<div class="arrivo ${okt?'ok':'miss'}">🧭 Come arrivo: ${M[trasp.mezzo]||'🚐 Trasporto'}${trasp.partenza||trasp.arrivo?` (${esc(trasp.partenza)||'?'}→${esc(trasp.arrivo)||'?'})`:''} · ${okt?'✅ prenotato':'✗ da prenotare'}</div>`;
     } else {
       arrivoTxt=`<div class="arrivo none" onclick='event.stopPropagation();editRow(${JSON.stringify(r).replace(/'/g,"&#39;")})'>🧭 Come ci arrivo? <span class="add">+ collega o aggiungi</span></div>`;
     }
@@ -1324,19 +1324,19 @@ function renderSpostamenti(){
     if(!t){
       voci.push({ sortDate:r.data_inizio||'9999', target:r, missing:true,
         title:esc(r.nome_hotel), place:r.tappa,
-        sub:`arrivo ${r.data_inizio?'il <b>'+fdate(r.data_inizio)+'</b>':'(data da definire)'} · ⬜ come ci arrivo?`, icon:'🧭' });
+        sub:`arrivo ${r.data_inizio?'il <b>'+fdate(r.data_inizio)+'</b>':'(data da definire)'} · ✗ come ci arrivo?`, icon:'🧭' });
     } else if(t.da_prenotare && !t.__simple){
       if(t.id) usati.add(t.id);
       voci.push({ sortDate:r.data_inizio||'9999', target:t,
         title:esc(r.nome_hotel), place:r.tappa,
-        sub:`${mezzoTxt(t)} · <b style="color:var(--red)">da prenotare</b>`, icon:'⬜' });
+        sub:`${mezzoTxt(t)} · <b style="color:var(--red)">da prenotare</b>`, icon:'✗' });
     }
   });
   // 2) trasporti/voli da prenotare non ancora elencati
   data.filter(r=>(r.tipo==='trasporto'||r.tipo==='volo') && r.da_prenotare && !usati.has(r.id)).forEach(t=>{
     voci.push({ sortDate:t.data_inizio||'9999', target:t,
       title:esc(t.nome_hotel), place:t.tappa,
-      sub:`${mezzoTxt(t)}${t.data_inizio?' · il <b>'+fdate(t.data_inizio)+'</b>':''} · <b style="color:var(--red)">da prenotare</b>`, icon:'⬜' });
+      sub:`${mezzoTxt(t)}${t.data_inizio?' · il <b>'+fdate(t.data_inizio)+'</b>':''} · <b style="color:var(--red)">da prenotare</b>`, icon:'✗' });
   });
 
   if(!voci.length){
@@ -1438,7 +1438,7 @@ function renderItinerario(){
       let mezzoTxt='';
       if(trasp){
         const prenotato=!trasp.da_prenotare;
-        mezzoTxt=`<div class="itmezzo ${prenotato?'okm':'missm'}">${MEZZI[trasp.mezzo]||'🚐 Trasporto'} · ${prenotato?'✅ prenotato':'⬜ da prenotare'}</div>`;
+        mezzoTxt=`<div class="itmezzo ${prenotato?'okm':'missm'}">${MEZZI[trasp.mezzo]||'🚐 Trasporto'} · ${prenotato?'✅ prenotato':'✗ da prenotare'}</div>`;
       }
       html+=`<div class="itrow ${ok?'ok':'miss'}">
         <div class="itcheck">${ok?'✅':'⬜'}</div>
