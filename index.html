@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.32.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.33.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -260,7 +260,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.32.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.33.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -745,11 +745,20 @@ async function saveTrip(){
   const rec={ nome, data_inizio:$('t-inizio').value||null, data_fine:$('t-fine').value||null, note:$('t-note').value.trim()||null };
   const id=$('t-id').value;
   $('trip-save-btn').textContent='…';
-  const { data:res, error } = id
-    ? await db.from(TABLE_TRIPS).update(rec).eq('id',id).select()
-    : await db.from(TABLE_TRIPS).insert(rec).select();
+  let res=null, error=null;
+  try{
+    const r = id
+      ? await db.from(TABLE_TRIPS).update(rec).eq('id',id).select()
+      : await db.from(TABLE_TRIPS).insert(rec).select();
+    res=r.data; error=r.error;
+  }catch(e){
+    error={ message:(e&&e.message)||'Errore di rete' };
+  }
   $('trip-save-btn').textContent='Salva';
-  if(error){ alert('Errore: '+error.message); return; }
+  if(error){
+    const msg=/load failed|fetch|network/i.test(error.message) ? 'Salvataggio non riuscito (problema di connessione). Riprova.' : 'Errore: '+error.message;
+    alert(msg); return;
+  }
   closeTripForm();
   if(id && currentTrip){ currentTrip={...currentTrip,...rec}; $('headsub').textContent=currentTrip.nome; }
   loadTrips();
@@ -1943,14 +1952,33 @@ async function save(){
   };
   const id=$('f-id').value;
   $('save-btn').textContent='…';
-  const { error } = id
+  const doSave = async () => id
     ? await db.from(TABLE).update(rec).eq('id',id)
     : await db.from(TABLE).insert(rec);
+  let error=null;
+  try{
+    let res;
+    try{ res=await doSave(); }
+    catch(e1){
+      // "Load failed" è spesso un errore di rete transitorio: riprovo una volta dopo una breve pausa
+      if(/load failed|fetch|network/i.test((e1&&e1.message)||'')){
+        await new Promise(r=>setTimeout(r,600));
+        res=await doSave();
+      } else throw e1;
+    }
+    error=res.error;
+  }catch(e){
+    error={ message:(e&&e.message)||'Errore di rete' };
+  }
   $('save-btn').textContent='Salva';
   if(error){
     let msg='Errore: '+error.message;
     if(/uuid/i.test(error.message) && /simple:/i.test(error.message)){
       msg='Per usare le opzioni "a piedi / in auto / ecc." devi prima aggiornare il database.\n\nEsegui in Supabase:\nalter table itinerario_prenotazioni alter column arrivo_ref type text using arrivo_ref::text;';
+    } else if(/load failed|fetch|network/i.test(error.message)){
+      msg='Salvataggio non riuscito (problema di connessione). Controlla la rete e riprova.';
+    } else if(/column|schema|does not exist/i.test(error.message)){
+      msg='Errore database: '+error.message+'\n\nProbabilmente manca una colonna: controlla di aver eseguito gli ultimi script SQL.';
     }
     alert(msg); return;
   }
