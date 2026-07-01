@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.34.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.35.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -46,7 +46,14 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .tabs-sticky{position:sticky;top:0;z-index:50;background:var(--bg);padding-top:calc(6px + env(safe-area-inset-top));margin:0 -14px;padding-left:14px;padding-right:14px;box-shadow:0 4px 10px -6px rgba(0,0,0,.15)}
 .tabs{display:flex;gap:6px;background:var(--surface-2);padding:5px;border-radius:14px;margin-bottom:8px}
 .tabs:last-of-type{margin-bottom:10px}
-.tab{flex:1;text-align:center;font-size:.78rem;font-weight:600;padding:9px 4px;border-radius:10px;color:var(--muted);cursor:pointer;border:none;background:none}
+.tab{flex:1;text-align:center;font-size:.78rem;font-weight:600;padding:9px 4px;border-radius:10px;color:var(--muted);cursor:pointer;border:none;background:none;display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.tab i{font-style:normal;font-size:1rem;line-height:1}
+.tab span{transition:max-width .2s,opacity .15s}
+/* modalità compatta: solo icone */
+.tabs-sticky.compact .tab span{max-width:0;opacity:0;overflow:hidden}
+.tabs-sticky.compact .tab{padding:8px 4px;gap:0}
+.tabs-sticky.compact .tab i{font-size:1.15rem}
+.tabs-sticky.compact .tabs{margin-bottom:6px}
 .tab.active{background:var(--surface);color:var(--teal);box-shadow:0 1px 4px rgba(0,0,0,.08)}
 
 /* Disclaimer */
@@ -261,7 +268,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.34.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.35.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -277,20 +284,20 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <div id="view-detail" class="hide">
 <div class="tabs-sticky">
 <div class="tabs">
-  <button class="tab active" data-tab="tutto" onclick="setTab('tutto')">📋 Tutto</button>
-  <button class="tab" data-tab="itinerario" onclick="setTab('itinerario')">🗺️ Itinerario</button>
-  <button class="tab" data-tab="calendario" onclick="setTab('calendario')">📅 Calendario</button>
+  <button class="tab active" data-tab="tutto" onclick="setTab('tutto')"><i>📋</i><span>Tutto</span></button>
+  <button class="tab" data-tab="itinerario" onclick="setTab('itinerario')"><i>🗺️</i><span>Itinerario</span></button>
+  <button class="tab" data-tab="calendario" onclick="setTab('calendario')"><i>📅</i><span>Calendario</span></button>
 </div>
 <div class="tabs">
-  <button class="tab" data-tab="alloggi" onclick="setTab('alloggi')">🏨 Alloggi</button>
-  <button class="tab" data-tab="voli" onclick="setTab('voli')">✈️ Voli</button>
-  <button class="tab" data-tab="trasporti" onclick="setTab('trasporti')">⛴️ Trasporti</button>
-  <button class="tab" data-tab="attivita" onclick="setTab('attivita')">🎟️ Attività</button>
+  <button class="tab" data-tab="alloggi" onclick="setTab('alloggi')"><i>🏨</i><span>Alloggi</span></button>
+  <button class="tab" data-tab="voli" onclick="setTab('voli')"><i>✈️</i><span>Voli</span></button>
+  <button class="tab" data-tab="trasporti" onclick="setTab('trasporti')"><i>⛴️</i><span>Trasporti</span></button>
+  <button class="tab" data-tab="attivita" onclick="setTab('attivita')"><i>🎟️</i><span>Attività</span></button>
 </div>
 <div class="tabs">
-  <button class="tab" data-tab="pagamenti" onclick="setTab('pagamenti')">💳 Pagamenti</button>
-  <button class="tab" data-tab="cancellazioni" onclick="setTab('cancellazioni')">⏳ Cancellazioni</button>
-  <button class="tab" data-tab="spostamenti" onclick="setTab('spostamenti')">🧭 Spostamenti</button>
+  <button class="tab" data-tab="pagamenti" onclick="setTab('pagamenti')"><i>💳</i><span>Pagamenti</span></button>
+  <button class="tab" data-tab="cancellazioni" onclick="setTab('cancellazioni')"><i>⏳</i><span>Cancellazioni</span></button>
+  <button class="tab" data-tab="spostamenti" onclick="setTab('spostamenti')"><i>🧭</i><span>Spostamenti</span></button>
 </div>
 </div><!-- /tabs-sticky -->
 
@@ -1991,6 +1998,19 @@ async function save(){
 $('overlay').addEventListener('click',e=>{ if(e.target===$('overlay')) closeForm(); });
 $('overlay-trip').addEventListener('click',e=>{ if(e.target===$('overlay-trip')) closeTripForm(); });
 $('overlay-tappa').addEventListener('click',e=>{ if(e.target===$('overlay-tappa')) closeTappaForm(); });
+
+// compatta le tab (solo icone) quando si scorre verso il basso
+(function(){
+  let ticking=false;
+  function updateCompact(){
+    const bar=document.querySelector('.tabs-sticky');
+    if(bar) bar.classList.toggle('compact', window.scrollY>90);
+    ticking=false;
+  }
+  window.addEventListener('scroll',()=>{
+    if(!ticking){ requestAnimationFrame(updateCompact); ticking=true; }
+  }, {passive:true});
+})();
 
 // ---------- Avvio sicuro ----------
 let __initTries=0;
