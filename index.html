@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.15.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.16.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -82,6 +82,9 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .card.tobook{border:2px solid var(--red);background:#fff5f5}
 .tobook-banner{background:var(--red);color:#fff;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;padding:6px 10px;border-radius:9px;text-align:center;margin-bottom:10px}
 .tobook-msg{font-size:.78rem;color:var(--red);font-weight:600;margin-top:8px}
+.book-link{display:block;text-align:center;background:var(--red);color:#fff;font-weight:700;font-size:.9rem;padding:11px;border-radius:11px;text-decoration:none;margin-top:10px}
+.book-link:active{opacity:.85}
+.book-nolink{font-size:.74rem;color:var(--amber);background:var(--amber-bg);border-radius:9px;padding:8px 10px;margin-top:10px;font-weight:600}
 /* more toggle */
 .more-toggle{width:100%;background:var(--surface-2);border:1px solid var(--line);color:var(--teal-deep);font-size:.85rem;font-weight:700;padding:11px;border-radius:11px;cursor:pointer;margin:6px 0 13px;text-align:left}
 .hint{font-size:.72rem;color:var(--teal);margin-top:5px;font-weight:600}
@@ -116,6 +119,8 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .ittrash{background:none;border:none;color:var(--muted);font-size:.95rem;cursor:pointer;padding:0}
 .tp-hint{font-size:.76rem;color:var(--muted);background:var(--surface-2);border-radius:10px;padding:10px 12px;margin:4px 0;line-height:1.4}
 .tp-hint b{color:var(--teal-deep)}
+.link-highlight input{border-color:var(--red)!important;background:#fff5f5}
+.link-highlight label{color:var(--red)}
 .lrow-sub{font-size:.75rem;color:var(--muted);margin-top:3px}
 .lrow.late .lrow-sub{color:var(--red);font-weight:600}
 .lrow-amt{font-size:1rem;font-weight:700;color:var(--text);white-space:nowrap;text-align:right;display:flex;flex-direction:column;align-items:flex-end}
@@ -244,7 +249,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.15.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.16.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -419,6 +424,8 @@ header .sub{font-size:.72rem;color:var(--muted)}
       <div class="field" id="fld-fine"><label>Data fine (gg/mm)</label><input id="f-fine" class="datein" placeholder="gg/mm" inputmode="numeric" maxlength="5"></div>
     </div>
 
+    <div class="field" id="fld-link"><label id="lbl-link">🔗 Link (sito / prenotazione)</label><input id="f-link" type="url" placeholder="https://…" inputmode="url"></div>
+
     <div class="field"><label>Prezzo totale (€)</label><input type="number" inputmode="decimal" step="0.01" id="f-prezzo" placeholder="0.00"></div>
 
     <div class="field"><label id="lbl-scad">Cancellazione</label>
@@ -443,7 +450,6 @@ header .sub{font-size:.72rem;color:var(--muted)}
     <button type="button" class="more-toggle" id="more-toggle" onclick="toggleMore()">▸ Informazioni aggiuntive</button>
     <div id="more-fields" class="hide">
       <div class="field"><label>Sito di prenotazione</label><input id="f-sito" placeholder="es. Booking.com" list="sito-list"><datalist id="sito-list"><option value="Booking.com"><option value="Airbnb"><option value="Expedia"><option value="Trip.com"><option value="Hotels.com"><option value="Agoda"></datalist></div>
-      <div class="field" id="fld-link"><label>🔗 Link struttura</label><input id="f-link" type="url" placeholder="https://…"></div>
 
       <div class="grp-extra" id="extra-allog">
         <div class="field"><label>Tipo sistemazione</label><input id="f-sistemazione" placeholder="es. Hotel, Casa, Bungalow…" list="sist-list"></div>
@@ -989,21 +995,28 @@ function cardHtml(r){
 
   if(r.da_prenotare){
     const isAtt=r.tipo==='attivita';
+    const isTrasp=r.tipo==='trasporto';
     const luoghi=[r.tappa, r.luogo].filter(Boolean).map(esc).join(' · ');
+    const traspRoute = isTrasp && (r.partenza||r.arrivo) ? ` (${esc(r.partenza)||'?'}→${esc(r.arrivo)||'?'})` : '';
+    const msg = isAtt?'Attività che ti interessa, ancora da prenotare.'
+      : isTrasp?'Spostamento ancora da prenotare.'
+      : 'Alloggio ancora da prenotare per queste date.';
     return `
     <div class="card tobook">
       <div class="tobook-banner">${isAtt?'💡 IDEA — DA PRENOTARE':'📍 DA PRENOTARE'}</div>
       <div class="top">
         <div>
           ${tag?tag+'<div style="height:6px"></div>':''}
-          <div class="title">${esc(r.nome_hotel)}</div>
+          <div class="title">${esc(r.nome_hotel)}${traspRoute}</div>
           <div class="meta">📍 ${luoghi||'—'}</div>
-          ${r.link?`<div class="sito"><a href="${esc(r.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🌐 Apri link</a></div>`:''}
         </div>
         ${badgeHtml}
       </div>
-      ${(r.data_inizio||r.data_fine)?`<div class="row" style="margin-top:10px"><span>📅 <b>${fdate(r.data_inizio)}</b>${r.data_fine?` → <b>${fdate(r.data_fine)}</b>`:''}</span></div>`:''}
-      <div class="tobook-msg">${isAtt?'Attività che ti interessa, ancora da prenotare.':'Alloggio ancora da prenotare per queste date.'}</div>
+      ${(r.data_inizio||r.data_fine)?`<div class="row" style="margin-top:10px"><span>📅 <b>${fdate(r.data_inizio)}</b>${r.data_fine?` → <b>${fdate(r.data_fine)}</b>`:''}${r.ora_inizio?' · '+esc(r.ora_inizio):''}</span></div>`:''}
+      <div class="tobook-msg">${msg}</div>
+      ${r.link
+        ? `<a class="book-link" href="${esc(r.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 Prenota qui</a>`
+        : `<div class="book-nolink">⚠️ Nessun link salvato — aggiungilo per ricordarti dove prenotare</div>`}
       ${r.note?`<div class="notes">📝 ${esc(r.note)}</div>`:''}
       <div class="actions">
         <button class="btn-sm" onclick='editRow(${JSON.stringify(r).replace(/'/g,"&#39;")})'>✎ Modifica</button>
@@ -1389,22 +1402,20 @@ function onTappaSelect(){
 
 function toggleDaPrenotare(){
   const on=$('f-daprenotare').checked;
-  const tipo=$('f-tipo').value;
-  // in modalità segnaposto restano nome/tappa + date; nascondo prezzo, pagamento, cancellazione
+  // in modalità "da prenotare" nascondo prezzo, pagamento, cancellazione — ma NON il link (serve proprio quello!)
   ['f-prezzo'].forEach(id=>$(id).closest('.field').classList.toggle('hide',on));
   $('f-statopag').closest('.field').classList.toggle('hide',on);
   $('pay-wrap').classList.toggle('hide',on);
   $('acconto-wrap').classList.toggle('hide',on);
   $('lbl-scad').closest('.field').classList.toggle('hide',on);
-  // per le attività-idea tengo le info aggiuntive aperte (per inserire il link dell'attività)
-  if(on && tipo==='attivita'){
-    $('more-toggle').classList.remove('hide');
-    $('more-fields').classList.remove('hide');
-    $('more-toggle').innerHTML='▾ Informazioni aggiuntive';
-  } else {
-    $('more-toggle').classList.toggle('hide',on);
-    if(on) $('more-fields').classList.add('hide');
-  }
+  // le info aggiuntive le lascio come sono (chiuse), il link è già fuori e sempre visibile
+  $('more-toggle').classList.toggle('hide',on);
+  if(on) $('more-fields').classList.add('hide');
+  // enfatizzo il link quando è da prenotare
+  const linkField=$('fld-link');
+  linkField.classList.toggle('link-highlight',on);
+  $('lbl-link').innerHTML = on ? '🔗 Link dove prenotare <span style="color:var(--red)">(importante!)</span>' : '🔗 Link (sito / prenotazione)';
+  $('f-link').placeholder = on ? 'incolla qui il link per prenotare dopo' : 'https://…';
 }
 
 async function cyclePay(id,cur){
@@ -1444,6 +1455,8 @@ function applyTypeUI(tipo){
   $('lbl-scad').closest('.field').classList.toggle('hide', !(isAllog||isTrasp));
   // sezione extra alloggio: solo alloggi
   $('extra-allog').classList.toggle('hide', !isAllog);
+  // link: visibile per tutti tranne i voli (che hanno le tratte)
+  $('fld-link').classList.toggle('hide', isVolo);
   // label nome
   $('lbl-nome').textContent = isAllog?'Nome hotel':isVolo?'Nome volo / riferimento':isTrasp?'Nome / compagnia (opz.)':'Nome attività';
   $('f-nome').placeholder = isAllog?'es. Hotel Splendid':isVolo?'es. Andata Tokyo':isTrasp?'es. Traghetto veloce':'es. Tour Fushimi Inari';
