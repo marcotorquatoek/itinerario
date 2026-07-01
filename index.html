@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.36.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.37.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -29,10 +29,10 @@
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   background:var(--bg); color:var(--text);
-  padding:18px 14px 110px; max-width:520px; margin:0 auto; min-height:100vh;
-  padding-top:calc(18px + env(safe-area-inset-top));
+  padding:12px 14px 110px; max-width:520px; margin:0 auto; min-height:100vh;
+  padding-top:calc(10px + env(safe-area-inset-top));
 }
-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .refresh-btn{flex-shrink:0;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--teal);font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .3s}
 .refresh-btn:active{transform:rotate(180deg)}
 .refresh-btn.spin{animation:spin .8s linear infinite}
@@ -43,7 +43,7 @@ header h1 span{color:var(--teal)}
 header .sub{font-size:.72rem;color:var(--muted)}
 
 /* Tabs */
-.tabs-sticky{position:sticky;top:0;z-index:50;background:var(--bg);padding-top:calc(6px + env(safe-area-inset-top));margin:0 -14px;padding-left:14px;padding-right:14px;box-shadow:0 4px 10px -6px rgba(0,0,0,.15)}
+.tabs-sticky{position:sticky;top:0;z-index:50;background:var(--bg);padding-top:8px;margin:0 -14px;padding-left:14px;padding-right:14px;box-shadow:0 4px 10px -6px rgba(0,0,0,.15)}
 .tabs{display:flex;gap:6px;background:var(--surface-2);padding:5px;border-radius:14px;margin-bottom:8px}
 .tabs:last-of-type{margin-bottom:10px}
 .tab{flex:1;text-align:center;font-size:.78rem;font-weight:600;padding:9px 4px;border-radius:10px;color:var(--muted);cursor:pointer;border:none;background:none;display:inline-flex;align-items:center;justify-content:center;gap:5px}
@@ -51,7 +51,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .tab span{transition:max-width .2s,opacity .15s}
 /* modalità compatta: una sola riga con solo le icone */
 .tabs-sticky.compact .tab span{display:none}
-.tabs-sticky.compact{display:flex;gap:6px;background:var(--surface-2);border-radius:14px;padding:5px;padding-top:calc(5px + env(safe-area-inset-top))}
+.tabs-sticky.compact{display:flex;gap:6px;background:var(--surface-2);border-radius:14px;padding:5px;padding-top:5px}
 .tabs-sticky.compact .tabs{display:contents}
 .tabs-sticky.compact .tab{padding:8px 2px;gap:0;margin:0}
 .tabs-sticky.compact .tab i{font-size:1.2rem}
@@ -269,7 +269,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.36.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.37.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
