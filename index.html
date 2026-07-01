@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.33.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.34.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -43,8 +43,9 @@ header h1 span{color:var(--teal)}
 header .sub{font-size:.72rem;color:var(--muted)}
 
 /* Tabs */
+.tabs-sticky{position:sticky;top:0;z-index:50;background:var(--bg);padding-top:calc(6px + env(safe-area-inset-top));margin:0 -14px;padding-left:14px;padding-right:14px;box-shadow:0 4px 10px -6px rgba(0,0,0,.15)}
 .tabs{display:flex;gap:6px;background:var(--surface-2);padding:5px;border-radius:14px;margin-bottom:8px}
-.tabs:last-of-type{margin-bottom:16px}
+.tabs:last-of-type{margin-bottom:10px}
 .tab{flex:1;text-align:center;font-size:.78rem;font-weight:600;padding:9px 4px;border-radius:10px;color:var(--muted);cursor:pointer;border:none;background:none}
 .tab.active{background:var(--surface);color:var(--teal);box-shadow:0 1px 4px rgba(0,0,0,.08)}
 
@@ -260,7 +261,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.33.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.34.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -274,6 +275,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 
 <!-- VISTA: DETTAGLIO VIAGGIO -->
 <div id="view-detail" class="hide">
+<div class="tabs-sticky">
 <div class="tabs">
   <button class="tab active" data-tab="tutto" onclick="setTab('tutto')">📋 Tutto</button>
   <button class="tab" data-tab="itinerario" onclick="setTab('itinerario')">🗺️ Itinerario</button>
@@ -290,6 +292,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
   <button class="tab" data-tab="cancellazioni" onclick="setTab('cancellazioni')">⏳ Cancellazioni</button>
   <button class="tab" data-tab="spostamenti" onclick="setTab('spostamenti')">🧭 Spostamenti</button>
 </div>
+</div><!-- /tabs-sticky -->
 
 <div id="disclaimer"></div>
 <button class="back" onclick="editTrip()" style="margin-bottom:10px">✎ Modifica dettagli viaggio</button>
