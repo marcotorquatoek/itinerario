@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.43.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.44.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -281,7 +281,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.43.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.44.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -1130,7 +1130,7 @@ function cardHtml(r){
     let bg={}; try{ bg=r.bagagli?JSON.parse(r.bagagli):{}; }catch(e){}
     const bagLbl={mano:'👜 Mano',cabina:'🎒 Cabina',stiva:'🧳 Stiva'};
     const bagDir=(d)=>['mano','cabina','stiva'].filter(k=>d&&d[k]&&d[k].on).map(k=>{
-      const b=d[k]; const dim=[b.l,b.p,b.h].filter(Boolean).join('×');
+      const b=d[k]; const dim=[b.h,b.l,b.p].filter(Boolean).join('×');
       const det=[dim?dim+'cm':'', b.peso?b.peso+'kg':''].filter(Boolean).join(' · ');
       return `${bagLbl[k]}${det?': '+esc(det):''}${b.note?` <i>(${esc(b.note)})</i>`:''}`;
     });
@@ -1636,9 +1636,9 @@ function bagBlockHtml(dir, data){
     return `<div class="field check"><input type="checkbox" class="bag-chk" data-dir="${dir}" data-k="${k}" ${on?'checked':''} onchange="toggleBagRow(this)"><label>${lbl}</label></div>
       <div class="bagrow ${on?'':'hide'}" id="bagrow-${dir}-${k}">
         <div class="bagdims">
+          <input class="bagi" data-dir="${dir}" data-k="${k}" data-f="h" inputmode="numeric" placeholder="A" value="${esc(b.h||'')}"><span>×</span>
           <input class="bagi" data-dir="${dir}" data-k="${k}" data-f="l" inputmode="numeric" placeholder="L" value="${esc(b.l||'')}"><span>×</span>
-          <input class="bagi" data-dir="${dir}" data-k="${k}" data-f="p" inputmode="numeric" placeholder="P" value="${esc(b.p||'')}"><span>×</span>
-          <input class="bagi" data-dir="${dir}" data-k="${k}" data-f="h" inputmode="numeric" placeholder="H" value="${esc(b.h||'')}"><span class="bagu">cm</span>
+          <input class="bagi" data-dir="${dir}" data-k="${k}" data-f="p" inputmode="numeric" placeholder="P" value="${esc(b.p||'')}"><span class="bagu">cm</span>
           <input class="bagi bagpeso" data-dir="${dir}" data-k="${k}" data-f="peso" inputmode="numeric" placeholder="peso" value="${esc(b.peso||'')}"><span class="bagu">kg</span>
         </div>
         <input class="baginote" data-dir="${dir}" data-k="${k}" data-f="note" placeholder="note (es. 1 solo bagaglio, priority…)" value="${esc(b.note||'')}">
