@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.39.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.40.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -50,6 +50,8 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .tab i{font-style:normal;font-size:1rem;line-height:1}
 .tab.active{background:var(--surface);color:var(--teal);box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .baggage{font-size:.76rem;color:var(--text);background:var(--surface-2);border-radius:9px;padding:8px 10px;margin-top:6px;line-height:1.5}
+.fl-posto{font-size:.74rem;color:var(--teal-deep);font-weight:600;margin-top:2px}
+.bag-title{font-size:.85rem;font-weight:700;color:var(--teal-deep);margin:10px 0 4px}
 
 /* Disclaimer */
 .disclaimer{background:var(--amber-bg);border:1px solid var(--amber-line);border-radius:14px;padding:13px 14px;margin-bottom:14px;font-size:.82rem;color:var(--amber);font-weight:600;display:flex;gap:9px;align-items:flex-start}
@@ -270,7 +272,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.39.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.40.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -417,9 +419,13 @@ header .sub{font-size:.72rem;color:var(--muted)}
         <div id="legs-ritorno"></div>
         <button type="button" class="add-leg" onclick="addLeg('ritorno')">+ Aggiungi tratta (scalo)</button>
       </div>
-      <div class="field check"><input type="checkbox" id="f-postiprenotati" onchange="togglePosti()"><label>💺 Posti a sedere prenotati</label></div>
-      <div class="field hide" id="fld-posti"><label>Quali posti</label><input id="f-posti" placeholder="es. 14A, 14B"></div>
-      <div class="field"><label>🧳 Bagagli consentiti</label><textarea id="f-bagagli" placeholder="A mano: 40x30x20, 8kg&#10;Cabina: 55x40x20, 10kg&#10;Stiva: 23kg"></textarea></div>
+      <div class="bag-title">🧳 Bagagli consentiti</div>
+      <div class="field check"><input type="checkbox" id="f-bag-mano" onchange="toggleBag('mano')"><label>👜 A mano</label></div>
+      <div class="two hide" id="fld-bag-mano"><div class="field"><label>Dimensioni</label><input id="f-bag-mano-dim" placeholder="40x30x20 cm"></div><div class="field"><label>Peso</label><input id="f-bag-mano-peso" placeholder="8 kg"></div></div>
+      <div class="field check"><input type="checkbox" id="f-bag-cabina" onchange="toggleBag('cabina')"><label>🎒 Da cabina</label></div>
+      <div class="two hide" id="fld-bag-cabina"><div class="field"><label>Dimensioni</label><input id="f-bag-cabina-dim" placeholder="55x40x20 cm"></div><div class="field"><label>Peso</label><input id="f-bag-cabina-peso" placeholder="10 kg"></div></div>
+      <div class="field check"><input type="checkbox" id="f-bag-stiva" onchange="toggleBag('stiva')"><label>🧳 Da stiva</label></div>
+      <div class="two hide" id="fld-bag-stiva"><div class="field"><label>Dimensioni</label><input id="f-bag-stiva-dim" placeholder="es. 158 cm tot."></div><div class="field"><label>Peso</label><input id="f-bag-stiva-peso" placeholder="23 kg"></div></div>
     </div>
 
     <!-- ATTIVITÀ -->
@@ -1116,9 +1122,13 @@ function cardHtml(r){
       dates = renderTratteBlock('Andata', tr.andata, homeTz, destTz);
       if(tr.ritorno.length) dates += renderTratteBlock('Ritorno', tr.ritorno, homeTz, destTz);
     }
-    if(r.posti_prenotati || r.posti) dates += `<div class="row"><span>💺 Posti: <b>${r.posti?esc(r.posti):'prenotati'}</b></span></div>`;
-    else dates += `<div class="row"><span style="color:var(--muted)">💺 Posti non prenotati</span></div>`;
-    if(r.bagagli) dates += `<div class="baggage">🧳 ${esc(r.bagagli).replace(/\n/g,'<br>')}</div>`;
+    let bg={}; try{ bg=r.bagagli?JSON.parse(r.bagagli):{}; }catch(e){}
+    const bagLbl={mano:'👜 Mano',cabina:'🎒 Cabina',stiva:'🧳 Stiva'};
+    const bagRows=['mano','cabina','stiva'].filter(k=>bg[k]&&bg[k].on).map(k=>{
+      const b=bg[k]; const det=[b.dim,b.peso].filter(Boolean).join(' · ');
+      return `${bagLbl[k]}${det?': '+esc(det):''}`;
+    });
+    if(bagRows.length) dates += `<div class="baggage">🧳 ${bagRows.join('<br>')}</div>`;
   } else if(r.tipo==='trasporto'){
     const MEZZI={traghetto:'⛴️ Traghetto',treno:'🚆 Treno',bus:'🚌 Bus',taxi:'🚕 Taxi/transfer',auto:'🚗 Auto',altro:'🚐 Trasporto'};
     meta=`${MEZZI[r.mezzo]||'🚐 Trasporto'}${r.tappa?' · → '+esc(r.tappa):''}`;
@@ -1563,6 +1573,7 @@ function renderTratteBlock(titolo, legs, homeTz, destTz){
      + `<div class="fl-row"><span class="ap">🛫 ${esc(lg.da)}</span><span class="tm">${esc(fdate(lg.data_dep))} · ${esc(lg.ora_dep||'—')}${depAlt}</span></div>`
      + (vol?`<div class="fl-dur">✈️ ${vol}</div>`:'')
      + `<div class="fl-row"><span class="ap">🛬 ${esc(lg.a)}</span><span class="tm">${esc(fdate(lg.data_arr))} · ${esc(lg.ora_arr||'—')}${arrAlt}</span></div>`
+     + (lg.posto?`<div class="fl-posto">💺 Posto: <b>${esc(lg.posto)}</b></div>`:'')
      + `</div>`;
     if(i<legs.length-1){
       const nx=legs[i+1];
@@ -1593,6 +1604,7 @@ function legTemplate(dir, lg={}){
       <div class="field"><label>Data arrivo</label><input type="date" class="lg-dataarr" value="${esc(lg.data_arr||'')}"></div>
       <div class="field"><label>Ora arrivo</label><input type="time" class="lg-oraarr" value="${esc(lg.ora_arr||'')}"></div>
     </div>
+    <div class="field"><label>💺 Posto/i (se prenotati)</label><input class="lg-posto" placeholder="es. 14A, 14B" value="${esc(lg.posto||'')}"></div>
   </div>`;
 }
 function addLeg(dir, lg){ $('legs-'+dir).insertAdjacentHTML('beforeend', legTemplate(dir,lg||{})); }
@@ -1603,7 +1615,7 @@ function toggleRitorno(){
   if(on && !$('legs-ritorno').children.length) addLeg('ritorno');
   if(!on) $('legs-ritorno').innerHTML='';
 }
-function togglePosti(){ $('fld-posti').classList.toggle('hide', !$('f-postiprenotati').checked); }
+function toggleBag(k){ $('fld-bag-'+k).classList.toggle('hide', !$('f-bag-'+k).checked); }
 function collectLegs(dir){
   return [...$('legs-'+dir).querySelectorAll('.leg')].map(el=>({
     da: el.querySelector('.lg-da').value.trim().toUpperCase(),
@@ -1611,7 +1623,8 @@ function collectLegs(dir){
     data_dep: el.querySelector('.lg-datadep').value||null,
     ora_dep: el.querySelector('.lg-oradep').value||null,
     data_arr: el.querySelector('.lg-dataarr').value||null,
-    ora_arr: el.querySelector('.lg-oraarr').value||null
+    ora_arr: el.querySelector('.lg-oraarr').value||null,
+    posto: el.querySelector('.lg-posto').value.trim()||null
   })).filter(l=>l.da||l.a);
 }
 
@@ -1819,7 +1832,7 @@ function openForm(forceTipo){
   $('f-colazione').value='no'; toggleColazionePrezzo();
   $('f-statopag').value='dapagare';
   $('f-andataritorno').checked=false; $('sec-ritorno').classList.add('hide');
-  $('f-postiprenotati').checked=false; $('f-posti').value=''; $('f-bagagli').value=''; togglePosti();
+  ['mano','cabina','stiva'].forEach(k=>{ $('f-bag-'+k).checked=false; $('f-bag-'+k+'-dim').value=''; $('f-bag-'+k+'-peso').value=''; toggleBag(k); });
   clearLegs(); addLeg('andata');
   $('more-fields').classList.add('hide'); $('more-toggle').innerHTML='▸ Informazioni aggiuntive';
   pendingArrivoRef=null;
@@ -1847,7 +1860,8 @@ function editRow(r){
   $('f-orainizio').value=r.ora_inizio||''; $('f-orafine').value=r.ora_fine||'';
   $('f-colazione').value=r.colazione||'no'; $('f-colazioneprezzo').value=r.colazione_prezzo||''; toggleColazionePrezzo();
   $('f-compagnia').value=r.compagnia||'';
-  $('f-postiprenotati').checked=!!r.posti_prenotati; $('f-posti').value=r.posti||''; $('f-bagagli').value=r.bagagli||''; togglePosti();
+  { let bg={}; try{ bg=r.bagagli?JSON.parse(r.bagagli):{}; }catch(e){}
+    ['mano','cabina','stiva'].forEach(k=>{ const b=bg[k]||{}; $('f-bag-'+k).checked=!!b.on; $('f-bag-'+k+'-dim').value=b.dim||''; $('f-bag-'+k+'-peso').value=b.peso||''; toggleBag(k); }); }
   clearLegs();
   const tr=parseTratte(r.tratte);
   if(r.tipo==='volo'){
@@ -1950,9 +1964,11 @@ async function save(){
     arrivo: tipo==='trasporto'?($('f-tra').value.trim()||null):voloA,
     mezzo: tipo==='trasporto'?$('f-mezzo').value:null,
     compagnia: tipo==='volo'?($('f-compagnia').value.trim()||null):null,
-    posti_prenotati: tipo==='volo'?$('f-postiprenotati').checked:false,
-    posti: tipo==='volo'?($('f-posti').value.trim()||null):null,
-    bagagli: tipo==='volo'?($('f-bagagli').value.trim()||null):null,
+    bagagli: tipo==='volo'?JSON.stringify({
+      mano:{on:$('f-bag-mano').checked,dim:$('f-bag-mano-dim').value.trim(),peso:$('f-bag-mano-peso').value.trim()},
+      cabina:{on:$('f-bag-cabina').checked,dim:$('f-bag-cabina-dim').value.trim(),peso:$('f-bag-cabina-peso').value.trim()},
+      stiva:{on:$('f-bag-stiva').checked,dim:$('f-bag-stiva-dim').value.trim(),peso:$('f-bag-stiva-peso').value.trim()}
+    }):null,
     tratte: tipo==='volo'?tratteJson:null,
     luogo: tipo==='attivita'?($('f-luogo').value.trim()||null):null,
     durata: tipo==='attivita'?($('f-durata').value.trim()||null):null,
