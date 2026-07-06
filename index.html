@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.40.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.42.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -51,6 +51,8 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .tab.active{background:var(--surface);color:var(--teal);box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .baggage{font-size:.76rem;color:var(--text);background:var(--surface-2);border-radius:9px;padding:8px 10px;margin-top:6px;line-height:1.5}
 .fl-posto{font-size:.74rem;color:var(--teal-deep);font-weight:600;margin-top:2px}
+.fl-comp{font-size:.72rem;color:var(--muted);font-weight:600;margin-bottom:3px}
+.fl-noposto{font-size:.72rem;font-weight:800;color:#fff;background:var(--red);border-radius:7px;padding:4px 8px;margin-top:3px;text-align:center;letter-spacing:.3px}
 .bag-title{font-size:.85rem;font-weight:700;color:var(--teal-deep);margin:10px 0 4px}
 
 /* Disclaimer */
@@ -272,7 +274,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.40.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.42.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -407,7 +409,6 @@ header .sub{font-size:.72rem;color:var(--muted)}
 
     <!-- VOLO -->
     <div class="grp hide" id="grp-volo">
-      <div class="field"><label>Compagnia</label><input id="f-compagnia" placeholder="es. ITA Airways"></div>
       <div class="field check"><input type="checkbox" id="f-andataritorno" onchange="toggleRitorno()"><label>🔁 Andata e ritorno</label></div>
       <div class="leg-section">
         <div class="leg-head">✈️ Andata</div>
@@ -1112,13 +1113,13 @@ function cardHtml(r){
     const homeTz = tzOf(homeIata);
     const destTz = tzOf(destIata);
     if(r.__voloDir==='andata'){
-      meta = `✈️ ${flightRoute(tr.andata)}${r.compagnia?' · '+esc(r.compagnia):''} · 🛫 Andata`;
+      meta = `✈️ ${flightRoute(tr.andata)} · 🛫 Andata`;
       dates = renderTratteBlock('Andata', tr.andata, homeTz, destTz);
     } else if(r.__voloDir==='ritorno'){
-      meta = `✈️ ${flightRoute(tr.ritorno)}${r.compagnia?' · '+esc(r.compagnia):''} · 🔙 Ritorno`;
+      meta = `✈️ ${flightRoute(tr.ritorno)} · 🔙 Ritorno`;
       dates = renderTratteBlock('Ritorno', tr.ritorno, homeTz, destTz);
     } else {
-      meta = `✈️ ${flightRoute(tr.andata)}${tr.ritorno.length?'  •  '+flightRoute(tr.ritorno):''}${r.compagnia?' · '+esc(r.compagnia):''}`;
+      meta = `✈️ ${flightRoute(tr.andata)}${tr.ritorno.length?'  •  '+flightRoute(tr.ritorno):''}`;
       dates = renderTratteBlock('Andata', tr.andata, homeTz, destTz);
       if(tr.ritorno.length) dates += renderTratteBlock('Ritorno', tr.ritorno, homeTz, destTz);
     }
@@ -1570,10 +1571,11 @@ function renderTratteBlock(titolo, legs, homeTz, destTz){
     const depAlt = altDep.length?` <span class="home">(${altDep.join(' · ')})</span>`:'';
     const arrAlt = altArr.length?` <span class="home">(${altArr.join(' · ')})</span>`:'';
     h+=`<div class="fl-leg">`
+     + (lg.compagnia?`<div class="fl-comp">🏢 ${esc(lg.compagnia)}</div>`:'')
      + `<div class="fl-row"><span class="ap">🛫 ${esc(lg.da)}</span><span class="tm">${esc(fdate(lg.data_dep))} · ${esc(lg.ora_dep||'—')}${depAlt}</span></div>`
      + (vol?`<div class="fl-dur">✈️ ${vol}</div>`:'')
      + `<div class="fl-row"><span class="ap">🛬 ${esc(lg.a)}</span><span class="tm">${esc(fdate(lg.data_arr))} · ${esc(lg.ora_arr||'—')}${arrAlt}</span></div>`
-     + (lg.posto?`<div class="fl-posto">💺 Posto: <b>${esc(lg.posto)}</b></div>`:'')
+     + (lg.posto?`<div class="fl-posto">💺 Posto: <b>${esc(lg.posto)}</b></div>`:`<div class="fl-noposto">⚠️ POSTI NON ASSEGNATI</div>`)
      + `</div>`;
     if(i<legs.length-1){
       const nx=legs[i+1];
@@ -1596,6 +1598,7 @@ function legTemplate(dir, lg={}){
       <div class="field"><label>Da (IATA)</label><input class="lg-da" placeholder="es. MXP" maxlength="4" value="${esc(lg.da||'')}"></div>
       <div class="field"><label>A (IATA)</label><input class="lg-a" placeholder="es. PEK" maxlength="4" value="${esc(lg.a||'')}"></div>
     </div>
+    <div class="field"><label>Compagnia</label><input class="lg-comp" placeholder="es. ITA Airways" value="${esc(lg.compagnia||'')}"></div>
     <div class="two">
       <div class="field"><label>Data partenza</label><input type="date" class="lg-datadep" value="${esc(lg.data_dep||'')}"></div>
       <div class="field"><label>Ora partenza</label><input type="time" class="lg-oradep" value="${esc(lg.ora_dep||'')}"></div>
@@ -1624,7 +1627,8 @@ function collectLegs(dir){
     ora_dep: el.querySelector('.lg-oradep').value||null,
     data_arr: el.querySelector('.lg-dataarr').value||null,
     ora_arr: el.querySelector('.lg-oraarr').value||null,
-    posto: el.querySelector('.lg-posto').value.trim()||null
+    posto: el.querySelector('.lg-posto').value.trim()||null,
+    compagnia: el.querySelector('.lg-comp').value.trim()||null
   })).filter(l=>l.da||l.a);
 }
 
@@ -1823,7 +1827,7 @@ function openForm(forceTipo){
   $('modal-title').textContent='Nuova voce';
   applyTypeUI(tipo);
   $('f-id').value='';
-  ['f-nome','f-tappa','f-sistemazione','f-orainizio','f-orafine','f-compagnia','f-luogo','f-durata','f-inizio','f-fine','f-sito','f-link','f-prezzo','f-prezzoloc','f-valuta','f-scad','f-datapagamento','f-note','f-colazioneprezzo','f-acconto','f-trda','f-tra','f-trdata','f-trora'].forEach(i=>$(i).value='');
+  ['f-nome','f-tappa','f-sistemazione','f-orainizio','f-orafine','f-luogo','f-durata','f-inizio','f-fine','f-sito','f-link','f-prezzo','f-prezzoloc','f-valuta','f-scad','f-datapagamento','f-note','f-colazioneprezzo','f-acconto','f-trda','f-tra','f-trdata','f-trora'].forEach(i=>$(i).value='');
   $('f-mezzo').value='traghetto';
   $('f-valutacanc').checked=false;
   $('f-esclusototale').checked=false; if($('f-esclusototale2')) $('f-esclusototale2').checked=false;
@@ -1859,7 +1863,6 @@ function editRow(r){
   $('f-sistemazione').value=r.tipo_sistemazione||'';
   $('f-orainizio').value=r.ora_inizio||''; $('f-orafine').value=r.ora_fine||'';
   $('f-colazione').value=r.colazione||'no'; $('f-colazioneprezzo').value=r.colazione_prezzo||''; toggleColazionePrezzo();
-  $('f-compagnia').value=r.compagnia||'';
   { let bg={}; try{ bg=r.bagagli?JSON.parse(r.bagagli):{}; }catch(e){}
     ['mano','cabina','stiva'].forEach(k=>{ const b=bg[k]||{}; $('f-bag-'+k).checked=!!b.on; $('f-bag-'+k+'-dim').value=b.dim||''; $('f-bag-'+k+'-peso').value=b.peso||''; toggleBag(k); }); }
   clearLegs();
@@ -1963,7 +1966,6 @@ async function save(){
     partenza: tipo==='trasporto'?($('f-trda').value.trim()||null):voloDa,
     arrivo: tipo==='trasporto'?($('f-tra').value.trim()||null):voloA,
     mezzo: tipo==='trasporto'?$('f-mezzo').value:null,
-    compagnia: tipo==='volo'?($('f-compagnia').value.trim()||null):null,
     bagagli: tipo==='volo'?JSON.stringify({
       mano:{on:$('f-bag-mano').checked,dim:$('f-bag-mano-dim').value.trim(),peso:$('f-bag-mano-peso').value.trim()},
       cabina:{on:$('f-bag-cabina').checked,dim:$('f-bag-cabina-dim').value.trim(),peso:$('f-bag-cabina-peso').value.trim()},
