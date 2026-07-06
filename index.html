@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.42.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.43.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -54,6 +54,13 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .fl-comp{font-size:.72rem;color:var(--muted);font-weight:600;margin-bottom:3px}
 .fl-noposto{font-size:.72rem;font-weight:800;color:#fff;background:var(--red);border-radius:7px;padding:4px 8px;margin-top:3px;text-align:center;letter-spacing:.3px}
 .bag-title{font-size:.85rem;font-weight:700;color:var(--teal-deep);margin:10px 0 4px}
+.bagrow{margin:0 0 8px}
+.bagdims{display:flex;align-items:center;gap:5px;margin-bottom:6px}
+.bagdims span{color:var(--muted);font-size:.85rem}
+.bagi{width:100%;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 4px;color:var(--text);font-size:.9rem;text-align:center;font-family:inherit}
+.bagpeso{margin-left:6px}
+.bagu{font-size:.72rem!important}
+.baginote{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;color:var(--text);font-size:.85rem;font-family:inherit}
 
 /* Disclaimer */
 .disclaimer{background:var(--amber-bg);border:1px solid var(--amber-line);border-radius:14px;padding:13px 14px;margin-bottom:14px;font-size:.82rem;color:var(--amber);font-weight:600;display:flex;gap:9px;align-items:flex-start}
@@ -274,7 +281,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.42.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.43.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -420,13 +427,10 @@ header .sub{font-size:.72rem;color:var(--muted)}
         <div id="legs-ritorno"></div>
         <button type="button" class="add-leg" onclick="addLeg('ritorno')">+ Aggiungi tratta (scalo)</button>
       </div>
-      <div class="bag-title">🧳 Bagagli consentiti</div>
-      <div class="field check"><input type="checkbox" id="f-bag-mano" onchange="toggleBag('mano')"><label>👜 A mano</label></div>
-      <div class="two hide" id="fld-bag-mano"><div class="field"><label>Dimensioni</label><input id="f-bag-mano-dim" placeholder="40x30x20 cm"></div><div class="field"><label>Peso</label><input id="f-bag-mano-peso" placeholder="8 kg"></div></div>
-      <div class="field check"><input type="checkbox" id="f-bag-cabina" onchange="toggleBag('cabina')"><label>🎒 Da cabina</label></div>
-      <div class="two hide" id="fld-bag-cabina"><div class="field"><label>Dimensioni</label><input id="f-bag-cabina-dim" placeholder="55x40x20 cm"></div><div class="field"><label>Peso</label><input id="f-bag-cabina-peso" placeholder="10 kg"></div></div>
-      <div class="field check"><input type="checkbox" id="f-bag-stiva" onchange="toggleBag('stiva')"><label>🧳 Da stiva</label></div>
-      <div class="two hide" id="fld-bag-stiva"><div class="field"><label>Dimensioni</label><input id="f-bag-stiva-dim" placeholder="es. 158 cm tot."></div><div class="field"><label>Peso</label><input id="f-bag-stiva-peso" placeholder="23 kg"></div></div>
+      <div class="bag-title">🧳 Bagagli — Andata</div>
+      <div id="bag-andata"></div>
+      <div class="bag-title hide" id="bag-title-rit">🧳 Bagagli — Ritorno</div>
+      <div id="bag-ritorno" class="hide"></div>
     </div>
 
     <!-- ATTIVITÀ -->
@@ -1125,11 +1129,16 @@ function cardHtml(r){
     }
     let bg={}; try{ bg=r.bagagli?JSON.parse(r.bagagli):{}; }catch(e){}
     const bagLbl={mano:'👜 Mano',cabina:'🎒 Cabina',stiva:'🧳 Stiva'};
-    const bagRows=['mano','cabina','stiva'].filter(k=>bg[k]&&bg[k].on).map(k=>{
-      const b=bg[k]; const det=[b.dim,b.peso].filter(Boolean).join(' · ');
-      return `${bagLbl[k]}${det?': '+esc(det):''}`;
+    const bagDir=(d)=>['mano','cabina','stiva'].filter(k=>d&&d[k]&&d[k].on).map(k=>{
+      const b=d[k]; const dim=[b.l,b.p,b.h].filter(Boolean).join('×');
+      const det=[dim?dim+'cm':'', b.peso?b.peso+'kg':''].filter(Boolean).join(' · ');
+      return `${bagLbl[k]}${det?': '+esc(det):''}${b.note?` <i>(${esc(b.note)})</i>`:''}`;
     });
-    if(bagRows.length) dates += `<div class="baggage">🧳 ${bagRows.join('<br>')}</div>`;
+    const bagA=bagDir(bg.andata), bagR=bagDir(bg.ritorno);
+    let bagHtml='';
+    if(bagA.length) bagHtml+=`<div><b>Andata:</b><br>${bagA.join('<br>')}</div>`;
+    if(bagR.length) bagHtml+=`<div style="margin-top:5px"><b>Ritorno:</b><br>${bagR.join('<br>')}</div>`;
+    if(bagHtml) dates += `<div class="baggage">🧳 ${bagHtml}</div>`;
   } else if(r.tipo==='trasporto'){
     const MEZZI={traghetto:'⛴️ Traghetto',treno:'🚆 Treno',bus:'🚌 Bus',taxi:'🚕 Taxi/transfer',auto:'🚗 Auto',altro:'🚐 Trasporto'};
     meta=`${MEZZI[r.mezzo]||'🚐 Trasporto'}${r.tappa?' · → '+esc(r.tappa):''}`;
@@ -1617,8 +1626,44 @@ function toggleRitorno(){
   $('sec-ritorno').classList.toggle('hide', !on);
   if(on && !$('legs-ritorno').children.length) addLeg('ritorno');
   if(!on) $('legs-ritorno').innerHTML='';
+  updateBagRitornoVis();
 }
-function toggleBag(k){ $('fld-bag-'+k).classList.toggle('hide', !$('f-bag-'+k).checked); }
+const BAG_TIPI=[['mano','👜 A mano'],['cabina','🎒 Da cabina'],['stiva','🧳 Da stiva']];
+function bagBlockHtml(dir, data){
+  return BAG_TIPI.map(([k,lbl])=>{
+    const b=(data&&data[k])||{};
+    const on=!!b.on;
+    return `<div class="field check"><input type="checkbox" class="bag-chk" data-dir="${dir}" data-k="${k}" ${on?'checked':''} onchange="toggleBagRow(this)"><label>${lbl}</label></div>
+      <div class="bagrow ${on?'':'hide'}" id="bagrow-${dir}-${k}">
+        <div class="bagdims">
+          <input class="bagi" data-dir="${dir}" data-k="${k}" data-f="l" inputmode="numeric" placeholder="L" value="${esc(b.l||'')}"><span>×</span>
+          <input class="bagi" data-dir="${dir}" data-k="${k}" data-f="p" inputmode="numeric" placeholder="P" value="${esc(b.p||'')}"><span>×</span>
+          <input class="bagi" data-dir="${dir}" data-k="${k}" data-f="h" inputmode="numeric" placeholder="H" value="${esc(b.h||'')}"><span class="bagu">cm</span>
+          <input class="bagi bagpeso" data-dir="${dir}" data-k="${k}" data-f="peso" inputmode="numeric" placeholder="peso" value="${esc(b.peso||'')}"><span class="bagu">kg</span>
+        </div>
+        <input class="baginote" data-dir="${dir}" data-k="${k}" data-f="note" placeholder="note (es. 1 solo bagaglio, priority…)" value="${esc(b.note||'')}">
+      </div>`;
+  }).join('');
+}
+function buildBagUI(bag){
+  bag=bag||{};
+  $('bag-andata').innerHTML=bagBlockHtml('andata', bag.andata||{});
+  $('bag-ritorno').innerHTML=bagBlockHtml('ritorno', bag.ritorno||{});
+}
+function toggleBagRow(chk){ $('bagrow-'+chk.dataset.dir+'-'+chk.dataset.k).classList.toggle('hide', !chk.checked); }
+function readBagUI(){
+  const out={andata:{},ritorno:{}};
+  document.querySelectorAll('.bag-chk').forEach(c=>{ out[c.dataset.dir][c.dataset.k]={on:c.checked}; });
+  document.querySelectorAll('.bagi,.baginote').forEach(i=>{
+    const o=out[i.dataset.dir][i.dataset.k]; if(o) o[i.dataset.f]=i.value.trim();
+  });
+  return out;
+}
+function updateBagRitornoVis(){
+  const on=$('f-andataritorno').checked;
+  $('bag-title-rit').classList.toggle('hide',!on);
+  $('bag-ritorno').classList.toggle('hide',!on);
+}
 function collectLegs(dir){
   return [...$('legs-'+dir).querySelectorAll('.leg')].map(el=>({
     da: el.querySelector('.lg-da').value.trim().toUpperCase(),
@@ -1836,7 +1881,7 @@ function openForm(forceTipo){
   $('f-colazione').value='no'; toggleColazionePrezzo();
   $('f-statopag').value='dapagare';
   $('f-andataritorno').checked=false; $('sec-ritorno').classList.add('hide');
-  ['mano','cabina','stiva'].forEach(k=>{ $('f-bag-'+k).checked=false; $('f-bag-'+k+'-dim').value=''; $('f-bag-'+k+'-peso').value=''; toggleBag(k); });
+  buildBagUI({}); updateBagRitornoVis();
   clearLegs(); addLeg('andata');
   $('more-fields').classList.add('hide'); $('more-toggle').innerHTML='▸ Informazioni aggiuntive';
   pendingArrivoRef=null;
@@ -1864,7 +1909,7 @@ function editRow(r){
   $('f-orainizio').value=r.ora_inizio||''; $('f-orafine').value=r.ora_fine||'';
   $('f-colazione').value=r.colazione||'no'; $('f-colazioneprezzo').value=r.colazione_prezzo||''; toggleColazionePrezzo();
   { let bg={}; try{ bg=r.bagagli?JSON.parse(r.bagagli):{}; }catch(e){}
-    ['mano','cabina','stiva'].forEach(k=>{ const b=bg[k]||{}; $('f-bag-'+k).checked=!!b.on; $('f-bag-'+k+'-dim').value=b.dim||''; $('f-bag-'+k+'-peso').value=b.peso||''; toggleBag(k); }); }
+    buildBagUI(bg); }
   clearLegs();
   const tr=parseTratte(r.tratte);
   if(r.tipo==='volo'){
@@ -1874,6 +1919,7 @@ function editRow(r){
     $('sec-ritorno').classList.toggle('hide',!hasRit);
     tr.ritorno.forEach(l=>addLeg('ritorno',l));
   }
+  updateBagRitornoVis();
   $('f-luogo').value=r.luogo||''; $('f-durata').value=r.durata||'';
   // trasporto
   $('f-mezzo').value=r.mezzo||'traghetto';
@@ -1966,11 +2012,7 @@ async function save(){
     partenza: tipo==='trasporto'?($('f-trda').value.trim()||null):voloDa,
     arrivo: tipo==='trasporto'?($('f-tra').value.trim()||null):voloA,
     mezzo: tipo==='trasporto'?$('f-mezzo').value:null,
-    bagagli: tipo==='volo'?JSON.stringify({
-      mano:{on:$('f-bag-mano').checked,dim:$('f-bag-mano-dim').value.trim(),peso:$('f-bag-mano-peso').value.trim()},
-      cabina:{on:$('f-bag-cabina').checked,dim:$('f-bag-cabina-dim').value.trim(),peso:$('f-bag-cabina-peso').value.trim()},
-      stiva:{on:$('f-bag-stiva').checked,dim:$('f-bag-stiva-dim').value.trim(),peso:$('f-bag-stiva-peso').value.trim()}
-    }):null,
+    bagagli: tipo==='volo'?JSON.stringify(readBagUI()):null,
     tratte: tipo==='volo'?tratteJson:null,
     luogo: tipo==='attivita'?($('f-luogo').value.trim()||null):null,
     durata: tipo==='attivita'?($('f-durata').value.trim()||null):null,
