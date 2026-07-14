@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.46.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.50.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -152,7 +152,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .lrow-half{font-size:.68rem;font-weight:700;color:var(--teal);margin-top:2px}
 .sito a{color:var(--teal);text-decoration:none;font-weight:600}
 .sitebadge{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:600;color:var(--text)}
-.sitelogo{width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800}.excl-banner{background:repeating-linear-gradient(45deg,var(--surface-2),var(--surface-2) 8px,#e4ecea 8px,#e4ecea 16px);color:var(--muted);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:5px 10px;border-radius:9px;margin-bottom:10px;text-align:center}
+.sitelogo{width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800}.excl-banner{background:var(--red);color:#fff;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;padding:6px 10px;border-radius:9px;margin-bottom:10px;text-align:center}
 .info.nocanc{color:var(--red);font-weight:700}.daygroup{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:14px 2px 2px}
 .typetag{font-size:.62rem;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.4px}
 .typetag.allog{background:#e0f2f1;color:var(--teal-deep)}
@@ -161,11 +161,13 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .typetag.trasp{background:#e0f2fe;color:#0369a1}
 /* colori card per tipo di mezzo */
 .card.mz-traghetto{border-left:6px solid #0284c7;background:#f0f9ff}
-.card.mz-taxi{border-left:6px solid #f59e0b;background:#fffbeb}
+.card.mz-taxi{border-left:6px solid #eab308;background:#fefce8}
 .card.mz-treno{border-left:6px solid #7c3aed;background:#faf5ff}
 .card.mz-bus{border-left:6px solid #16a34a;background:#f0fdf4}
 .card.mz-auto{border-left:6px solid #dc2626;background:#fef2f2}
 .card.mz-altro{border-left:6px solid var(--muted)}
+.mz-ico{font-size:1.25rem;margin-right:7px;vertical-align:-2px}
+.book-link-soft{display:block;text-align:center;background:var(--surface);border:1px solid var(--line);color:var(--teal-deep);font-weight:700;font-size:.85rem;padding:9px;border-radius:10px;text-decoration:none;margin-top:8px}
 .addr{display:flex;align-items:center;gap:8px;font-size:.76rem;color:var(--text);margin-top:4px;flex-wrap:wrap}
 .addr-copy{background:var(--surface-2);border:1px solid var(--line);color:var(--teal-deep);font-size:.68rem;font-weight:700;padding:3px 8px;border-radius:7px;cursor:pointer;white-space:nowrap}
 .card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
@@ -290,7 +292,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.46.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.50.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -888,12 +890,20 @@ function render(){
   // Disclaimer cancellazioni (sempre globale, su tutti i dati)
   const toCancel = data.filter(r=>r.valuta_cancellazione);
   const bookAllog = data.filter(r=>r.da_prenotare && r.tipo==='alloggio');
-  const bookTrasp = data.filter(r=>r.da_prenotare && r.tipo==='trasporto');
+  const bookTrasp = data.filter(r=>r.da_prenotare && r.tipo==='trasporto' && !r.acquisto_in_loco);
   const bookAtt   = data.filter(r=>r.da_prenotare && r.tipo==='attivita');
   let disc='';
   if(toCancel.length) disc+=`<div class="disclaimer"><span class="ic">⚠️</span><span>Hai ${toCancel.length} ${toCancel.length===1?'prenotazione':'prenotazioni'} da valutare per la cancellazione (doppi alloggi): ${toCancel.map(r=>esc(r.nome_hotel)).join(', ')}.</span></div>`;
   if(bookAllog.length) disc+=`<div class="disclaimer book"><span class="ic">🏨</span><span>Hai ${bookAllog.length} ${bookAllog.length===1?'alloggio ancora da prenotare':'alloggi ancora da prenotare'}: ${bookAllog.map(r=>esc(r.tappa||r.nome_hotel)).join(', ')}.</span></div>`;
-  if(bookTrasp.length) disc+=`<div class="disclaimer book"><span class="ic">⛴️</span><span>Hai ${bookTrasp.length} ${bookTrasp.length===1?'trasporto ancora da prenotare':'trasporti ancora da prenotare'}: ${bookTrasp.map(r=>esc(r.tappa||r.nome_hotel)).join(', ')}.</span></div>`;
+  if(bookTrasp.length){
+    const MZ={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',auto:'🚗',altro:'🚐'};
+    const lista=bookTrasp.map(r=>{
+      const ico=MZ[r.mezzo]||'🚐';
+      const tratta=(r.partenza||r.arrivo)?`${esc(r.partenza)||'?'}→${esc(r.arrivo)||'?'}`:esc(r.tappa||r.nome_hotel);
+      return `${ico} ${tratta}`;
+    }).join(', ');
+    disc+=`<div class="disclaimer book"><span class="ic">⛴️</span><span>Hai ${bookTrasp.length} ${bookTrasp.length===1?'trasporto ancora da prenotare':'trasporti ancora da prenotare'}: ${lista}.</span></div>`;
+  }
   if(bookAtt.length) disc+=`<div class="disclaimer book"><span class="ic">💡</span><span>Hai ${bookAtt.length} ${bookAtt.length===1?'attività da prenotare':'attività da prenotare'}: ${bookAtt.map(r=>esc(r.nome_hotel)).join(', ')}.</span></div>`;
   $('disclaimer').innerHTML=disc;
 
@@ -1177,7 +1187,7 @@ function cardHtml(r){
   const acc=Number(r.acconto)||0;
   const restoTxt = (st==='acconto' && acc>0) ? `<div class="info pay">💰 Acconto ${eur(acc)} versato · resta <b>${eur(Math.max(p-acc,0))}</b>${r.data_pagamento?` entro <b>${fdate(r.data_pagamento)}</b>`:''}</div>` : '';
 
-  if(r.da_prenotare && !r.acquisto_in_loco){
+  if(r.da_prenotare && r.tipo!=='trasporto'){
     const isAtt=r.tipo==='attivita';
     const isTrasp=r.tipo==='trasporto';
     const luoghi=[r.tappa, r.luogo].filter(Boolean).map(esc).join(' · ');
@@ -1210,13 +1220,16 @@ function cardHtml(r){
     </div>`;
   }
 
+  const MZICON={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',auto:'🚗',altro:'🚐'};
+  const mzIco = r.tipo==='trasporto' ? `<span class="mz-ico">${MZICON[r.mezzo]||'🚐'}</span>` : '';
+
   return `
   <div class="card ${r.valuta_cancellazione?'warn':''} ${r.non_cancellabile?'nocanc-card':''} ${r.escluso_totale?'excluded':''} ${r.tipo==='trasporto'?'mz-'+esc(r.mezzo||'altro'):''}">
     ${r.escluso_totale?'<div class="excl-banner">🚫 Esclusa dalle statistiche</div>':''}
     <div class="top">
       <div>
         ${tag?tag+'<div style="height:6px"></div>':''}
-        <div class="title">${esc(r.nome_hotel)}</div>
+        <div class="title">${mzIco}${esc(r.nome_hotel)}</div>
         <div class="meta">${meta}</div>
         ${r.sito_prenotazione?`<div class="sito">${siteBadge(r.sito_prenotazione)}</div>`:''}
         ${r.link?`<div class="sito"><a href="${esc(r.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🌐 Apri link struttura</a></div>`:''}
@@ -1225,7 +1238,8 @@ function cardHtml(r){
       ${badgeHtml}
     </div>
     ${dates}
-    <div class="price">${eur(p)} ${loc}${r.escluso_totale?'<span class="excl">escluso dal totale</span>':`<span class="split">a testa ${eur(p/2)}</span>`}</div>
+    ${(r.tipo==='trasporto'&&r.da_prenotare&&r.link)?`<a class="book-link-soft" href="${esc(r.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 Prenota qui</a>`:''}
+    <div class="price">${eur(p)} ${loc}${r.escluso_totale?'<span class="excl">escluso dal totale</span>':''}<span class="split">a testa ${eur(p/2)}</span></div>
     ${restoTxt}
     ${(st==='dapagare') && r.data_pagamento?`<div class="info pay">💳 Da pagare entro <b>${fdate(r.data_pagamento)}</b></div>`:''}
     ${(st==='inloco')?`<div class="info">📍 Si paga in loco</div>`:''}
@@ -1395,7 +1409,7 @@ function renderSpostamenti(){
       voci.push({ sortDate:r.data_inizio||'9999', target:r, missing:true,
         title:esc(r.nome_hotel), place:r.tappa,
         sub:`arrivo ${r.data_inizio?'il <b>'+fdate(r.data_inizio)+'</b>':'(data da definire)'} · ✗ come ci arrivo?`, icon:'🧭' });
-    } else if(t.da_prenotare && !t.__simple){
+    } else if(t.da_prenotare && !t.__simple && !t.acquisto_in_loco){
       if(t.id) usati.add(t.id);
       voci.push({ sortDate:r.data_inizio||'9999', target:t,
         title:esc(r.nome_hotel), place:r.tappa,
@@ -1403,7 +1417,7 @@ function renderSpostamenti(){
     }
   });
   // 2) trasporti/voli da prenotare non ancora elencati
-  data.filter(r=>(r.tipo==='trasporto'||r.tipo==='volo') && r.da_prenotare && !usati.has(r.id)).forEach(t=>{
+  data.filter(r=>(r.tipo==='trasporto'||r.tipo==='volo') && r.da_prenotare && !r.acquisto_in_loco && !usati.has(r.id)).forEach(t=>{
     voci.push({ sortDate:t.data_inizio||'9999', target:t,
       title:esc(t.nome_hotel), place:t.tappa,
       sub:`${mezzoTxt(t)}${t.data_inizio?' · il <b>'+fdate(t.data_inizio)+'</b>':''} · <b style="color:var(--red)">da prenotare</b>`, icon:'✗' });
@@ -1507,7 +1521,7 @@ function renderItinerario(){
       const trasp=data.find(r=>r.tipo==='trasporto' && ((r.tappa_id&&r.tappa_id===t.id)||(!r.tappa_id&&norm(r.tappa)===norm(t.nome)&&norm(t.nome)!=='')));
       let mezzoTxt='';
       if(trasp){
-        const prenotato=!trasp.da_prenotare;
+        const prenotato=!trasp.da_prenotare || !!trasp.acquisto_in_loco;
         mezzoTxt=`<div class="itmezzo ${prenotato?'okm':'missm'}">${MEZZI[trasp.mezzo]||'🚐 Trasporto'} · ${prenotato?'✅ prenotato':'✗ da prenotare'}</div>`;
       }
       html+=`<div class="itrow ${ok?'ok':'miss'}">
