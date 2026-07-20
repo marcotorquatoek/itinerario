@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.66.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.67.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -119,6 +119,8 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .liststat b{color:var(--text)}
 .lrow{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:13px 14px;margin-bottom:9px}
 .lrow.late{border-color:#f5c6c6;background:var(--red-bg)}
+.lrow.ok{border-left:5px solid var(--green);background:var(--green-bg)}
+.lrow.warnrow{border-left:5px solid var(--amber);background:var(--amber-bg)}
 .lrow-main{flex:1;min-width:0}
 .lrow-title{font-size:.92rem;font-weight:700}
 .lrow-place{font-size:.74rem;color:var(--teal);font-weight:600;margin-top:2px}
@@ -332,7 +334,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.66.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.67.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -1597,74 +1599,85 @@ function esportaResoconto(fmt){
 }
 
 function renderSpostamenti(){
-  const alloggi=data.filter(r=>r.tipo==='alloggio' && !r.da_prenotare && !r.valuta_cancellazione && !r.escluso_totale);
-  const M={traghetto:'⛴️ Traghetto',treno:'🚆 Treno',bus:'🚌 Bus',taxi:'🚕 Taxi/transfer',auto:'🚗 Auto',combi:'⛴️🚕 Combinato',altro:'🚐 Trasporto',volo:'✈️ Volo'};
-  const mezzoTxt=(t)=>{
-    if(t.tipo==='volo'){ const tr=parseTratte(t.tratte); const rotta=tr.andata.length?`${tr.andata[0].da}→${tr.andata[tr.andata.length-1].a}`:t.nome_hotel; return `✈️ Volo (${esc(rotta)})`; }
-    return `${M[t.mezzo]||'🚐 Trasporto'}${t.partenza||t.arrivo?` (${esc(t.partenza)||'?'}→${esc(t.arrivo)||'?'})`:''}`;
-  };
-  // come arrivo a questa tappa? (trasporto collegato, oppure volo/opzione rapida salvati sull'alloggio)
-  const trasportoVerso=(r)=>{
-    if(r.arrivo_ref){
-      const ref=String(r.arrivo_ref);
-      if(ref.indexOf('simple:')===0){
-        const L={'simple:piedi':'🚶 A piedi','simple:breve':'🧭 Spostamento breve','simple:auto':'🚗 In auto','simple:navetta':'🚐 Navetta inclusa','simple:onsite':'📍 Già sul posto'};
-        return { __ok:true, __label:L[ref]||'🧭 Spostamento breve' };
-      }
+  const M={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',auto:'🚗',combi:'⛴️🚕',altro:'🚐'};
+  const MNOME={traghetto:'Traghetto',treno:'Treno',bus:'Bus',taxi:'Taxi/transfer',auto:'Auto',combi:'Combinato',altro:'Trasporto'};
+  const SIMPLE={'simple:piedi':'🚶 A piedi','simple:breve':'🧭 Spostamento breve','simple:auto':'🚗 In auto','simple:navetta':'🚐 Navetta inclusa','simple:onsite':'📍 Già sul posto'};
+
+  // alloggio "valido" di una tappa (non doppione, non escluso, non segnaposto)
+  const alloggioDi=(t)=>data.find(r=>r.tipo==='alloggio' && !r.da_prenotare && !r.valuta_cancellazione && !r.escluso_totale
+    && ((r.tappa_id && r.tappa_id===t.id) || (!r.tappa_id && norm(r.tappa)===norm(t.nome) && norm(t.nome)!=='')));
+
+  // come ci arrivo: {tipo:'ok'|'book'|'none', label, target}
+  const arrivoDi=(t, al)=>{
+    if(al && al.arrivo_ref){
+      const ref=String(al.arrivo_ref);
+      if(SIMPLE[ref]) return {stato:'ok', label:SIMPLE[ref]};
       if(ref.indexOf('volo:')===0){
-        const vid=ref.split(':')[1];
-        const v=data.find(x=>x.id===vid && x.tipo==='volo');
-        if(v) return { __ok:true, __label:'✈️ Volo', da_prenotare:v.da_prenotare };
+        const v=data.find(x=>x.id===ref.split(':')[1] && x.tipo==='volo');
+        if(v){
+          const tr=parseTratte(v.tratte);
+          const dir=ref.split(':')[2]==='ritorno'?tr.ritorno:tr.andata;
+          const rotta=dir.length?`${dir[0].da}→${dir[dir.length-1].a}`:v.nome_hotel;
+          return {stato:v.da_prenotare?'book':'ok', label:`✈️ Volo (${esc(rotta)})`, target:v};
+        }
       }
     }
-    const tid=r.tappa_id;
-    if(!tid) return null;
-    return data.find(x=>x.tipo==='trasporto' && x.tappa_a_id===tid) || null;
+    const tr=data.find(x=>x.tipo==='trasporto' && x.tappa_a_id===t.id);
+    if(tr){
+      const tratta=(tr.partenza||tr.arrivo)?` (${esc(tr.partenza)||'?'}→${esc(tr.arrivo)||'?'})`:'';
+      const lbl=`${M[tr.mezzo]||'🚐'} ${MNOME[tr.mezzo]||'Trasporto'}${tratta}`;
+      if(tr.acquisto_in_loco) return {stato:'ok', label:lbl+' · in loco', target:tr};
+      return {stato:tr.da_prenotare?'book':'ok', label:lbl, target:tr};
+    }
+    return {stato:'none'};
   };
 
-  const voci=[];
-  const usati=new Set();
+  const sorted=[...tappe].sort((a,b)=>(a.data_inizio||'9999').localeCompare(b.data_inizio||'9999'));
+  if(!sorted.length) return '<div class="empty">Nessuna tappa nell\'itinerario.<br>Aggiungile dalla tab Itinerario.</div>';
 
-  // 1) per ogni alloggio prenotato: c'è un trasporto che arriva alla sua tappa?
-  alloggi.forEach(r=>{
-    const t=trasportoVerso(r);
-    if(!t){
-      voci.push({ sortDate:r.data_inizio||'9999', target:r, missing:true, pickFor:r.id,
-        title:esc(r.nome_hotel), place:r.tappa,
-        sub:`arrivo ${r.data_inizio?'il <b>'+fdate(r.data_inizio)+'</b>':'(data da definire)'} · <b style="color:var(--red)">nessun trasporto collegato</b> · <span style="color:var(--teal);font-weight:700">tocca per collegare</span>`, icon:'🧭' });
-    } else if(t.da_prenotare && !t.acquisto_in_loco && !t.__ok){
-      usati.add(t.id);
-      voci.push({ sortDate:r.data_inizio||'9999', target:t,
-        title:esc(r.nome_hotel), place:r.tappa,
-        sub:`${mezzoTxt(t)} · <b style="color:var(--red)">da prenotare</b>`, icon:'✗' });
-    }
-  });
-  // 2) trasporti da prenotare non già elencati sopra
-  data.filter(r=>r.tipo==='trasporto' && r.da_prenotare && !r.acquisto_in_loco && !usati.has(r.id)).forEach(t=>{
-    voci.push({ sortDate:t.data_inizio||'9999', target:t,
-      title:esc(t.nome_hotel), place:t.tappa,
-      sub:`${mezzoTxt(t)}${t.data_inizio?' · il <b>'+fdate(t.data_inizio)+'</b>':''} · <b style="color:var(--red)">da prenotare</b>`, icon:'✗' });
-  });
-
-  if(!voci.length){
-    return '<div class="empty">🎉 Tutti gli spostamenti sono a posto.</div>';
-  }
-
-  voci.sort((a,b)=>a.sortDate.localeCompare(b.sortDate));
-  let html=`<div class="liststat">${voci.length} spostament${voci.length===1?'o':'i'} da sistemare</div>`;
-  voci.forEach(v=>{
-    const row = v.pickFor
-      ? `<div class="lrow ${v.missing?'late':''}" onclick="apriPickTrasporto('${v.pickFor}')" style="cursor:pointer">`
-      : `<div class="lrow ${v.missing?'late':''}" onclick='editRow(${JSON.stringify(v.target).replace(/'/g,"&#39;")})' style="cursor:pointer">`;
-    html+=row+`
+  let nOk=0;
+  let rows='';
+  sorted.forEach((t,i)=>{
+    const al=alloggioDi(t);
+    const a=arrivoDi(t, al);
+    if(a.stato==='ok') nOk++;
+    const range=(t.data_inizio||t.data_fine)?`${fdate(t.data_inizio)} → ${fdate(t.data_fine)}`:'date da definire';
+    const icon = a.stato==='ok' ? '✅' : (a.stato==='book' ? '⚠️' : '❌');
+    const cls  = a.stato==='ok' ? 'ok' : (a.stato==='book' ? 'warnrow' : 'late');
+    let sub;
+    if(a.stato==='none') sub=`<b style="color:var(--red)">nessuno spostamento collegato</b> · <span style="color:var(--teal);font-weight:700">tocca per collegare</span>`;
+    else if(a.stato==='book') sub=`${a.label} · <b style="color:var(--amber)">da prenotare</b>`;
+    else sub=`${a.label}`;
+    // il tocco apre il selettore se c'è un alloggio, altrimenti avvisa
+    const click = al ? `apriPickTrasporto('${al.id}')` : `alert('Questa tappa non ha ancora un alloggio prenotato: collega prima l\\'alloggio dalla tab Alloggi.')`;
+    rows+=`<div class="lrow ${cls}" onclick="${click}" style="cursor:pointer">
       <div class="lrow-main">
-        <div class="lrow-title">${v.title}</div>
-        ${v.place?`<div class="lrow-place">📍 ${esc(v.place)}</div>`:''}
-        <div class="lrow-sub">${v.sub}</div>
+        <div class="lrow-title">${i+1}. ${esc(t.nome)}</div>
+        <div class="lrow-place">📅 ${range}${al?` · 🏨 ${esc(al.nome_hotel)}`:' · <span style="color:var(--red)">alloggio mancante</span>'}</div>
+        <div class="lrow-sub">${sub}</div>
       </div>
-      <div class="lrow-amt" style="font-size:1.3rem">${v.icon}</div>
+      <div class="lrow-amt" style="font-size:1.3rem">${icon}</div>
     </div>`;
   });
+
+  let html=`<div class="liststat">${nOk}/${sorted.length} tappe con spostamento definito</div>`;
+  html+=rows;
+
+  // trasporti da prenotare non collegati a nessuna tappa
+  const orfani=data.filter(r=>r.tipo==='trasporto' && r.da_prenotare && !r.acquisto_in_loco && !r.tappa_a_id);
+  if(orfani.length){
+    html+=`<div class="liststat" style="margin-top:16px">🚐 ${orfani.length} trasport${orfani.length===1?'o':'i'} non collegat${orfani.length===1?'o':'i'} a una tappa</div>`;
+    orfani.sort((a,b)=>(a.data_inizio||'9999').localeCompare(b.data_inizio||'9999')).forEach(t=>{
+      const tratta=(t.partenza||t.arrivo)?`${esc(t.partenza)||'?'}→${esc(t.arrivo)||'?'}`:esc(t.nome_hotel);
+      html+=`<div class="lrow" onclick='editRow(${JSON.stringify(t).replace(/'/g,"&#39;")})' style="cursor:pointer">
+        <div class="lrow-main">
+          <div class="lrow-title">${M[t.mezzo]||'🚐'} ${tratta}</div>
+          <div class="lrow-sub">${t.data_inizio?fdate(t.data_inizio)+' · ':''}<b style="color:var(--red)">da prenotare</b></div>
+        </div>
+        <div class="lrow-amt" style="font-size:1.3rem">✗</div>
+      </div>`;
+    });
+  }
   return html;
 }
 
