@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.62.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.64.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -185,6 +185,16 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .res-total{margin-top:18px;background:var(--teal);color:#fff;border-radius:14px;padding:14px 16px;text-align:center}
 .res-total-n{font-size:1.5rem;font-weight:800;margin-top:2px}
 .res-total-s{font-size:.8rem;opacity:.9}
+/* Selettore trasporto */
+.pick-sub{font-size:.8rem;color:var(--muted);margin-bottom:12px;line-height:1.4}
+.pick-row{width:100%;display:flex;align-items:center;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:7px;cursor:pointer;text-align:left;font-family:inherit}
+.pick-row.picked{border-color:var(--teal);background:var(--green-bg)}
+.pick-ico{font-size:1.25rem;flex:none}
+.pick-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.pick-name{font-size:.88rem;font-weight:700;color:var(--text)}
+.pick-meta{font-size:.72rem;color:var(--muted)}
+.pick-tick{color:var(--teal);font-weight:800;font-size:1.1rem}
+.pick-empty{font-size:.82rem;color:var(--muted);text-align:center;padding:16px 8px}
 .card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .card .title{font-size:1.05rem;font-weight:700;line-height:1.2}
 .card .meta{font-size:.78rem;color:var(--teal);margin-top:2px}
@@ -314,7 +324,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.62.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.64.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -390,6 +400,19 @@ header .sub{font-size:.72rem;color:var(--muted)}
 </div>
 
 <!-- MODAL TAPPA ITINERARIO -->
+<!-- MASCHERA: COLLEGA TRASPORTO A UN ALLOGGIO -->
+<div class="overlay" id="overlay-pick">
+  <div class="modal">
+    <h2 id="pick-title">Come ci arrivo?</h2>
+    <div id="pick-sub" class="pick-sub"></div>
+    <div id="pick-list"></div>
+    <button type="button" class="add-leg" style="margin-top:10px" onclick="nuovoTrasportoDaPick()">+ Crea un nuovo trasporto</button>
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="btn ghost" onclick="closePickForm()">Chiudi</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="overlay-tappa">
   <div class="modal">
     <h2 id="tappa-modal-title">Nuova tappa</h2>
@@ -1582,9 +1605,9 @@ function renderSpostamenti(){
   alloggi.forEach(r=>{
     const t=trasportoVerso(r);
     if(!t){
-      voci.push({ sortDate:r.data_inizio||'9999', target:r, missing:true,
+      voci.push({ sortDate:r.data_inizio||'9999', target:r, missing:true, pickFor:r.id,
         title:esc(r.nome_hotel), place:r.tappa,
-        sub:`arrivo ${r.data_inizio?'il <b>'+fdate(r.data_inizio)+'</b>':'(data da definire)'} · <b style="color:var(--red)">nessun trasporto collegato</b>`, icon:'🧭' });
+        sub:`arrivo ${r.data_inizio?'il <b>'+fdate(r.data_inizio)+'</b>':'(data da definire)'} · <b style="color:var(--red)">nessun trasporto collegato</b> · <span style="color:var(--teal);font-weight:700">tocca per collegare</span>`, icon:'🧭' });
     } else if(t.da_prenotare && !t.acquisto_in_loco){
       usati.add(t.id);
       voci.push({ sortDate:r.data_inizio||'9999', target:t,
@@ -1606,7 +1629,10 @@ function renderSpostamenti(){
   voci.sort((a,b)=>a.sortDate.localeCompare(b.sortDate));
   let html=`<div class="liststat">${voci.length} spostament${voci.length===1?'o':'i'} da sistemare</div>`;
   voci.forEach(v=>{
-    html+=`<div class="lrow ${v.missing?'late':''}" onclick='editRow(${JSON.stringify(v.target).replace(/'/g,"&#39;")})' style="cursor:pointer">
+    const click = v.pickFor
+      ? `apriPickTrasporto('${v.pickFor}')`
+      : `editRow(${JSON.stringify(v.target).replace(/'/g,"&#39;")})`;
+    html+=`<div class="lrow ${v.missing?'late':''}" onclick='${click}' style="cursor:pointer">
       <div class="lrow-main">
         <div class="lrow-title">${v.title}</div>
         ${v.place?`<div class="lrow-place">📍 ${esc(v.place)}</div>`:''}
@@ -1789,6 +1815,64 @@ function renderItinerario(){
   }
   html+='<button class="add-leg" style="margin-top:8px" onclick="openTappaForm()">+ Aggiungi tappa</button>';
   return html;
+}
+
+// ---------- COLLEGA TRASPORTO A UN ALLOGGIO ----------
+let pickAlloggioId=null;
+function apriPickTrasporto(alloggioId){
+  const al=data.find(x=>x.id===alloggioId); if(!al) return;
+  pickAlloggioId=alloggioId;
+  $('pick-title').textContent='Come arrivo a '+(al.tappa||al.nome_hotel)+'?';
+  $('pick-sub').innerHTML=`Scegli un trasporto già inserito che <b>arriva</b> a questa tappa, oppure creane uno nuovo.`;
+  const M={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',auto:'🚗',combi:'⛴️🚕',altro:'🚐'};
+  const trasporti=data.filter(x=>x.tipo==='trasporto').sort(cmpChrono);
+  let h='';
+  if(!trasporti.length){
+    h='<div class="pick-empty">Nessun trasporto inserito finora.</div>';
+  } else {
+    trasporti.forEach(t=>{
+      const gia = t.tappa_a_id===al.tappa_id;
+      const tratta=(t.partenza||t.arrivo)?`${esc(t.partenza)||'?'} → ${esc(t.arrivo)||'?'}`:esc(t.nome_hotel);
+      const quando=t.data_inizio?fdate(t.data_inizio)+(t.ora_inizio?' · '+esc(t.ora_inizio):''):'data da definire';
+      h+=`<button type="button" class="pick-row${gia?' picked':''}" onclick="collegaTrasporto('${t.id}')">
+        <span class="pick-ico">${M[t.mezzo]||'🚐'}</span>
+        <span class="pick-main">
+          <span class="pick-name">${tratta}</span>
+          <span class="pick-meta">${quando}${t.da_prenotare?' · <b style="color:var(--red)">da prenotare</b>':''}</span>
+        </span>
+        ${gia?'<span class="pick-tick">✓</span>':''}
+      </button>`;
+    });
+  }
+  $('pick-list').innerHTML=h;
+  $('overlay-pick').classList.add('show');
+}
+function closePickForm(){ $('overlay-pick').classList.remove('show'); }
+// imposta la tappa di arrivo del trasporto = tappa dell'alloggio
+async function collegaTrasporto(trasportoId){
+  const al=data.find(x=>x.id===pickAlloggioId);
+  if(!al || !al.tappa_id){ alert('Questo alloggio non è collegato a una tappa dell\'itinerario. Aprilo e scegli la tappa.'); return; }
+  try{
+    const { error } = await db.from(TABLE).update({ tappa_a_id: al.tappa_id }).eq('id', trasportoId);
+    if(error) throw error;
+    closePickForm();
+    toast('Trasporto collegato');
+    load();
+  }catch(e){
+    const m=(e&&e.message)||String(e);
+    if(/tappa_a_id|column/i.test(m)) alert('Manca la colonna nel database.\n\nEsegui in Supabase:\nalter table itinerario_prenotazioni add column if not exists tappa_da_id uuid, add column if not exists tappa_a_id uuid;');
+    else alert('Errore: '+m);
+  }
+}
+// crea un nuovo trasporto già impostato con la tappa di arrivo dell'alloggio
+function nuovoTrasportoDaPick(){
+  const al=data.find(x=>x.id===pickAlloggioId);
+  closePickForm();
+  openForm('trasporto');
+  if(al && al.tappa_id){
+    populateTrTappe('', al.tappa_id);
+    if($('f-tra') && !$('f-tra').value) $('f-tra').value=al.tappa||'';
+  }
 }
 
 function openTappaForm(){
@@ -2352,6 +2436,7 @@ function bindOverlay(idOverlay, closeFn){
 bindOverlay('overlay', closeForm);
 bindOverlay('overlay-trip', closeTripForm);
 bindOverlay('overlay-tappa', closeTappaForm);
+bindOverlay('overlay-pick', closePickForm);
 
 // segno il form come "modificato" appena si tocca un campo
 ['overlay','overlay-trip','overlay-tappa'].forEach(id=>{
