@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.54.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.55.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -295,10 +295,17 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .back{display:inline-flex;align-items:center;gap:5px;font-size:.8rem;font-weight:600;color:var(--teal);background:none;border:none;cursor:pointer;padding:6px 0;margin-bottom:6px}
 .trip-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);cursor:pointer;position:relative;margin-bottom:12px;transition:transform .1s}
 .trip-card:active{transform:scale(.99)}
-.trip-card .tname{font-size:1.15rem;font-weight:700}
+.trip-card .tname{font-size:1.15rem;font-weight:700;padding-right:96px}
 .trip-card .tdates{font-size:.8rem;color:var(--muted);margin-top:4px}
 .trip-card .tmeta{font-size:.78rem;color:var(--teal);margin-top:10px;font-weight:600}
 .trip-card .tdel{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:4px}
+.tactions{position:absolute;top:12px;right:12px;display:flex;gap:2px}
+.tact{background:none;border:none;color:var(--muted);font-size:1.05rem;cursor:pointer;padding:4px 6px;border-radius:8px;line-height:1}
+.tact:hover{background:var(--surface-2)}
+.tact.tdel-i{color:var(--red)}
+.trip-card.archived{opacity:.62}
+.archtag{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);padding:2px 6px;border-radius:999px;vertical-align:middle}
+.arch-toggle{width:100%;background:none;border:none;color:var(--muted);font-size:.8rem;font-weight:700;padding:12px 4px;cursor:pointer;text-align:left}
 .trip-card .twarn{font-size:.72rem;color:var(--amber);font-weight:700;margin-top:8px}
 </style>
 </head>
@@ -306,7 +313,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.54.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.55.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -745,18 +752,89 @@ async function loadTrips(){
   }
 }
 
+let showArchived=false;
 function renderTrips(cancMap){
-  $('trips-status').textContent = trips.length ? `${trips.length} viaggi` : '';
+  lastCancMap=cancMap||{};
+  const attivi=trips.filter(t=>!t.archiviato);
+  const archiviati=trips.filter(t=>t.archiviato);
+  $('trips-status').textContent = attivi.length ? `${attivi.length} viagg${attivi.length===1?'io':'i'}` : '';
   const el=$('trips-list');
-  if(!trips.length){ el.innerHTML='<div class="empty">Nessun viaggio ancora.<br>Tocca + per crearne uno.</div>'; return; }
-  el.innerHTML=trips.map(t=>`
-    <div class="trip-card" onclick="openTrip('${t.id}')">
-      <button class="tdel" onclick="event.stopPropagation();delTrip('${t.id}','${esc(t.nome)}')">🗑</button>
-      <div class="tname">${esc(t.nome)}</div>
+  const cardHtml=(t,arch)=>`
+    <div class="trip-card ${arch?'archived':''}" onclick="openTrip('${t.id}')">
+      <div class="tactions">
+        <button class="tact" title="Duplica" onclick="event.stopPropagation();duplicaTrip('${t.id}')">⧉</button>
+        <button class="tact" title="${arch?'Ripristina':'Archivia'}" onclick="event.stopPropagation();archiviaTrip('${t.id}',${arch?'false':'true'})">${arch?'↩︎':'📥'}</button>
+        <button class="tact tdel-i" title="Elimina" onclick="event.stopPropagation();delTrip('${t.id}','${esc(t.nome)}')">🗑</button>
+      </div>
+      <div class="tname">${esc(t.nome)}${arch?' <span class="archtag">archiviato</span>':''}</div>
       <div class="tdates">📅 ${frange(t.data_inizio,t.data_fine)}</div>
       ${t.note?`<div class="tmeta">${esc(t.note)}</div>`:''}
-      ${cancMap&&cancMap[t.id]?`<div class="twarn">⚠️ ${cancMap[t.id]} da valutare cancellazione</div>`:''}
-    </div>`).join('');
+      ${!arch&&cancMap&&cancMap[t.id]?`<div class="twarn">⚠️ ${cancMap[t.id]} da valutare cancellazione</div>`:''}
+    </div>`;
+  let html='';
+  if(!attivi.length && !archiviati.length){ el.innerHTML='<div class="empty">Nessun viaggio ancora.<br>Tocca + per crearne uno.</div>'; return; }
+  html+=attivi.length?attivi.map(t=>cardHtml(t,false)).join(''):'<div class="empty">Nessun viaggio attivo.</div>';
+  if(archiviati.length){
+    html+=`<button class="arch-toggle" onclick="toggleArchived()">${showArchived?'▾':'▸'} Archiviati (${archiviati.length})</button>`;
+    if(showArchived) html+=archiviati.map(t=>cardHtml(t,true)).join('');
+  }
+  el.innerHTML=html;
+}
+let lastCancMap={};
+function toggleArchived(){ showArchived=!showArchived; renderTrips(lastCancMap); }
+
+// duplica un viaggio con tappe e prenotazioni
+async function duplicaTrip(id){
+  const src=trips.find(t=>t.id===id); if(!src) return;
+  if(!confirm(`Duplicare il viaggio "${src.nome}" con tutte le sue voci?`)) return;
+  try{
+    // 1) nuovo viaggio
+    const { data:nt, error:e1 } = await db.from(TABLE_TRIPS)
+      .insert({ nome:src.nome+' (copia)', data_inizio:src.data_inizio, data_fine:src.data_fine, note:src.note })
+      .select();
+    if(e1) throw e1;
+    const newId=nt[0].id;
+    // 2) tappe (mappa vecchio id → nuovo id)
+    const { data:tp } = await db.from(TABLE_TAPPE).select('*').eq('viaggio_id',id);
+    const mapTappe={};
+    if(tp && tp.length){
+      const nuove=tp.map(t=>{ const {id:_o,created_at:_c,...rest}=t; return {...rest, viaggio_id:newId}; });
+      const { data:ins, error:e2 } = await db.from(TABLE_TAPPE).insert(nuove).select();
+      if(e2) throw e2;
+      tp.forEach((o,i)=>{ if(ins[i]) mapTappe[o.id]=ins[i].id; });
+    }
+    // 3) prenotazioni (rimappo tappa_id; arrivo_ref agli id vecchi non è più valido se punta a prenotazioni)
+    const { data:pr } = await db.from(TABLE).select('*').eq('viaggio_id',id);
+    if(pr && pr.length){
+      const nuove=pr.map(p=>{
+        const {id:_o,created_at:_c,...rest}=p;
+        return {...rest, viaggio_id:newId,
+          tappa_id: p.tappa_id?(mapTappe[p.tappa_id]||null):null,
+          arrivo_ref: (p.arrivo_ref && String(p.arrivo_ref).indexOf('simple:')===0)?p.arrivo_ref:null };
+      });
+      const { error:e3 } = await db.from(TABLE).insert(nuove);
+      if(e3) throw e3;
+    }
+    toast('Viaggio duplicato');
+    loadTrips();
+  }catch(e){
+    alert('Errore nella duplicazione: '+((e&&e.message)||e));
+  }
+}
+
+// archivia / ripristina un viaggio
+async function archiviaTrip(id,val){
+  try{
+    const { error } = await db.from(TABLE_TRIPS).update({archiviato:val}).eq('id',id);
+    if(error) throw error;
+    toast(val?'Viaggio archiviato':'Viaggio ripristinato');
+    if(val) showArchived=false;
+    loadTrips();
+  }catch(e){
+    const m=(e&&e.message)||String(e);
+    if(/column|archiviato|schema/i.test(m)) alert('Manca la colonna nel database.\n\nEsegui in Supabase:\nalter table itinerario_viaggi add column if not exists archiviato boolean default false;');
+    else alert('Errore: '+m);
+  }
 }
 
 function goTrips(){
