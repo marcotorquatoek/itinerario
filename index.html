@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.58.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.61.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -44,10 +44,12 @@ header .sub{font-size:.72rem;color:var(--muted)}
 
 /* Tabs */
 .tabs-sticky{margin:0}
-.tabs{display:flex;gap:6px;background:var(--surface-2);padding:5px;border-radius:14px;margin-bottom:8px}
+.tabs{display:flex;gap:4px;min-width:0;background:var(--surface-2);padding:5px;border-radius:14px;margin-bottom:8px}
 .tabs:last-of-type{margin-bottom:10px}
-.tab{flex:1;text-align:center;font-size:.78rem;font-weight:600;padding:9px 4px;border-radius:10px;color:var(--muted);cursor:pointer;border:none;background:none;display:inline-flex;align-items:center;justify-content:center;gap:5px}
-.tab i{font-style:normal;font-size:1rem;line-height:1}
+.tab{flex:1 1 0;min-width:0;text-align:center;font-size:.78rem;font-weight:600;padding:9px 3px;border-radius:10px;color:var(--muted);cursor:pointer;border:none;background:none;display:inline-flex;align-items:center;justify-content:center;gap:4px;overflow:hidden}
+.tab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.tab i{font-style:normal;font-size:1rem;line-height:1;flex:none}
+@media (max-width:400px){ .tab{font-size:.7rem;gap:3px} .tab i{font-size:.92rem} }
 .tab.active{background:var(--surface);color:var(--teal);box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .baggage{font-size:.76rem;color:var(--text);background:var(--surface-2);border-radius:9px;padding:8px 10px;margin-top:6px;line-height:1.5}
 .fl-posto{font-size:.74rem;color:var(--teal-deep);font-weight:600;margin-top:2px}
@@ -176,7 +178,8 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .res-btn{flex:1;background:var(--surface);border:1px solid var(--line);color:var(--teal-deep);font-weight:700;font-size:.78rem;padding:10px 4px;border-radius:10px;cursor:pointer}
 .res-cat{font-size:.9rem;font-weight:800;color:var(--teal-deep);margin:16px 0 6px}
 .res-table{background:var(--surface);border-radius:12px;overflow:hidden;border:1px solid var(--line)}
-.res-tr{display:grid;grid-template-columns:1.4fr 1fr .8fr .7fr .7fr;gap:6px;padding:8px 10px;font-size:.72rem;border-bottom:1px solid var(--line);align-items:center}
+.res-tr{display:grid;grid-template-columns:1.3fr .95fr .75fr .75fr .65fr .65fr;gap:5px;padding:8px 9px;font-size:.68rem;border-bottom:1px solid var(--line);align-items:center}
+.res-tr span{overflow:hidden;text-overflow:ellipsis}
 .res-tr:last-child{border-bottom:none}
 .res-th{background:var(--surface-2);font-weight:800;font-size:.64rem;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
 .res-tr .num{text-align:right;white-space:nowrap;font-weight:600}
@@ -313,7 +316,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.58.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.61.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -332,6 +335,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
   <button class="tab active" data-tab="tutto" onclick="setTab('tutto')"><i>📋</i><span>Tutto</span></button>
   <button class="tab" data-tab="itinerario" onclick="setTab('itinerario')"><i>🗺️</i><span>Itinerario</span></button>
   <button class="tab" data-tab="calendario" onclick="setTab('calendario')"><i>📅</i><span>Calendario</span></button>
+  <button class="tab" data-tab="resoconto" onclick="setTab('resoconto')"><i>📊</i><span>Resoconto</span></button>
 </div>
 <div class="tabs">
   <button class="tab" data-tab="alloggi" onclick="setTab('alloggi')"><i>🏨</i><span>Alloggi</span></button>
@@ -343,7 +347,6 @@ header .sub{font-size:.72rem;color:var(--muted)}
   <button class="tab" data-tab="pagamenti" onclick="setTab('pagamenti')"><i>💳</i><span>Pagamenti</span></button>
   <button class="tab" data-tab="cancellazioni" onclick="setTab('cancellazioni')"><i>⏳</i><span>Cancellazioni</span></button>
   <button class="tab" data-tab="spostamenti" onclick="setTab('spostamenti')"><i>🧭</i><span>Spostamenti</span></button>
-  <button class="tab" data-tab="resoconto" onclick="setTab('resoconto')"><i>📊</i><span>Resoconto</span></button>
 </div>
 </div><!-- /tabs-sticky -->
 
@@ -864,16 +867,16 @@ function openTrip(id){
 function openTripForm(){
   $('trip-modal-title').textContent='Nuovo viaggio';
   $('t-id').value=''; $('t-nome').value=''; $('t-inizio').value=''; $('t-fine').value=''; $('t-note').value='';
-  $('overlay-trip').classList.add('show');
+  $('overlay-trip').classList.add('show'); resetDirty();
 }
 function editTrip(){
   $('trip-modal-title').textContent='Modifica viaggio';
   $('t-id').value=currentTrip.id; $('t-nome').value=currentTrip.nome||'';
   $('t-inizio').value=currentTrip.data_inizio||''; $('t-fine').value=currentTrip.data_fine||'';
   $('t-note').value=currentTrip.note||'';
-  $('overlay-trip').classList.add('show');
+  $('overlay-trip').classList.add('show'); resetDirty();
 }
-function closeTripForm(){ $('overlay-trip').classList.remove('show'); }
+function closeTripForm(){ $('overlay-trip').classList.remove('show'); resetDirty(); }
 
 async function saveTrip(){
   const nome=$('t-nome').value.trim();
@@ -1053,6 +1056,13 @@ function addDays(d,n){ if(!isValidISO(d)) return d; const x=new Date(d+'T00:00:0
 let calDayMap={};   // 'YYYY-MM-DD' -> [{tipo,label,...}]
 let calSelected=null;
 let pendingArrivoRef=null; // ref arrivo da ripristinare in modifica alloggio
+let formDirty=false;
+function markDirty(){ formDirty=true; }
+function resetDirty(){ formDirty=false; }
+function confermaChiusura(){
+  if(!formDirty) return true;
+  return confirm('Hai modifiche non salvate. Vuoi chiudere e perderle?');
+}
 
 function buildDayMap(){
   const map={};
@@ -1502,7 +1512,7 @@ function resRows(tipo){
       let date='';
       if(r.tipo==='alloggio') date=(r.data_inizio||r.data_fine)?`${fdate(r.data_inizio)} → ${fdate(r.data_fine)}`:'—';
       else date=r.data_inizio?fdate(r.data_inizio):'—';
-      return { nome:r.nome_hotel||'—', date, posto:postoOf(r)||'—', tot, testa:tot/2 };
+      return { nome:r.nome_hotel||'—', date, posto:postoOf(r)||'—', sito:r.sito_prenotazione||(r.compagnia||'—'), tot, testa:tot/2 };
     });
 }
 function renderResoconto(){
@@ -1519,11 +1529,11 @@ function renderResoconto(){
     gTot+=sub;
     html+=`<div class="res-cat">${lbl}</div>`;
     html+='<div class="res-table">';
-    html+='<div class="res-tr res-th"><span>Nome</span><span>Date</span><span>Luogo</span><span class="num">Totale</span><span class="num">A testa</span></div>';
+    html+='<div class="res-tr res-th"><span>Nome</span><span>Date</span><span>Luogo</span><span>Sito</span><span class="num">Totale</span><span class="num">A testa</span></div>';
     rows.forEach(x=>{
-      html+=`<div class="res-tr"><span>${esc(x.nome)}</span><span>${esc(x.date)}</span><span>${esc(x.posto)}</span><span class="num">${eur(x.tot)}</span><span class="num">${eur(x.testa)}</span></div>`;
+      html+=`<div class="res-tr"><span>${esc(x.nome)}</span><span>${esc(x.date)}</span><span>${esc(x.posto)}</span><span>${esc(x.sito)}</span><span class="num">${eur(x.tot)}</span><span class="num">${eur(x.testa)}</span></div>`;
     });
-    html+=`<div class="res-tr res-sub"><span>Subtotale ${esc(lbl)}</span><span></span><span></span><span class="num">${eur(sub)}</span><span class="num">${eur(sub/2)}</span></div>`;
+    html+=`<div class="res-tr res-sub"><span>Subtotale ${esc(lbl)}</span><span></span><span></span><span></span><span class="num">${eur(sub)}</span><span class="num">${eur(sub/2)}</span></div>`;
     html+='</div>';
   });
   if(!gTot) return html+'<div class="empty">Nessuna spesa da riepilogare.</div>';
@@ -1548,7 +1558,7 @@ function esportaResoconto(fmt){
     let t=`RESOCONTO SPESE — ${nomeViaggio}\n\n`;
     cats.forEach(c=>{
       t+=`${c.cat.toUpperCase()}\n`;
-      c.rows.forEach(x=>{ t+=`  ${x.nome} | ${x.date} | ${x.posto} | ${eur(x.tot)} | a testa ${eur(x.testa)}\n`; });
+      c.rows.forEach(x=>{ t+=`  ${x.nome} | ${x.date} | ${x.posto} | ${x.sito} | ${eur(x.tot)} | a testa ${eur(x.testa)}\n`; });
       t+=`  Subtotale: ${eur(c.sub)} (a testa ${eur(c.sub/2)})\n\n`;
     });
     t+=`TOTALE: ${eur(gTot)} — a testa ${eur(gTot/2)}`;
@@ -1557,12 +1567,12 @@ function esportaResoconto(fmt){
   }
   if(fmt==='csv'){
     const q=s=>`"${(s==null?'':s).toString().replace(/"/g,'""')}"`;
-    let csv='Categoria;Nome;Date;Luogo;Totale;A testa\n';
+    let csv='Categoria;Nome;Date;Luogo;Sito;Totale;A testa\n';
     cats.forEach(c=>{
-      c.rows.forEach(x=>{ csv+=[q(c.cat),q(x.nome),q(x.date),q(x.posto),x.tot.toFixed(2),x.testa.toFixed(2)].join(';')+'\n'; });
-      csv+=[q(c.cat),q('SUBTOTALE'),'','',c.sub.toFixed(2),(c.sub/2).toFixed(2)].join(';')+'\n';
+      c.rows.forEach(x=>{ csv+=[q(c.cat),q(x.nome),q(x.date),q(x.posto),q(x.sito),x.tot.toFixed(2),x.testa.toFixed(2)].join(';')+'\n'; });
+      csv+=[q(c.cat),q('SUBTOTALE'),'','','',c.sub.toFixed(2),(c.sub/2).toFixed(2)].join(';')+'\n';
     });
-    csv+=[q('TOTALE'),'','','',gTot.toFixed(2),(gTot/2).toFixed(2)].join(';')+'\n';
+    csv+=[q('TOTALE'),'','','','',gTot.toFixed(2),(gTot/2).toFixed(2)].join(';')+'\n';
     const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
@@ -1585,9 +1595,9 @@ function esportaResoconto(fmt){
   </style></head><body>
   <h1>Resoconto spese — ${esc(nomeViaggio)}</h1><div class="sub">Generato il ${new Date().toLocaleDateString('it-IT')}</div>`;
   cats.forEach(c=>{
-    h+=`<h2>${esc(c.cat)}</h2><table><tr><th>Nome</th><th>Date</th><th>Luogo</th><th class="n">Totale</th><th class="n">A testa</th></tr>`;
-    c.rows.forEach(x=>{ h+=`<tr><td>${esc(x.nome)}</td><td>${esc(x.date)}</td><td>${esc(x.posto)}</td><td class="n">${eur(x.tot)}</td><td class="n">${eur(x.testa)}</td></tr>`; });
-    h+=`<tr class="sub"><td colspan="3">Subtotale</td><td class="n">${eur(c.sub)}</td><td class="n">${eur(c.sub/2)}</td></tr></table>`;
+    h+=`<h2>${esc(c.cat)}</h2><table><tr><th>Nome</th><th>Date</th><th>Luogo</th><th>Sito</th><th class="n">Totale</th><th class="n">A testa</th></tr>`;
+    c.rows.forEach(x=>{ h+=`<tr><td>${esc(x.nome)}</td><td>${esc(x.date)}</td><td>${esc(x.posto)}</td><td>${esc(x.sito)}</td><td class="n">${eur(x.tot)}</td><td class="n">${eur(x.testa)}</td></tr>`; });
+    h+=`<tr class="sub"><td colspan="4">Subtotale</td><td class="n">${eur(c.sub)}</td><td class="n">${eur(c.sub/2)}</td></tr></table>`;
   });
   h+=`<div class="tot"><span>TOTALE VIAGGIO</span><span>${eur(gTot)} · a testa ${eur(gTot/2)}</span></div>`;
   h+=`<script>window.onload=function(){window.print();}<\/script></body></html>`;
@@ -1834,7 +1844,7 @@ function openTappaForm(){
   $('tappa-modal-title').textContent='Nuova tappa';
   $('tp-id').value=''; $('tp-nome').value=''; $('tp-inizio').value=''; $('tp-fine').value=''; $('tp-note').value=''; $('tp-riverifica').checked=false;
   attachDateMask();
-  $('overlay-tappa').classList.add('show');
+  $('overlay-tappa').classList.add('show'); resetDirty();
 }
 function editTappa(t){
   $('tappa-modal-title').textContent='Modifica tappa';
@@ -1842,9 +1852,9 @@ function editTappa(t){
   $('tp-inizio').value=isoToDdmm(t.data_inizio); $('tp-fine').value=isoToDdmm(t.data_fine);
   $('tp-note').value=t.note||''; $('tp-riverifica').checked=!!t.riverifica;
   attachDateMask();
-  $('overlay-tappa').classList.add('show');
+  $('overlay-tappa').classList.add('show'); resetDirty();
 }
-function closeTappaForm(){ $('overlay-tappa').classList.remove('show'); }
+function closeTappaForm(){ $('overlay-tappa').classList.remove('show'); resetDirty(); }
 async function saveTappa(){
   const nome=$('tp-nome').value.trim();
   if(!nome){ alert('Inserisci il nome della tappa'); return; }
@@ -2218,7 +2228,7 @@ function openForm(forceTipo){
   populateTappeSelect('');
   togglePayField(); toggleDaPrenotare();
   attachDateMask();
-  $('overlay').classList.add('show');
+  $('overlay').classList.add('show'); resetDirty();
 }
 
 function editRow(r){
@@ -2274,9 +2284,9 @@ function editRow(r){
   $('more-toggle').innerHTML=(hasExtra?'▾':'▸')+' Informazioni aggiuntive';
   togglePayField(); toggleDaPrenotare();
   attachDateMask();
-  $('overlay').classList.add('show');
+  $('overlay').classList.add('show'); resetDirty();
 }
-function closeForm(){ $('overlay').classList.remove('show'); }
+function closeForm(){ $('overlay').classList.remove('show'); resetDirty(); }
 
 async function save(){
   const tipo=$('f-tipo').value;
@@ -2404,9 +2414,42 @@ async function save(){
   closeForm(); load();
 }
 
-$('overlay').addEventListener('click',e=>{ if(e.target===$('overlay')) closeForm(); });
-$('overlay-trip').addEventListener('click',e=>{ if(e.target===$('overlay-trip')) closeTripForm(); });
-$('overlay-tappa').addEventListener('click',e=>{ if(e.target===$('overlay-tappa')) closeTappaForm(); });
+// Chiusura maschere: solo con un tap DELIBERATO sullo sfondo (mousedown+mouseup sullo stesso punto),
+// e con conferma se ci sono modifiche non salvate. Evita chiusure accidentali mentre si scrive.
+function bindOverlay(idOverlay, closeFn){
+  const ov=$(idOverlay);
+  if(!ov) return;
+  let downOnOverlay=false, downX=0, downY=0;
+  const start=e=>{
+    const p=e.touches?e.touches[0]:e;
+    downOnOverlay=(e.target===ov);
+    downX=p.clientX; downY=p.clientY;
+  };
+  const end=e=>{
+    if(!downOnOverlay){ return; }
+    const p=e.changedTouches?e.changedTouches[0]:e;
+    const mosso=Math.abs(p.clientX-downX)>12 || Math.abs(p.clientY-downY)>12;
+    downOnOverlay=false;
+    if(mosso) return;                 // stava scorrendo, non chiudo
+    if(e.target!==ov) return;         // ha rilasciato dentro la scheda
+    if(!confermaChiusura()) return;   // ci sono modifiche: chiedo conferma
+    closeFn();
+  };
+  ov.addEventListener('mousedown',start);
+  ov.addEventListener('mouseup',end);
+  ov.addEventListener('touchstart',start,{passive:true});
+  ov.addEventListener('touchend',end);
+}
+bindOverlay('overlay', closeForm);
+bindOverlay('overlay-trip', closeTripForm);
+bindOverlay('overlay-tappa', closeTappaForm);
+
+// segno il form come "modificato" appena si tocca un campo
+['overlay','overlay-trip','overlay-tappa'].forEach(id=>{
+  const ov=$(id); if(!ov) return;
+  ov.addEventListener('input', markDirty);
+  ov.addEventListener('change', markDirty);
+});
 
 // mostra/nasconde il tasto "torna su" in base allo scroll
 (function(){
