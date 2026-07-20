@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.64.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.65.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -195,6 +195,10 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .pick-meta{font-size:.72rem;color:var(--muted)}
 .pick-tick{color:var(--teal);font-weight:800;font-size:1.1rem}
 .pick-empty{font-size:.82rem;color:var(--muted);text-align:center;padding:16px 8px}
+/* X di chiusura maschere */
+.modal{position:relative}
+.modal-x{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);font-size:1.15rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5}
+.modal h2{padding-right:44px}
 .card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .card .title{font-size:1.05rem;font-weight:700;line-height:1.2}
 .card .meta{font-size:.78rem;color:var(--teal);margin-top:2px}
@@ -324,7 +328,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.64.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.65.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -384,6 +388,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <!-- MODAL VIAGGIO -->
 <div class="overlay" id="overlay-trip">
   <div class="modal">
+    <button class="modal-x" onclick="if(confermaChiusura())closeTripForm()" aria-label="Chiudi">✕</button>
     <h2 id="trip-modal-title">Nuovo viaggio</h2>
     <input type="hidden" id="t-id">
     <div class="field"><label>Nome viaggio</label><input id="t-nome" placeholder="es. Giappone 2026"></div>
@@ -403,6 +408,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <!-- MASCHERA: COLLEGA TRASPORTO A UN ALLOGGIO -->
 <div class="overlay" id="overlay-pick">
   <div class="modal">
+    <button class="modal-x" onclick="closePickForm()" aria-label="Chiudi">✕</button>
     <h2 id="pick-title">Come ci arrivo?</h2>
     <div id="pick-sub" class="pick-sub"></div>
     <div id="pick-list"></div>
@@ -415,6 +421,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 
 <div class="overlay" id="overlay-tappa">
   <div class="modal">
+    <button class="modal-x" onclick="if(confermaChiusura())closeTappaForm()" aria-label="Chiudi">✕</button>
     <h2 id="tappa-modal-title">Nuova tappa</h2>
     <input type="hidden" id="tp-id">
     <div class="field"><label>Tappa / luogo</label><input id="tp-nome" placeholder="es. Ubud"></div>
@@ -434,6 +441,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 
 <div class="overlay" id="overlay">
   <div class="modal">
+    <button class="modal-x" onclick="if(confermaChiusura())closeForm()" aria-label="Chiudi">✕</button>
     <h2 id="modal-title">Nuova voce</h2>
     <input type="hidden" id="f-id">
     <input type="hidden" id="f-tipo">
@@ -1629,10 +1637,10 @@ function renderSpostamenti(){
   voci.sort((a,b)=>a.sortDate.localeCompare(b.sortDate));
   let html=`<div class="liststat">${voci.length} spostament${voci.length===1?'o':'i'} da sistemare</div>`;
   voci.forEach(v=>{
-    const click = v.pickFor
-      ? `apriPickTrasporto('${v.pickFor}')`
-      : `editRow(${JSON.stringify(v.target).replace(/'/g,"&#39;")})`;
-    html+=`<div class="lrow ${v.missing?'late':''}" onclick='${click}' style="cursor:pointer">
+    const row = v.pickFor
+      ? `<div class="lrow ${v.missing?'late':''}" onclick="apriPickTrasporto('${v.pickFor}')" style="cursor:pointer">`
+      : `<div class="lrow ${v.missing?'late':''}" onclick='editRow(${JSON.stringify(v.target).replace(/'/g,"&#39;")})' style="cursor:pointer">`;
+    html+=row+`
       <div class="lrow-main">
         <div class="lrow-title">${v.title}</div>
         ${v.place?`<div class="lrow-place">📍 ${esc(v.place)}</div>`:''}
