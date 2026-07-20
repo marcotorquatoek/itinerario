@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.67.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.68.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -121,6 +121,10 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .lrow.late{border-color:#f5c6c6;background:var(--red-bg)}
 .lrow.ok{border-left:5px solid var(--green);background:var(--green-bg)}
 .lrow.warnrow{border-left:5px solid var(--amber);background:var(--amber-bg)}
+.seglist{margin-top:8px;padding-left:2px;display:flex;flex-direction:column;gap:4px}
+.segrow{font-size:.74rem;font-weight:600;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 9px;position:relative}
+.segrow.book{border-color:#f5c6c6;background:var(--red-bg);color:var(--red)}
+.segrow+.segrow::before{content:'↓';position:absolute;top:-13px;left:12px;font-size:.7rem;color:var(--muted)}
 .lrow-main{flex:1;min-width:0}
 .lrow-title{font-size:.92rem;font-weight:700}
 .lrow-place{font-size:.74rem;color:var(--teal);font-weight:600;margin-top:2px}
@@ -334,7 +338,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.67.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.68.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -1601,85 +1605,116 @@ function esportaResoconto(fmt){
 function renderSpostamenti(){
   const M={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',auto:'🚗',combi:'⛴️🚕',altro:'🚐'};
   const MNOME={traghetto:'Traghetto',treno:'Treno',bus:'Bus',taxi:'Taxi/transfer',auto:'Auto',combi:'Combinato',altro:'Trasporto'};
+
+  // 1) Soggiorni reali: ogni alloggio valido con le sue date
+  const soggiorni=data.filter(r=>r.tipo==='alloggio' && !r.da_prenotare && !r.valuta_cancellazione && !r.escluso_totale && isValidISO(r.data_inizio))
+    .map(r=>({ id:r.id, nome:r.nome_hotel, luogo:r.tappa||r.nome_hotel, tappa_id:r.tappa_id||null,
+               dal:r.data_inizio, al:(isValidISO(r.data_fine)?r.data_fine:r.data_inizio), rec:r }))
+    .sort((a,b)=>a.dal.localeCompare(b.dal));
+
+  if(soggiorni.length<1) return '<div class="empty">Inserisci almeno un alloggio per vedere gli spostamenti da coprire.</div>';
+
+  // 2) Tratte dedotte: da ogni check-out al check-in successivo
+  const tratte=[];
+  for(let i=0;i<soggiorni.length-1;i++){
+    const a=soggiorni[i], b=soggiorni[i+1];
+    if(norm(a.luogo)===norm(b.luogo)) continue;   // stesso posto: nessuno spostamento
+    tratte.push({ da:a, a:b, quando:a.al });
+  }
+
+  // 3) Segmenti: trasporti collegati alla tratta (per tappa di arrivo, o per data nel giorno del passaggio)
+  const usati=new Set();
+  const segmentiDi=(tr)=>{
+    const segs=data.filter(x=>{
+      if(x.tipo!=='trasporto') return false;
+      // collegato esplicitamente alla tappa di arrivo
+      if(tr.a.tappa_id && x.tappa_a_id===tr.a.tappa_id) return true;
+      // oppure avviene nel giorno del passaggio
+      if(x.data_inizio && x.data_inizio===tr.quando) return true;
+      return false;
+    }).sort((p,q)=>(p.ora_inizio||'').localeCompare(q.ora_inizio||''));
+    segs.forEach(s=>usati.add(s.id));
+    return segs;
+  };
+  // volo/opzione rapida salvati sull'alloggio di destinazione
   const SIMPLE={'simple:piedi':'🚶 A piedi','simple:breve':'🧭 Spostamento breve','simple:auto':'🚗 In auto','simple:navetta':'🚐 Navetta inclusa','simple:onsite':'📍 Già sul posto'};
-
-  // alloggio "valido" di una tappa (non doppione, non escluso, non segnaposto)
-  const alloggioDi=(t)=>data.find(r=>r.tipo==='alloggio' && !r.da_prenotare && !r.valuta_cancellazione && !r.escluso_totale
-    && ((r.tappa_id && r.tappa_id===t.id) || (!r.tappa_id && norm(r.tappa)===norm(t.nome) && norm(t.nome)!=='')));
-
-  // come ci arrivo: {tipo:'ok'|'book'|'none', label, target}
-  const arrivoDi=(t, al)=>{
-    if(al && al.arrivo_ref){
-      const ref=String(al.arrivo_ref);
-      if(SIMPLE[ref]) return {stato:'ok', label:SIMPLE[ref]};
-      if(ref.indexOf('volo:')===0){
-        const v=data.find(x=>x.id===ref.split(':')[1] && x.tipo==='volo');
-        if(v){
-          const tr=parseTratte(v.tratte);
-          const dir=ref.split(':')[2]==='ritorno'?tr.ritorno:tr.andata;
-          const rotta=dir.length?`${dir[0].da}→${dir[dir.length-1].a}`:v.nome_hotel;
-          return {stato:v.da_prenotare?'book':'ok', label:`✈️ Volo (${esc(rotta)})`, target:v};
-        }
+  const refDi=(al)=>{
+    if(!al.rec.arrivo_ref) return null;
+    const ref=String(al.rec.arrivo_ref);
+    if(SIMPLE[ref]) return {label:SIMPLE[ref], book:false};
+    if(ref.indexOf('volo:')===0){
+      const v=data.find(x=>x.id===ref.split(':')[1] && x.tipo==='volo');
+      if(v){
+        const t=parseTratte(v.tratte);
+        const dir=ref.split(':')[2]==='ritorno'?t.ritorno:t.andata;
+        const rotta=dir.length?`${dir[0].da}→${dir[dir.length-1].a}`:v.nome_hotel;
+        return {label:`✈️ Volo (${esc(rotta)})`, book:!!v.da_prenotare};
       }
     }
-    const tr=data.find(x=>x.tipo==='trasporto' && x.tappa_a_id===t.id);
-    if(tr){
-      const tratta=(tr.partenza||tr.arrivo)?` (${esc(tr.partenza)||'?'}→${esc(tr.arrivo)||'?'})`:'';
-      const lbl=`${M[tr.mezzo]||'🚐'} ${MNOME[tr.mezzo]||'Trasporto'}${tratta}`;
-      if(tr.acquisto_in_loco) return {stato:'ok', label:lbl+' · in loco', target:tr};
-      return {stato:tr.da_prenotare?'book':'ok', label:lbl, target:tr};
-    }
-    return {stato:'none'};
+    return null;
   };
 
-  const sorted=[...tappe].sort((a,b)=>(a.data_inizio||'9999').localeCompare(b.data_inizio||'9999'));
-  if(!sorted.length) return '<div class="empty">Nessuna tappa nell\'itinerario.<br>Aggiungile dalla tab Itinerario.</div>';
+  let nOk=0, rows='';
+  tratte.forEach((tr,i)=>{
+    const segs=segmentiDi(tr);
+    const ref=refDi(tr.a);
+    const nSeg=segs.length+(ref?1:0);
+    const daPren=segs.some(s=>s.da_prenotare && !s.acquisto_in_loco) || (ref&&ref.book);
+    const stato = nSeg===0 ? 'none' : (daPren ? 'book' : 'ok');
+    if(stato==='ok') nOk++;
+    const icon = stato==='ok'?'✅':(stato==='book'?'⚠️':'❌');
+    const cls  = stato==='ok'?'ok':(stato==='book'?'warnrow':'late');
 
-  let nOk=0;
-  let rows='';
-  sorted.forEach((t,i)=>{
-    const al=alloggioDi(t);
-    const a=arrivoDi(t, al);
-    if(a.stato==='ok') nOk++;
-    const range=(t.data_inizio||t.data_fine)?`${fdate(t.data_inizio)} → ${fdate(t.data_fine)}`:'date da definire';
-    const icon = a.stato==='ok' ? '✅' : (a.stato==='book' ? '⚠️' : '❌');
-    const cls  = a.stato==='ok' ? 'ok' : (a.stato==='book' ? 'warnrow' : 'late');
-    let sub;
-    if(a.stato==='none') sub=`<b style="color:var(--red)">nessuno spostamento collegato</b> · <span style="color:var(--teal);font-weight:700">tocca per collegare</span>`;
-    else if(a.stato==='book') sub=`${a.label} · <b style="color:var(--amber)">da prenotare</b>`;
-    else sub=`${a.label}`;
-    // il tocco apre il selettore se c'è un alloggio, altrimenti avvisa
-    const click = al ? `apriPickTrasporto('${al.id}')` : `alert('Questa tappa non ha ancora un alloggio prenotato: collega prima l\\'alloggio dalla tab Alloggi.')`;
-    rows+=`<div class="lrow ${cls}" onclick="${click}" style="cursor:pointer">
-      <div class="lrow-main">
-        <div class="lrow-title">${i+1}. ${esc(t.nome)}</div>
-        <div class="lrow-place">📅 ${range}${al?` · 🏨 ${esc(al.nome_hotel)}`:' · <span style="color:var(--red)">alloggio mancante</span>'}</div>
-        <div class="lrow-sub">${sub}</div>
+    // dettaglio dei segmenti in catena
+    let dett='';
+    if(nSeg===0){
+      dett=`<div class="lrow-sub"><b style="color:var(--red)">nessuno spostamento inserito</b> · <span style="color:var(--teal);font-weight:700">tocca per aggiungere</span></div>`;
+    } else {
+      dett='<div class="seglist">';
+      if(ref) dett+=`<div class="segrow${ref.book?' book':''}">${ref.label}${ref.book?' · <b>da prenotare</b>':''}</div>`;
+      segs.forEach(s=>{
+        const tratta=(s.partenza||s.arrivo)?` ${esc(s.partenza)||'?'}→${esc(s.arrivo)||'?'}`:'';
+        const inloco=s.acquisto_in_loco?' · in loco':'';
+        const book=(s.da_prenotare&&!s.acquisto_in_loco)?' · <b>da prenotare</b>':'';
+        dett+=`<div class="segrow${(s.da_prenotare&&!s.acquisto_in_loco)?' book':''}" onclick='event.stopPropagation();editRow(${JSON.stringify(s).replace(/'/g,"&#39;")})'>${M[s.mezzo]||'🚐'} ${MNOME[s.mezzo]||'Trasporto'}${tratta}${s.ora_inizio?' · '+esc(s.ora_inizio):''}${inloco}${book}</div>`;
+      });
+      dett+='</div>';
+    }
+
+    rows+=`<div class="lrow ${cls}" onclick="nuovoSegmento('${tr.a.id}')" style="cursor:pointer;display:block">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <div class="lrow-main">
+          <div class="lrow-title">${esc(tr.da.luogo)} → ${esc(tr.a.luogo)}</div>
+          <div class="lrow-place">📅 ${fdate(tr.quando)}${nSeg>1?` · ${nSeg} mezzi`:''}</div>
+        </div>
+        <div class="lrow-amt" style="font-size:1.3rem">${icon}</div>
       </div>
-      <div class="lrow-amt" style="font-size:1.3rem">${icon}</div>
+      ${dett}
     </div>`;
   });
 
-  let html=`<div class="liststat">${nOk}/${sorted.length} tappe con spostamento definito</div>`;
-  html+=rows;
+  let html=`<div class="liststat">${nOk}/${tratte.length} spostament${tratte.length===1?'o coperto':'i coperti'}</div>`;
+  html+= tratte.length?rows:'<div class="empty">Nessuno spostamento da coprire: gli alloggi sono tutti nello stesso luogo.</div>';
 
-  // trasporti da prenotare non collegati a nessuna tappa
-  const orfani=data.filter(r=>r.tipo==='trasporto' && r.da_prenotare && !r.acquisto_in_loco && !r.tappa_a_id);
+  // trasporti non associati ad alcuna tratta
+  const orfani=data.filter(r=>r.tipo==='trasporto' && !usati.has(r.id));
   if(orfani.length){
-    html+=`<div class="liststat" style="margin-top:16px">🚐 ${orfani.length} trasport${orfani.length===1?'o':'i'} non collegat${orfani.length===1?'o':'i'} a una tappa</div>`;
+    html+=`<div class="liststat" style="margin-top:16px">🚐 ${orfani.length} trasport${orfani.length===1?'o':'i'} non associat${orfani.length===1?'o':'i'} a uno spostamento</div>`;
     orfani.sort((a,b)=>(a.data_inizio||'9999').localeCompare(b.data_inizio||'9999')).forEach(t=>{
       const tratta=(t.partenza||t.arrivo)?`${esc(t.partenza)||'?'}→${esc(t.arrivo)||'?'}`:esc(t.nome_hotel);
       html+=`<div class="lrow" onclick='editRow(${JSON.stringify(t).replace(/'/g,"&#39;")})' style="cursor:pointer">
         <div class="lrow-main">
           <div class="lrow-title">${M[t.mezzo]||'🚐'} ${tratta}</div>
-          <div class="lrow-sub">${t.data_inizio?fdate(t.data_inizio)+' · ':''}<b style="color:var(--red)">da prenotare</b></div>
+          <div class="lrow-sub">${t.data_inizio?fdate(t.data_inizio):'senza data'}${t.da_prenotare?' · <b style="color:var(--red)">da prenotare</b>':''}</div>
         </div>
-        <div class="lrow-amt" style="font-size:1.3rem">✗</div>
+        <div class="lrow-amt" style="font-size:1.3rem">↔</div>
       </div>`;
     });
   }
   return html;
 }
+// aggiunge un segmento (trasporto) alla tratta che porta all'alloggio indicato
+function nuovoSegmento(alloggioId){ apriPickTrasporto(alloggioId); }
 
 function copiaTappe(){
   const sorted=[...tappe].sort((a,b)=>(a.data_inizio||'9999').localeCompare(b.data_inizio||'9999'));
@@ -1860,7 +1895,7 @@ function apriPickTrasporto(alloggioId){
   const al=data.find(x=>x.id===alloggioId); if(!al) return;
   pickAlloggioId=alloggioId;
   $('pick-title').textContent='Come arrivo a '+(al.tappa||al.nome_hotel)+'?';
-  $('pick-sub').innerHTML=`Scegli come arrivi a questa tappa: un trasporto o un volo già inserito, un'opzione rapida, oppure crea un nuovo trasporto.`;
+  $('pick-sub').innerHTML=`Aggiungi un mezzo per questo spostamento. Puoi <b>aggiungerne più di uno</b> (es. taxi + traghetto + taxi): verranno raggruppati insieme.`;
   const M={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',auto:'🚗',combi:'⛴️🚕',altro:'🚐'};
   let h='';
 
@@ -1975,10 +2010,18 @@ function nuovoTrasportoDaPick(){
   const al=data.find(x=>x.id===pickAlloggioId);
   closePickForm();
   openForm('trasporto');
-  if(al && al.tappa_id){
-    populateTrTappe('', al.tappa_id);
-    if($('f-tra') && !$('f-tra').value) $('f-tra').value=al.tappa||'';
-  }
+  if(!al) return;
+  // ricavo il soggiorno precedente per precompilare la partenza e la data
+  const sogg=data.filter(r=>r.tipo==='alloggio' && !r.da_prenotare && !r.valuta_cancellazione && !r.escluso_totale && isValidISO(r.data_inizio))
+    .sort((a,b)=>a.data_inizio.localeCompare(b.data_inizio));
+  const idx=sogg.findIndex(x=>x.id===al.id);
+  const prec= idx>0 ? sogg[idx-1] : null;
+  if(al.tappa_id) populateTrTappe(prec&&prec.tappa_id?prec.tappa_id:'', al.tappa_id);
+  if($('f-tra') && !$('f-tra').value) $('f-tra').value=al.tappa||al.nome_hotel||'';
+  if(prec && $('f-trda') && !$('f-trda').value) $('f-trda').value=prec.tappa||prec.nome_hotel||'';
+  // la data del passaggio è il check-out precedente (o il check-in di destinazione)
+  const dataPassaggio = prec ? (isValidISO(prec.data_fine)?prec.data_fine:prec.data_inizio) : al.data_inizio;
+  if($('f-trdata') && !$('f-trdata').value && dataPassaggio) $('f-trdata').value=isoToDdmm(dataPassaggio);
 }
 
 function openTappaForm(){
