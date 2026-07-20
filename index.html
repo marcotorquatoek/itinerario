@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.55.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.58.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -313,7 +313,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.55.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.58.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -399,6 +399,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
       <div class="field"><label>Al (gg/mm)</label><input id="tp-fine" class="datein" placeholder="gg/mm" inputmode="numeric" maxlength="5"></div>
     </div>
     <div class="field"><label>Note</label><input id="tp-note" placeholder="es. zona risaie, vicino centro…"></div>
+    <div class="field check"><input type="checkbox" id="tp-riverifica"><label>🔴 Alloggio da riverificare (segna questa tappa in rosso)</label></div>
     <div class="tp-hint">💡 Gli spostamenti (traghetti, transfer…) si aggiungono come <b>Trasporti</b> e si collegano a questa tappa.</div>
     <div class="modal-actions">
       <button class="btn ghost" onclick="closeTappaForm()">Annulla</button>
@@ -1756,11 +1757,30 @@ function toast(msg){
 
 function norm(s){ return (s||'').toString().trim().toLowerCase(); }
 // una tappa è "coperta" se esiste un alloggio prenotato (non segnaposto) con tappa corrispondente
+// un alloggio "copre" la tappa solo se è collegato E le date si sovrappongono
 function tappaCoperta(t){
-  return data.some(r=>r.tipo==='alloggio' && !r.da_prenotare && (
+  if(t.riverifica) return false;   // segnata manualmente da riverificare
+  return !!alloggioDiTappa(t);
+}
+function alloggioDiTappa(t){
+  return data.find(r=>r.tipo==='alloggio' && !r.da_prenotare && (
     (r.tappa_id && r.tappa_id===t.id) ||
     (!r.tappa_id && norm(r.tappa)===norm(t.nome) && norm(t.nome)!=='')
-  ));
+  ) && copreTappa(r, t));
+}
+// true se l'alloggio copre TUTTE le notti della tappa (check-in <= inizio tappa, check-out >= fine tappa)
+function copreTappa(r, t){
+  if(!t.data_inizio || !r.data_inizio) return true;   // dati incompleti: non posso escludere
+  const tIn=t.data_inizio, tFin=t.data_fine||t.data_inizio;
+  const aIn=r.data_inizio, aFin=r.data_fine||r.data_inizio;
+  return aIn<=tIn && aFin>=tFin;
+}
+// alloggio collegato alla tappa ma che NON la copre interamente (per l'avviso)
+function alloggioFuoriData(t){
+  return data.find(r=>r.tipo==='alloggio' && !r.da_prenotare && (
+    (r.tappa_id && r.tappa_id===t.id) ||
+    (!r.tappa_id && norm(r.tappa)===norm(t.nome) && norm(t.nome)!=='')
+  ) && !copreTappa(r, t));
 }
 function renderItinerario(){
   const sorted=[...tappe].sort((a,b)=>(a.data_inizio||'9999').localeCompare(b.data_inizio||'9999'));
@@ -1782,16 +1802,24 @@ function renderItinerario(){
         const prenotato=!trasp.da_prenotare || !!trasp.acquisto_in_loco;
         mezzoTxt=`<div class="itmezzo ${prenotato?'okm':'missm'}">${MEZZI[trasp.mezzo]||'🚐 Trasporto'} · ${prenotato?'✅ prenotato':'✗ da prenotare'}</div>`;
       }
+      // alloggio collegato ma con date non coincidenti → avviso esplicito
+      const fuori = ok ? null : alloggioFuoriData(t);
+      const fuoriTxt = t.riverifica
+        ? `<div class="itmezzo missm">🔴 Alloggio da riverificare (tappa modificata)</div>`
+        : (fuori
+          ? `<div class="itmezzo missm">⚠️ "${esc(fuori.nome_hotel)}" non copre tutta la tappa (è ${fdate(fuori.data_inizio)} → ${fdate(fuori.data_fine)})</div>`
+          : '');
       html+=`<div class="itrow ${ok?'ok':'miss'}">
         <div class="itcheck">${ok?'✅':'⬜'}</div>
         <div class="itmain" onclick='editTappa(${JSON.stringify(t).replace(/'/g,"&#39;")})'>
           <div class="ittitle">${esc(t.nome)}</div>
           <div class="itsub">📅 ${range}${notti?` · ${notti} nott${notti===1?'e':'i'}`:''}</div>
           ${mezzoTxt}
+          ${fuoriTxt}
           ${t.note?`<div class="itnote">${esc(t.note)}</div>`:''}
         </div>
         <div class="itright">
-          ${ok?'<span class="okpill">alloggio ok</span>':'<span class="misspill">alloggio da prenotare</span>'}
+          ${ok?'<span class="okpill">alloggio ok</span>':`<span class="misspill">${t.riverifica?'da riverificare':(fuori?'copertura parziale':'alloggio da prenotare')}</span>`}
           <button class="ittrash" onclick="delTappaConfirm('${t.id}')">🗑</button>
         </div>
       </div>`;
@@ -1804,7 +1832,7 @@ function renderItinerario(){
 
 function openTappaForm(){
   $('tappa-modal-title').textContent='Nuova tappa';
-  $('tp-id').value=''; $('tp-nome').value=''; $('tp-inizio').value=''; $('tp-fine').value=''; $('tp-note').value='';
+  $('tp-id').value=''; $('tp-nome').value=''; $('tp-inizio').value=''; $('tp-fine').value=''; $('tp-note').value=''; $('tp-riverifica').checked=false;
   attachDateMask();
   $('overlay-tappa').classList.add('show');
 }
@@ -1812,7 +1840,7 @@ function editTappa(t){
   $('tappa-modal-title').textContent='Modifica tappa';
   $('tp-id').value=t.id; $('tp-nome').value=t.nome||'';
   $('tp-inizio').value=isoToDdmm(t.data_inizio); $('tp-fine').value=isoToDdmm(t.data_fine);
-  $('tp-note').value=t.note||'';
+  $('tp-note').value=t.note||''; $('tp-riverifica').checked=!!t.riverifica;
   attachDateMask();
   $('overlay-tappa').classList.add('show');
 }
@@ -1820,7 +1848,7 @@ function closeTappaForm(){ $('overlay-tappa').classList.remove('show'); }
 async function saveTappa(){
   const nome=$('tp-nome').value.trim();
   if(!nome){ alert('Inserisci il nome della tappa'); return; }
-  const rec={ viaggio_id:currentTrip?currentTrip.id:null, nome, data_inizio:ddmmToIso($('tp-inizio').value), data_fine:ddmmToIso($('tp-fine').value), note:$('tp-note').value.trim()||null };
+  const rec={ viaggio_id:currentTrip?currentTrip.id:null, nome, data_inizio:ddmmToIso($('tp-inizio').value), data_fine:ddmmToIso($('tp-fine').value), note:$('tp-note').value.trim()||null, riverifica:$('tp-riverifica').checked };
   const id=$('tp-id').value;
   $('tappa-save-btn').textContent='…';
   let res;
@@ -1828,7 +1856,12 @@ async function saveTappa(){
     res = id ? await db.from(TABLE_TAPPE).update(rec).eq('id',id) : await db.from(TABLE_TAPPE).insert(rec);
   }catch(e){ res={error:{message:e.message}}; }
   $('tappa-save-btn').textContent='Salva';
-  if(res.error){ alert('Errore: '+res.error.message+(/relation|exist|schema|column/i.test(res.error.message)?'\n\nControlla di aver eseguito lo script SQL aggiornato per itinerario_tappe.':'')); return; }
+  if(res.error){
+    const m=res.error.message;
+    if(/riverifica|column/i.test(m)) alert('Manca la colonna nel database.\n\nEsegui in Supabase:\nalter table itinerario_tappe add column if not exists riverifica boolean default false;');
+    else alert('Errore: '+m+(/relation|exist|schema/i.test(m)?'\n\nControlla di aver eseguito lo script SQL aggiornato per itinerario_tappe.':''));
+    return;
+  }
   closeTappaForm(); load();
 }
 async function delTappaConfirm(id){
