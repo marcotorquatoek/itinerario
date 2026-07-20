@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.53.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.54.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -171,6 +171,19 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .book-link-soft{display:block;text-align:center;background:var(--surface);border:1px solid var(--line);color:var(--teal-deep);font-weight:700;font-size:.85rem;padding:9px;border-radius:10px;text-decoration:none;margin-top:8px}
 .addr{display:flex;align-items:center;gap:8px;font-size:.76rem;color:var(--text);margin-top:4px;flex-wrap:wrap}
 .addr-copy{background:var(--surface-2);border:1px solid var(--line);color:var(--teal-deep);font-size:.68rem;font-weight:700;padding:3px 8px;border-radius:7px;cursor:pointer;white-space:nowrap}
+/* Resoconto spese */
+.res-actions{display:flex;gap:6px;margin-bottom:12px}
+.res-btn{flex:1;background:var(--surface);border:1px solid var(--line);color:var(--teal-deep);font-weight:700;font-size:.78rem;padding:10px 4px;border-radius:10px;cursor:pointer}
+.res-cat{font-size:.9rem;font-weight:800;color:var(--teal-deep);margin:16px 0 6px}
+.res-table{background:var(--surface);border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.res-tr{display:grid;grid-template-columns:1.4fr 1fr .8fr .7fr .7fr;gap:6px;padding:8px 10px;font-size:.72rem;border-bottom:1px solid var(--line);align-items:center}
+.res-tr:last-child{border-bottom:none}
+.res-th{background:var(--surface-2);font-weight:800;font-size:.64rem;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+.res-tr .num{text-align:right;white-space:nowrap;font-weight:600}
+.res-sub{background:var(--surface-2);font-weight:800}
+.res-total{margin-top:18px;background:var(--teal);color:#fff;border-radius:14px;padding:14px 16px;text-align:center}
+.res-total-n{font-size:1.5rem;font-weight:800;margin-top:2px}
+.res-total-s{font-size:.8rem;opacity:.9}
 .card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .card .title{font-size:1.05rem;font-weight:700;line-height:1.2}
 .card .meta{font-size:.78rem;color:var(--teal);margin-top:2px}
@@ -293,7 +306,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.53.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.54.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -323,6 +336,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
   <button class="tab" data-tab="pagamenti" onclick="setTab('pagamenti')"><i>💳</i><span>Pagamenti</span></button>
   <button class="tab" data-tab="cancellazioni" onclick="setTab('cancellazioni')"><i>⏳</i><span>Cancellazioni</span></button>
   <button class="tab" data-tab="spostamenti" onclick="setTab('spostamenti')"><i>🧭</i><span>Spostamenti</span></button>
+  <button class="tab" data-tab="resoconto" onclick="setTab('resoconto')"><i>📊</i><span>Resoconto</span></button>
 </div>
 </div><!-- /tabs-sticky -->
 
@@ -869,7 +883,7 @@ function tipoOfTab(t){ return t==='alloggi'?'alloggio':t==='voli'?'volo':t==='tr
 
 function render(){
   const isCal = tab==='calendario';
-  const isList = (tab==='pagamenti'||tab==='cancellazioni'||tab==='itinerario'||tab==='spostamenti');
+  const isList = (tab==='pagamenti'||tab==='cancellazioni'||tab==='itinerario'||tab==='spostamenti'||tab==='resoconto');
   const filtered = (tab==='tutto'||isCal||isList) ? data : data.filter(r=>r.tipo===tipoOfTab(tab));
 
   // Totali sul set filtrato (per pagamenti/cancellazioni uso tutti i dati)
@@ -919,6 +933,7 @@ function render(){
   if(tab==='pagamenti'){ list.innerHTML=renderPagamenti(); return; }
   if(tab==='cancellazioni'){ list.innerHTML=renderCancellazioni(); return; }
   if(tab==='spostamenti'){ list.innerHTML=renderSpostamenti(); return; }
+  if(tab==='resoconto'){ list.innerHTML=renderResoconto(); return; }
 
   if(!filtered.length){ list.innerHTML='<div class="empty">Nessuna voce.<br>'+(tab==='tutto'?'Aggiungi qualcosa dalle altre tab.':'Tocca + per iniziare.')+'</div>'; return; }
 
@@ -1392,6 +1407,116 @@ function renderCancellazioni(){
 }
 
 // ---------- SPOSTAMENTI MANCANTI ----------
+// ---------- RESOCONTO SPESE ----------
+const RES_CATS=[
+  ['alloggio','🏨 Alloggi'],
+  ['volo','✈️ Voli'],
+  ['trasporto','🚕 Trasporti'],
+  ['attivita','🎟️ Attività'],
+];
+// righe della categoria: {nome, date, posto, tot, testa}
+function resRows(tipo){
+  return data.filter(r=>r.tipo===tipo && !r.escluso_totale && !r.da_prenotare)
+    .sort(cmpChrono)
+    .map(r=>{
+      const tot=Number(r.prezzo)||0;
+      let date='';
+      if(r.tipo==='alloggio') date=(r.data_inizio||r.data_fine)?`${fdate(r.data_inizio)} → ${fdate(r.data_fine)}`:'—';
+      else date=r.data_inizio?fdate(r.data_inizio):'—';
+      return { nome:r.nome_hotel||'—', date, posto:postoOf(r)||'—', tot, testa:tot/2 };
+    });
+}
+function renderResoconto(){
+  let html='<div class="res-actions">'
+    + '<button class="res-btn" onclick="esportaResoconto(\'testo\')">📋 Copia</button>'
+    + '<button class="res-btn" onclick="esportaResoconto(\'csv\')">📊 Excel/CSV</button>'
+    + '<button class="res-btn" onclick="esportaResoconto(\'pdf\')">🖨️ PDF</button>'
+    + '</div>';
+  let gTot=0;
+  RES_CATS.forEach(([tipo,lbl])=>{
+    const rows=resRows(tipo);
+    if(!rows.length) return;
+    const sub=rows.reduce((s,x)=>s+x.tot,0);
+    gTot+=sub;
+    html+=`<div class="res-cat">${lbl}</div>`;
+    html+='<div class="res-table">';
+    html+='<div class="res-tr res-th"><span>Nome</span><span>Date</span><span>Luogo</span><span class="num">Totale</span><span class="num">A testa</span></div>';
+    rows.forEach(x=>{
+      html+=`<div class="res-tr"><span>${esc(x.nome)}</span><span>${esc(x.date)}</span><span>${esc(x.posto)}</span><span class="num">${eur(x.tot)}</span><span class="num">${eur(x.testa)}</span></div>`;
+    });
+    html+=`<div class="res-tr res-sub"><span>Subtotale ${esc(lbl)}</span><span></span><span></span><span class="num">${eur(sub)}</span><span class="num">${eur(sub/2)}</span></div>`;
+    html+='</div>';
+  });
+  if(!gTot) return html+'<div class="empty">Nessuna spesa da riepilogare.</div>';
+  html+=`<div class="res-total"><div>TOTALE VIAGGIO</div><div class="res-total-n">${eur(gTot)}</div><div class="res-total-s">a testa ${eur(gTot/2)}</div></div>`;
+  return html;
+}
+// costruisce le righe testuali/CSV comuni
+function resDataset(){
+  const out=[]; let gTot=0;
+  RES_CATS.forEach(([tipo,lbl])=>{
+    const rows=resRows(tipo);
+    if(!rows.length) return;
+    const sub=rows.reduce((s,x)=>s+x.tot,0); gTot+=sub;
+    out.push({cat:lbl.replace(/^\S+\s/,''), rows, sub});
+  });
+  return {cats:out, gTot};
+}
+function esportaResoconto(fmt){
+  const {cats,gTot}=resDataset();
+  const nomeViaggio=currentTrip?currentTrip.nome:'Viaggio';
+  if(fmt==='testo'){
+    let t=`RESOCONTO SPESE — ${nomeViaggio}\n\n`;
+    cats.forEach(c=>{
+      t+=`${c.cat.toUpperCase()}\n`;
+      c.rows.forEach(x=>{ t+=`  ${x.nome} | ${x.date} | ${x.posto} | ${eur(x.tot)} | a testa ${eur(x.testa)}\n`; });
+      t+=`  Subtotale: ${eur(c.sub)} (a testa ${eur(c.sub/2)})\n\n`;
+    });
+    t+=`TOTALE: ${eur(gTot)} — a testa ${eur(gTot/2)}`;
+    copyText(t,'Resoconto copiato!');
+    return;
+  }
+  if(fmt==='csv'){
+    const q=s=>`"${(s==null?'':s).toString().replace(/"/g,'""')}"`;
+    let csv='Categoria;Nome;Date;Luogo;Totale;A testa\n';
+    cats.forEach(c=>{
+      c.rows.forEach(x=>{ csv+=[q(c.cat),q(x.nome),q(x.date),q(x.posto),x.tot.toFixed(2),x.testa.toFixed(2)].join(';')+'\n'; });
+      csv+=[q(c.cat),q('SUBTOTALE'),'','',c.sub.toFixed(2),(c.sub/2).toFixed(2)].join(';')+'\n';
+    });
+    csv+=[q('TOTALE'),'','','',gTot.toFixed(2),(gTot/2).toFixed(2)].join(';')+'\n';
+    const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`resoconto-${nomeViaggio.replace(/[^\w\-]+/g,'_')}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    toast('CSV scaricato');
+    return;
+  }
+  // PDF: apro una finestra di stampa formattata (da lì "Salva come PDF")
+  let h=`<html><head><meta charset="utf-8"><title>Resoconto ${esc(nomeViaggio)}</title><style>
+    body{font-family:-apple-system,system-ui,sans-serif;padding:24px;color:#111}
+    h1{font-size:19px;margin:0 0 4px} .sub{color:#666;font-size:12px;margin-bottom:18px}
+    h2{font-size:14px;margin:20px 0 6px;color:#0d9488}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb}
+    th{background:#f3f4f6;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+    td.n,th.n{text-align:right;white-space:nowrap}
+    tr.sub td{font-weight:700;background:#fafafa}
+    .tot{margin-top:22px;padding:12px 14px;background:#0d9488;color:#fff;border-radius:8px;display:flex;justify-content:space-between;font-size:15px;font-weight:700}
+  </style></head><body>
+  <h1>Resoconto spese — ${esc(nomeViaggio)}</h1><div class="sub">Generato il ${new Date().toLocaleDateString('it-IT')}</div>`;
+  cats.forEach(c=>{
+    h+=`<h2>${esc(c.cat)}</h2><table><tr><th>Nome</th><th>Date</th><th>Luogo</th><th class="n">Totale</th><th class="n">A testa</th></tr>`;
+    c.rows.forEach(x=>{ h+=`<tr><td>${esc(x.nome)}</td><td>${esc(x.date)}</td><td>${esc(x.posto)}</td><td class="n">${eur(x.tot)}</td><td class="n">${eur(x.testa)}</td></tr>`; });
+    h+=`<tr class="sub"><td colspan="3">Subtotale</td><td class="n">${eur(c.sub)}</td><td class="n">${eur(c.sub/2)}</td></tr></table>`;
+  });
+  h+=`<div class="tot"><span>TOTALE VIAGGIO</span><span>${eur(gTot)} · a testa ${eur(gTot/2)}</span></div>`;
+  h+=`<script>window.onload=function(){window.print();}<\/script></body></html>`;
+  const w=window.open('','_blank');
+  if(!w){ alert('Consenti le finestre popup per generare il PDF.'); return; }
+  w.document.write(h); w.document.close();
+}
+
 function renderSpostamenti(){
   const alloggi=data.filter(r=>r.tipo==='alloggio' && !r.da_prenotare && !r.valuta_cancellazione && !r.escluso_totale);
   const M={traghetto:'⛴️ Traghetto',treno:'🚆 Treno',bus:'🚌 Bus',taxi:'🚕 Taxi/transfer',auto:'🚗 Auto',combi:'⛴️🚕 Combinato',altro:'🚐 Trasporto',volo:'✈️ Volo'};
