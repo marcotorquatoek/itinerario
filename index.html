@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.71.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.94.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -125,12 +125,25 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .segrow{font-size:.74rem;font-weight:600;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 9px;position:relative}
 .segrow.book{border-color:#f5c6c6;background:var(--red-bg);color:var(--red)}
 .packtag{font-size:.62rem;font-weight:800;background:var(--teal);color:#fff;padding:1px 6px;border-radius:999px;margin-left:4px;vertical-align:middle}
+.segflag{font-size:.62rem;font-weight:800;padding:1px 6px;border-radius:999px;margin-left:5px;vertical-align:middle;white-space:nowrap}
+.segflag.book{background:var(--red-bg);color:var(--red);border:1px solid #f5c6c6}
+.segflag.loco{background:var(--amber-bg);color:var(--amber)}
+.segflag.excl{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.disc-list{margin:6px 0 0;padding-left:18px}
+.disc-list li{margin-bottom:3px}
 .tappalink{background:var(--surface-2);border:1px dashed var(--teal);border-radius:12px;padding:11px;margin-bottom:10px}
 .tappalink-t{font-size:.85rem;font-weight:700;color:var(--teal-deep);margin-bottom:3px}
 .tappalink-h{font-size:.72rem;color:var(--muted);line-height:1.4;margin-bottom:9px}
 .seg-hint{font-size:.72rem;color:var(--muted);margin-bottom:5px}
 .segbox{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:11px;margin-bottom:10px}
-.segbox-t{font-size:.82rem;font-weight:700;color:var(--teal-deep);margin-bottom:8px}
+.segbox-t{font-size:.82rem;font-weight:700;color:var(--teal-deep)}
+.segbox-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.segdel{background:none;border:none;color:var(--red);font-size:.95rem;cursor:pointer;padding:2px 4px}
+.segopts{margin-top:6px;padding-top:8px;border-top:1px dashed var(--line)}
+.segopts .field.check{margin-bottom:5px}
+.packbox{background:var(--surface-2);border:1px solid var(--teal);border-radius:11px;padding:10px 11px;margin-bottom:8px}
+.packopts{background:var(--surface-2);border:1px dashed var(--teal);border-radius:11px;padding:10px 11px;margin-bottom:10px}
+.packopts .field.check{margin-bottom:5px}
 .segrow+.segrow::before{content:'↓';position:absolute;top:-13px;left:12px;font-size:.7rem;color:var(--muted)}
 .lrow-main{flex:1;min-width:0}
 .lrow-title{font-size:.92rem;font-weight:700}
@@ -179,6 +192,11 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .card.mz-bus{border-left:6px solid #16a34a;background:#f0fdf4}
 .card.mz-auto{border-left:6px solid #dc2626;background:#fef2f2}
 .card.mz-combi{border-left:6px solid #0d9488;background:#f0fdfa}
+.card.mz-volo{border-left:6px solid #6366f1;background:#eef2ff}
+.card.mz-piedi,.card.mz-breve,.card.mz-navetta{border-left:6px solid var(--muted);background:var(--surface-2)}
+/* trasporti multi-tratta: verde se pacchetto unico, rosa se pagati separatamente */
+.card.tr-pack{border-left:6px solid #16a34a;background:#f0fdf4}
+.card.tr-sep{border-left:6px solid #e8a0b8;background:#fdf4f7}
 .card.mz-altro{border-left:6px solid var(--muted)}
 .mz-ico{font-size:1.25rem;margin-right:7px;vertical-align:-2px}
 .book-link-soft{display:block;text-align:center;background:var(--surface);border:1px solid var(--line);color:var(--teal-deep);font-weight:700;font-size:.85rem;padding:9px;border-radius:10px;text-decoration:none;margin-top:8px}
@@ -224,6 +242,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .badge.paid{background:var(--green-bg);color:var(--green);border-color:#bce5cb}
 .badge.unpaid{background:var(--red-bg);color:var(--red);border-color:#f5c6c6}
 .badge.loco{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-line)}
+.badge.free{background:var(--surface-2);color:var(--muted);border-color:var(--line)}
 
 /* Calendario / timeline verticale */
 .cal{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px}
@@ -345,7 +364,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.71.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.94.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -520,17 +539,6 @@ header .sub{font-size:.72rem;color:var(--muted)}
 
     <!-- TRASPORTO -->
     <div class="grp hide" id="grp-trasp">
-      <div class="field"><label>Mezzo</label>
-        <select id="f-mezzo" onchange="toggleCombi()" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:11px;color:var(--text);font-size:.95rem;font-family:inherit">
-          <option value="traghetto">⛴️ Traghetto</option>
-          <option value="treno">🚆 Treno</option>
-          <option value="bus">🚌 Bus</option>
-          <option value="taxi">🚕 Taxi / transfer</option>
-          <option value="auto">🚗 Auto / noleggio</option>
-          <option value="combi">⛴️🚕 Combinato (più mezzi)</option>
-          <option value="altro">🚐 Altro</option>
-        </select>
-      </div>
       <div class="tappalink">
         <div class="tappalink-t">🗺️ A quale spostamento appartiene</div>
         <div class="tappalink-h">Il passaggio complessivo (es. Ubud → Nusa Penida).</div>
@@ -544,47 +552,18 @@ header .sub{font-size:.72rem;color:var(--muted)}
         </div>
       </div>
 
-      <!-- TRATTA 1 -->
-      <div class="segbox">
-        <div class="segbox-t" id="seg1-title">📍 Tratta</div>
-        <div class="two">
-          <div class="field"><label>Da (partenza)</label><input id="f-trda" placeholder="es. Ubud"></div>
-          <div class="field"><label>A (arrivo)</label><input id="f-tra" placeholder="es. Porto di Sanur"></div>
-        </div>
-        <div class="two">
-          <div class="field"><label>Data (gg/mm)</label><input id="f-trdata" class="datein" placeholder="gg/mm" inputmode="numeric" maxlength="5"></div>
-          <div class="field"><label>Ora</label><input type="time" id="f-trora"></div>
-        </div>
-        <div class="field"><label>Compagnia / app</label><input id="f-trcomp" placeholder="es. Gojek, Grab, Bluebird…" list="trcomp-list"><datalist id="trcomp-list"><option value="Gojek"><option value="Grab"><option value="Bluebird"><option value="Uber"><option value="Bolt"></datalist></div>
+      <div class="field check packbox"><input type="checkbox" id="f-pacchetto" onchange="togglePacchetto()"><label>📦 Pacchetto unico (un solo prezzo per tutte le tratte)</label></div>
+
+      <!-- opzioni valide per l'intero pacchetto -->
+      <div class="packopts hide" id="pack-opts">
+        <div class="field check"><input type="checkbox" id="f-packbook"><label>📍 Il pacchetto è ancora da prenotare</label></div>
+        <div class="field check"><input type="checkbox" id="f-inloco" onchange="toggleInLoco()"><label>📍 Si acquista in loco (stima conteggiata nel totale)</label></div>
+        <div class="field check"><input type="checkbox" id="f-esclusototale2" onchange="syncEscludi('main')"><label>🚫 Escludi dalle statistiche</label></div>
       </div>
 
-      <!-- TRATTA 2 (solo per Combinato) -->
-      <div class="segbox hide" id="seg2">
-        <div class="segbox-t">📍 Seconda tratta</div>
-        <div class="field"><label>Mezzo</label>
-          <select id="f-mezzo2" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:11px;color:var(--text);font-size:.9rem;font-family:inherit">
-            <option value="traghetto">⛴️ Traghetto</option>
-            <option value="treno">🚆 Treno</option>
-            <option value="bus">🚌 Bus</option>
-            <option value="taxi">🚕 Taxi / transfer</option>
-            <option value="auto">🚗 Auto / noleggio</option>
-            <option value="altro">🚐 Altro</option>
-          </select>
-        </div>
-        <div class="two">
-          <div class="field"><label>Da (partenza)</label><input id="f-trda2" placeholder="es. Porto di Sanur"></div>
-          <div class="field"><label>A (arrivo)</label><input id="f-tra2" placeholder="es. Nusa Penida"></div>
-        </div>
-        <div class="two">
-          <div class="field"><label>Data (gg/mm)</label><input id="f-trdata2" class="datein" placeholder="gg/mm" inputmode="numeric" maxlength="5"></div>
-          <div class="field"><label>Ora</label><input type="time" id="f-trora2"></div>
-        </div>
-        <div class="field"><label>Compagnia / app</label><input id="f-trcomp2" placeholder="es. compagnia del traghetto" list="trcomp-list"></div>
-        <div class="field"><label>Prezzo di questa tratta (€) <span style="font-weight:400;color:var(--muted)">— lascia vuoto se è un pacchetto unico</span></label><input type="number" inputmode="decimal" step="0.01" id="f-prezzo2" placeholder="0.00"></div>
-      </div>
-
-      <div class="field check"><input type="checkbox" id="f-pacchetto"><label>📦 Pacchetto unico (un solo biglietto/prezzo per tutte le tratte)</label></div>
-      <div class="field check"><input type="checkbox" id="f-inloco" onchange="toggleInLoco()"><label>📍 Si acquista in loco (stima conteggiata nel totale)</label></div>
+      <!-- TRATTE (dinamiche) -->
+      <div id="segs-wrap"></div>
+      <button type="button" class="add-leg" id="add-seg-btn" onclick="addSeg()">+ Aggiungi un'altra tratta</button>
     </div>
 
     <!-- ===== ESSENZIALI ===== -->
@@ -594,19 +573,21 @@ header .sub{font-size:.72rem;color:var(--muted)}
       <div class="field" id="fld-fine"><label>Data fine (gg/mm)</label><input id="f-fine" class="datein" placeholder="gg/mm" inputmode="numeric" maxlength="5"></div>
     </div>
 
-    <div class="field" id="fld-link"><label id="lbl-link">🔗 Link (sito / prenotazione)</label><input id="f-link" type="url" placeholder="https://…" inputmode="url"></div>
-
     <div class="field"><label id="lbl-prezzo">Prezzo totale (€)</label><input type="number" inputmode="decimal" step="0.01" id="f-prezzo" placeholder="0.00"></div>
-    <div class="field check hide" id="fld-escludi-main"><input type="checkbox" id="f-esclusototale2" onchange="syncEscludi('main')"><label>🚫 Escludi dalle statistiche (è solo una stima)</label></div>
 
-    <div class="field"><label id="lbl-scad">Cancellazione</label>
-      <div class="two" style="margin-bottom:0">
-        <div class="field check" id="fld-noncanc" style="margin:0"><input type="checkbox" id="f-noncancellabile" onchange="toggleScadField()"><label>🔒 Non cancellabile</label></div>
-        <div class="field" id="fld-scad" style="margin:0"><input id="f-scad" class="datein" placeholder="gg/mm" inputmode="numeric" maxlength="5"></div>
+    <!-- ===== INFORMAZIONI AGGIUNTIVE (collassabili) ===== -->
+    <button type="button" class="more-toggle" id="more-toggle" onclick="toggleMore()">▸ Informazioni aggiuntive</button>
+    <div id="more-fields" class="hide">
+      <div class="field" id="fld-link"><label id="lbl-link">🔗 Link (sito / prenotazione)</label><input id="f-link" type="url" placeholder="https://…" inputmode="url"></div>
+
+      <div class="field"><label id="lbl-scad">Cancellazione</label>
+          <div class="two" style="margin-bottom:0">
+          <div class="field check" id="fld-noncanc" style="margin:0"><input type="checkbox" id="f-noncancellabile" onchange="toggleScadField()"><label>🔒 Non cancellabile</label></div>
+          <div class="field" id="fld-scad" style="margin:0"><input id="f-scad" class="datein" placeholder="gg/mm" inputmode="numeric" maxlength="5"></div>
       </div>
     </div>
 
-    <div class="field"><label>Stato pagamento</label>
+      <div class="field"><label>Stato pagamento</label>
       <select id="f-statopag" onchange="togglePayField()" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:11px;color:var(--text);font-size:.95rem;font-family:inherit">
         <option value="dapagare">Da pagare</option>
         <option value="acconto">Acconto versato</option>
@@ -614,12 +595,9 @@ header .sub{font-size:.72rem;color:var(--muted)}
         <option value="inloco">Pagare in loco</option>
       </select>
     </div>
-    <div class="field" id="acconto-wrap"><label>Acconto già versato (€)</label><input type="number" inputmode="decimal" step="0.01" id="f-acconto" placeholder="0.00" oninput="updateAccontoHint()"><div class="hint" id="acconto-hint"></div></div>
-    <div class="field" id="pay-wrap"><label>Da pagare entro (gg/mm)</label><input id="f-datapagamento" class="datein" placeholder="gg/mm" inputmode="numeric" maxlength="5"></div>
+      <div class="field" id="acconto-wrap"><label>Acconto già versato (€)</label><input type="number" inputmode="decimal" step="0.01" id="f-acconto" placeholder="0.00" oninput="updateAccontoHint()"><div class="hint" id="acconto-hint"></div></div>
+      <div class="field" id="pay-wrap"><label>Da pagare entro (gg/mm)</label><input id="f-datapagamento" class="datein" placeholder="gg/mm" inputmode="numeric" maxlength="5"></div>
 
-    <!-- ===== INFORMAZIONI AGGIUNTIVE (collassabili) ===== -->
-    <button type="button" class="more-toggle" id="more-toggle" onclick="toggleMore()">▸ Informazioni aggiuntive</button>
-    <div id="more-fields" class="hide">
       <div class="field"><label>Sito di prenotazione</label><input id="f-sito" placeholder="es. Booking.com" list="sito-list"><datalist id="sito-list"><option value="Booking.com"><option value="Airbnb"><option value="Expedia"><option value="Trip.com"><option value="Hotels.com"><option value="Agoda"></datalist></div>
 
       <div class="grp-extra" id="extra-allog">
@@ -1074,19 +1052,42 @@ function render(){
   // Disclaimer cancellazioni (sempre globale, su tutti i dati)
   const toCancel = data.filter(r=>r.valuta_cancellazione);
   const bookAllog = data.filter(r=>r.da_prenotare && r.tipo==='alloggio');
-  const bookTrasp = data.filter(r=>r.da_prenotare && r.tipo==='trasporto' && !r.acquisto_in_loco);
+  // un combinato può avere una tratta in loco e un'altra da prenotare: lo includo comunque
+  const bookTrasp = data.filter(r=>{
+    if(r.tipo!=='trasporto' || !r.da_prenotare) return false;
+    if(r.pacchetto) return !r.acquisto_in_loco;
+    try{
+      const segs=(JSON.parse(r.tratta2)||[]).filter(s=>s && !s.voloref);
+      if(segs.length) return segs.some(s=>s.book);
+    }catch(e){}
+    return !r.acquisto_in_loco;
+  });
   const bookAtt   = data.filter(r=>r.da_prenotare && r.tipo==='attivita');
   let disc='';
   if(toCancel.length) disc+=`<div class="disclaimer"><span class="ic">⚠️</span><span>Hai ${toCancel.length} ${toCancel.length===1?'prenotazione':'prenotazioni'} da valutare per la cancellazione (doppi alloggi): ${toCancel.map(r=>esc(r.nome_hotel)).join(', ')}.</span></div>`;
   if(bookAllog.length) disc+=`<div class="disclaimer book"><span class="ic">🏨</span><span>Hai ${bookAllog.length} ${bookAllog.length===1?'alloggio ancora da prenotare':'alloggi ancora da prenotare'}: ${bookAllog.map(r=>esc(r.tappa||r.nome_hotel)).join(', ')}.</span></div>`;
   if(bookTrasp.length){
-    const MZ={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',auto:'🚗',combi:'⛴️🚕',altro:'🚐'};
-    const lista=bookTrasp.map(r=>{
-      const ico=MZ[r.mezzo]||'🚐';
-      const tratta=(r.partenza||r.arrivo)?`${esc(r.partenza)||'?'}→${esc(r.arrivo)||'?'}`:esc(r.tappa||r.nome_hotel);
-      return `${ico} ${tratta}`;
-    }).join(', ');
-    disc+=`<div class="disclaimer book"><span class="ic">⛴️</span><span>Hai ${bookTrasp.length} ${bookTrasp.length===1?'trasporto ancora da prenotare':'trasporti ancora da prenotare'}: ${lista}.</span></div>`;
+    const MZ={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',volo:'✈️',auto:'🚗',piedi:'🚶',navetta:'🚐',breve:'🧭',combi:'⛴️🚕',altro:'🚐'};
+    // elenco delle SINGOLE tratte ancora da prenotare (non l'intero spostamento)
+    const voci=[];
+    bookTrasp.forEach(r=>{
+      let segs=[]; try{ segs=JSON.parse(r.tratta2)||[]; }catch(e){}
+      if(r.pacchetto || !segs.length){
+        // pacchetto o voce vecchia: una riga sola per l'intero spostamento
+        const tratta=(r.partenza||r.arrivo)?`${esc(r.partenza)||'?'} → ${esc(r.arrivo)||'?'}`:esc(r.tappa||r.nome_hotel);
+        const pzp=Number(r.prezzo)?` — <b>${eur(prezzoTot(r))}</b>`:'';
+        voci.push(`${MZ[r.mezzo]||'🚐'} ${tratta}${r.pacchetto?' <i>(pacchetto)</i>':''}${pzp}`);
+      } else {
+        segs.forEach(s=>{
+          if(!s || !s.book || s.voloref) return;   // solo le tratte marcate, mai i voli
+          const pz=(s.prezzo!=null)?` — <b>${eur(Number(s.prezzo))}</b>`:'';
+          voci.push(`${MZ[s.mezzo]||'🚐'} ${esc(s.da)||'?'} → ${esc(s.a)||'?'}${s.data?' <span style="opacity:.7">('+fdate(s.data)+')</span>':''}${pz}`);
+        });
+      }
+    });
+    if(voci.length){
+      disc+=`<div class="disclaimer book"><span class="ic">⛴️</span><span>Hai ${voci.length} ${voci.length===1?'spostamento ancora da prenotare':'spostamenti ancora da prenotare'}:<ul class="disc-list">${voci.map(v=>`<li>${v}</li>`).join('')}</ul></span></div>`;
+    }
   }
   if(bookAtt.length) disc+=`<div class="disclaimer book"><span class="ic">💡</span><span>Hai ${bookAtt.length} ${bookAtt.length===1?'attività da prenotare':'attività da prenotare'}: ${bookAtt.map(r=>esc(r.nome_hotel)).join(', ')}.</span></div>`;
   $('disclaimer').innerHTML=disc;
@@ -1178,7 +1179,7 @@ function buildDayMap(){
     } else if(r.tipo==='attivita' && isValidISO(r.data_inizio)){
       push(r.data_inizio,{tipo:'att',label:r.nome_hotel+(r.tappa?' · '+r.tappa:(r.luogo?' · '+r.luogo:'')),time:r.ora_inizio||''});
     } else if(r.tipo==='trasporto' && isValidISO(r.data_inizio)){
-      const M={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',auto:'🚗',combi:'⛴️🚕',altro:'🚐'};
+      const M={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',volo:'✈️',auto:'🚗',piedi:'🚶',navetta:'🚐',breve:'🧭',combi:'⛴️🚕',altro:'🚐'};
       push(r.data_inizio,{tipo:'trasp',icon:M[r.mezzo]||'🚐',label:(r.partenza||r.arrivo)?`${r.partenza||'?'}→${r.arrivo||'?'}`:r.nome_hotel,time:r.ora_inizio||''});
     }
   });
@@ -1247,12 +1248,12 @@ function renderCalendar(){
         if(x.tipo==='allog'){
           ic='🏨'; cls='allog';
           const ruolo=x.role==='out'?' · check-out':x.role==='in'?' · check-in':'';
-          const ora=x.time&&(x.role==='in'||x.role==='out')?' ('+esc(x.time)+')':'';
+          const ora=x.time&&(x.role==='in'||x.role==='out')?' ('+hhmm(x.time)+')':'';
           txt=esc(x.label)+ruolo+ora;
         }
-        else if(x.tipo==='volo'){ ic=x.icon||'✈️'; cls='volo'; txt=esc(x.label)+(x.time?' · '+esc(x.time):''); }
-        else if(x.tipo==='trasp'){ ic=x.icon||'🚐'; cls='trasp'; txt=esc(x.label)+(x.time?' · '+esc(x.time):''); }
-        else { ic='🎟️'; cls='att'; txt=esc(x.label)+(x.time?' · '+esc(x.time):''); }
+        else if(x.tipo==='volo'){ ic=x.icon||'✈️'; cls='volo'; txt=esc(x.label)+(x.time?' · '+hhmm(x.time):''); }
+        else if(x.tipo==='trasp'){ ic=x.icon||'🚐'; cls='trasp'; txt=esc(x.label)+(x.time?' · '+hhmm(x.time):''); }
+        else { ic='🎟️'; cls='att'; txt=esc(x.label)+(x.time?' · '+hhmm(x.time):''); }
         rows+=`<div class="tl-ev ${cls}"><span class="tl-ic">${ic}</span><span>${txt}</span></div>`;
       });
       html+=`<div class="tl-day${isToday?' today':''}">
@@ -1335,21 +1336,26 @@ function cardHtml(r){
     if(bagR.length) bagHtml+=`<div style="margin-top:5px"><b>Ritorno:</b><br>${bagR.join('<br>')}</div>`;
     if(bagHtml) dates += `<div class="baggage">🧳 ${bagHtml}</div>`;
   } else if(r.tipo==='trasporto'){
-    const MEZZI={traghetto:'⛴️ Traghetto',treno:'🚆 Treno',bus:'🚌 Bus',taxi:'🚕 Taxi/transfer',auto:'🚗 Auto',combi:'⛴️🚕 Combinato',altro:'🚐 Trasporto'};
-    meta=`${MEZZI[r.mezzo]||'🚐 Trasporto'}${r.compagnia?' · '+esc(r.compagnia):''}${r.tappa?' · → '+esc(r.tappa):''}`;
-    const tratta=(r.partenza||r.arrivo)?`<span>🛫 <b>${esc(r.partenza)||'—'}</b> → 🛬 <b>${esc(r.arrivo)||'—'}</b></span>`:'';
-    const quando=`<span>${fdate(r.data_inizio)}${r.ora_inizio?' · '+esc(r.ora_inizio):''}</span>`;
-    dates=`<div class="row" style="margin-top:10px">${tratta}${quando}</div>`;
-    if(r.tratta2){
-      let t2={}; try{ t2=JSON.parse(r.tratta2); }catch(e){}
-      if(t2.da||t2.a){
-        const M2={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',auto:'🚗',altro:'🚐'};
-        dates+=`<div class="row" style="margin-top:6px"><span>${M2[t2.mezzo]||'🚐'} <b>${esc(t2.da)||'—'}</b> → <b>${esc(t2.a)||'—'}</b></span><span>${t2.data?fdate(t2.data):''}${t2.ora?' · '+esc(t2.ora):''}</span></div>`;
-        if(t2.compagnia||t2.prezzo!=null) dates+=`<div class="info">${t2.compagnia?esc(t2.compagnia):''}${(t2.compagnia&&t2.prezzo!=null)?' · ':''}${t2.prezzo!=null?eur(Number(t2.prezzo)):''}</div>`;
+    // il mezzo è già nelle icone del titolo e nelle righe delle tratte: qui solo compagnia e destinazione
+    meta=[r.compagnia?esc(r.compagnia):'', r.tappa?'→ '+esc(r.tappa):''].filter(Boolean).join(' · ');
+    const M2={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',volo:'✈️',auto:'🚗',piedi:'🚶',navetta:'🚐',breve:'🧭',altro:'🚐'};
+    let segs=[]; try{ segs=JSON.parse(r.tratta2)||[]; }catch(e){}
+    // fallback per le voci vecchie senza tratte
+    if(!segs.length && (r.partenza||r.arrivo)) segs=[{mezzo:r.mezzo,da:r.partenza,a:r.arrivo,data:r.data_inizio,ora:r.ora_inizio}];
+    dates='';
+    segs.forEach((s,i)=>{
+      const quando=`${s.data?fdate(s.data):''}${s.ora?' · '+hhmm(s.ora):''}${(!r.pacchetto&&s.prezzo!=null)?' · '+eur(Number(s.prezzo)):''}`;
+      // stato della singola tratta (solo se non è un pacchetto unico)
+      let st2='';
+      if(!r.pacchetto && !s.voloref){
+        if(s.book) st2='<span class="segflag book">📍 da prenotare</span>';
+        else if(s.loco) st2='<span class="segflag loco">📍 in loco</span>';
+        if(s.excl) st2+='<span class="segflag excl">🚫 esclusa</span>';
       }
-    }
+      dates+=`<div class="row" style="margin-top:${i===0?'10':'6'}px"><span>${M2[s.mezzo]||'🚐'} <b>${esc(s.da)||'—'}</b> → <b>${esc(s.a)||'—'}</b>${st2}</span><span>${quando}</span></div>`;
+    });
     if(r.pacchetto) dates+=`<div class="info">📦 Pacchetto unico (più mezzi, un solo prezzo)</div>`;
-    if(r.acquisto_in_loco) dates+=`<div class="info">📍 Si acquista in loco (stima conteggiata)</div>`;
+    if(r.pacchetto && r.acquisto_in_loco) dates+=`<div class="info">📍 Si acquista in loco (stima conteggiata)</div>`;
   } else {
     const luoghi=[r.tappa, r.luogo].filter(Boolean).map(esc).join(' · ');
     meta=`📍 ${luoghi||'—'}${r.durata?' · '+esc(r.durata):''}`;
@@ -1358,11 +1364,30 @@ function cardHtml(r){
 
   const st = r.stato_pagamento||(r.pagato?'pagato':'dapagare');
   const cfg = {pagato:['paid','✓ Saldato'],acconto:['loco','◐ Acconto'],inloco:['loco','📍 In loco'],dapagare:['unpaid','Da pagare']}[st]||['unpaid','Da pagare'];
-  const badgeHtml = r.acquisto_in_loco
+  // spostamento senza costo (a piedi, navetta inclusa, ecc.): niente badge di pagamento
+  const gratis = r.tipo==='trasporto' && !Number(r.prezzo) && (()=>{
+    try{ const segs=JSON.parse(r.tratta2)||[];
+      return segs.length>0 && segs.every(s=>s && (['piedi','navetta','breve'].indexOf(s.mezzo)>=0 || s.voloref) && !s.prezzo);
+    }catch(e){ return false; }
+  })();
+  // trasporto NON a pacchetto con tratte in stati diversi: lo dico esplicitamente
+  const mixTrasp = r.tipo==='trasporto' && !r.pacchetto && (()=>{
+    try{
+      const arr=(JSON.parse(r.tratta2)||[]).filter(s=>s && !s.voloref);
+      if(arr.length<2) return false;
+      const nBook=arr.filter(s=>s.book).length;
+      return nBook>0 && nBook<arr.length;
+    }catch(e){ return false; }
+  })();
+  const badgeHtml = mixTrasp
+    ? `<span class="badge unpaid">📍 In parte da prenotare</span>`
+    : (gratis
+    ? `<span class="badge free">✓ Nessun costo</span>`
+    : (r.acquisto_in_loco
     ? `<span class="badge loco">📍 Acquista in loco</span>`
     : (r.da_prenotare
       ? `<span class="badge unpaid">${r.tipo==='attivita'?'💡 Idea':'📍 Da prenotare'}</span>`
-      : `<span class="badge ${cfg[0]}" onclick="cyclePay('${r.id}','${st}')">${cfg[1]}</span>`);
+      : `<span class="badge ${cfg[0]}" onclick="cyclePay('${r.id}','${st}')">${cfg[1]}</span>`)));
   const isTraspBook = r.da_prenotare && r.tipo==='trasporto';
 
   // resto da pagare (acconto)
@@ -1388,7 +1413,7 @@ function cardHtml(r){
         </div>
         ${badgeHtml}
       </div>
-      ${(r.data_inizio||r.data_fine)?`<div class="row" style="margin-top:10px"><span>📅 <b>${fdate(r.data_inizio)}</b>${r.data_fine?` → <b>${fdate(r.data_fine)}</b>`:''}${r.ora_inizio?' · '+esc(r.ora_inizio):''}</span></div>`:''}
+      ${(r.data_inizio||r.data_fine)?`<div class="row" style="margin-top:10px"><span>📅 <b>${fdate(r.data_inizio)}</b>${r.data_fine?` → <b>${fdate(r.data_fine)}</b>`:''}${r.ora_inizio?' · '+hhmm(r.ora_inizio):''}</span></div>`:''}
       <div class="tobook-msg">${msg}</div>
       ${(isTrasp && Number(r.prezzo)>0)?`<div class="row" style="margin-top:8px"><span>💰 Previsione: <b>${eur(Number(r.prezzo))}</b> · a testa ${eur(Number(r.prezzo)/2)}</span></div>`:''}
       ${r.link
@@ -1402,11 +1427,19 @@ function cardHtml(r){
     </div>`;
   }
 
-  const MZICON={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',auto:'🚗',combi:'⛴️🚕',altro:'🚐'};
-  const mzIco = r.tipo==='trasporto' ? `<span class="mz-ico">${MZICON[r.mezzo]||'🚐'}</span>` : '';
+  const MZICON={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',volo:'✈️',auto:'🚗',piedi:'🚶',navetta:'🚐',breve:'🧭',combi:'⛴️🚕',altro:'🚐'};
+  // icone reali dei mezzi usati nelle tratte (non l'icona generica "combinato")
+  const mzIco = r.tipo==='trasporto' ? (()=>{
+    let ics=[];
+    try{ ics=(JSON.parse(r.tratta2)||[]).filter(s=>s&&(s.da||s.a)).map(s=>MZICON[s.mezzo]||'🚐'); }catch(e){}
+    if(!ics.length) ics=[MZICON[r.mezzo]||'🚐'];
+    // tolgo i doppioni consecutivi (es. taxi+taxi) mantenendo l'ordine
+    ics=ics.filter((x,i)=>i===0||x!==ics[i-1]);
+    return `<span class="mz-ico">${ics.join('')}</span>`;
+  })() : '';
 
   return `
-  <div class="card ${r.valuta_cancellazione?'warn':''} ${r.non_cancellabile?'nocanc-card':''} ${r.escluso_totale?'excluded':''} ${r.tipo==='trasporto'?'mz-'+esc(r.mezzo||'altro'):''}">
+  <div class="card ${r.valuta_cancellazione?'warn':''} ${r.non_cancellabile?'nocanc-card':''} ${r.escluso_totale?'excluded':''} ${r.tipo==='trasporto'?(r.pacchetto?'tr-pack':(nSegTot(r)>1?'tr-sep':'mz-'+esc(r.mezzo||'altro'))):''}">
     ${r.escluso_totale?'<div class="excl-banner">🚫 Esclusa dalle statistiche</div>':''}
     <div class="top">
       <div>
@@ -1421,7 +1454,7 @@ function cardHtml(r){
     </div>
     ${dates}
     ${(r.tipo==='trasporto'&&r.da_prenotare&&r.link)?`<a class="book-link-soft" href="${esc(r.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 Prenota qui</a>`:''}
-    <div class="price">${eur(p)} ${loc}${r.escluso_totale?'<span class="excl">escluso dal totale</span>':''}<span class="split">a testa ${eur(p/2)}</span></div>
+    ${gratis?'':`<div class="price">${eur(p)} ${loc}${r.escluso_totale?'<span class="excl">escluso dal totale</span>':''}<span class="split">a testa ${eur(p/2)}</span></div>`}
     ${restoTxt}
     ${(st==='dapagare') && r.data_pagamento?`<div class="info pay">💳 Da pagare entro <b>${fdate(r.data_pagamento)}</b></div>`:''}
     ${(st==='inloco')?`<div class="info">📍 Si paga in loco</div>`:''}
@@ -1461,21 +1494,26 @@ function cmpChrono(a,b){
   return prioOf(a)-prioOf(b);
 }
 // prezzo totale di una voce: include la seconda tratta dei trasporti combinati
+// numero di tratte di un trasporto (per distinguere PACCHETTO / SEPARATO / mezzo singolo)
+function nSegTot(r){
+  try{ const a=JSON.parse(r.tratta2)||[]; return a.filter(s=>s&&(s.da||s.a)).length; }catch(e){ return 0; }
+}
 function prezzoTot(r){
-  let p=Number(r.prezzo)||0;
-  if(r.tratta2 && !r.pacchetto){
-    try{ const t2=JSON.parse(r.tratta2); if(t2 && t2.prezzo!=null) p+=Number(t2.prezzo)||0; }catch(e){}
-  }
-  return p;
+  const base=Number(r.prezzo)||0;
+  // pacchetto unico: vale solo il prezzo principale
+  if(r.pacchetto) return base;
+  // altrimenti sommo i prezzi delle singole tratte
+  let segs=0;
+  try{ (JSON.parse(r.tratta2)||[]).forEach(s=>{
+    if(!s) return;
+    if(s.voloref) return;   // il volo è già contato nella sua voce
+    if(s.excl) return;      // tratta esclusa dalle statistiche
+    if(s.prezzo!=null) segs+=Number(s.prezzo)||0;
+  }); }catch(e){}
+  return base+segs;
 }
-function postoOf(r){
-  if(r.tipo==='alloggio') return r.tappa||'';
-  if(r.tipo==='attivita') return r.tappa||r.luogo||'';
-  if(r.tipo==='volo'){ const tr=parseTratte(r.tratte); const a=[...tr.andata]; return a.length?`${a[0].da}→${a[a.length-1].a}`:''; }
-  if(r.tipo==='trasporto') return r.tappa||((r.partenza||r.arrivo)?`${r.partenza||'?'}→${r.arrivo||'?'}`:'');
-  return '';
-}
-// trova il trasporto collegato alla stessa tappa di un alloggio (per id, con fallback nome)
+// orario sempre in formato hh:mm (tronca eventuali secondi)
+function hhmm(t){ return t ? esc(String(t).slice(0,5)) : ''; }
 function postoOf(r){
   if(r.tipo==='alloggio') return r.tappa||'';
   if(r.tipo==='attivita') return r.tappa||r.luogo||'';
@@ -1660,16 +1698,31 @@ function esportaResoconto(fmt){
 }
 
 function renderSpostamenti(){
-  const M={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',auto:'🚗',combi:'⛴️🚕',altro:'🚐'};
-  const MNOME={traghetto:'Traghetto',treno:'Treno',bus:'Bus',taxi:'Taxi/transfer',auto:'Auto',combi:'Combinato',altro:'Trasporto'};
+  const M={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',volo:'✈️',auto:'🚗',piedi:'🚶',navetta:'🚐',breve:'🧭',combi:'⛴️🚕',altro:'🚐'};
+  const MNOME={traghetto:'Traghetto',treno:'Treno',bus:'Bus',taxi:'Taxi/transfer',volo:'Volo',auto:'Auto',piedi:'A piedi',navetta:'Navetta inclusa',breve:'Spostamento breve',combi:'Combinato',altro:'Trasporto'};
 
-  // 1) Soggiorni reali: ogni alloggio valido con le sue date
-  const soggiorni=data.filter(r=>r.tipo==='alloggio' && !r.da_prenotare && !r.valuta_cancellazione && !r.escluso_totale && isValidISO(r.data_inizio))
-    .map(r=>({ id:r.id, nome:r.nome_hotel, luogo:r.tappa||r.nome_hotel, tappa_id:r.tappa_id||null,
-               dal:r.data_inizio, al:(isValidISO(r.data_fine)?r.data_fine:r.data_inizio), rec:r }))
-    .sort((a,b)=>a.dal.localeCompare(b.dal));
+  // 1) Il percorso: le TAPPE dell'itinerario (con l'alloggio, se c'è).
+  //    Se non ho ancora tappe, ricavo il percorso dagli alloggi.
+  const allogDiTappa=(t)=>data.find(r=>r.tipo==='alloggio' && !r.da_prenotare && !r.valuta_cancellazione && !r.escluso_totale
+    && ((r.tappa_id && r.tappa_id===t.id) || (!r.tappa_id && norm(r.tappa)===norm(t.nome) && norm(t.nome)!=='')));
 
-  if(soggiorni.length<1) return '<div class="empty">Inserisci almeno un alloggio per vedere gli spostamenti da coprire.</div>';
+  let soggiorni;
+  if(tappe.length){
+    soggiorni=[...tappe]
+      .sort((a,b)=>(a.data_inizio||'9999').localeCompare(b.data_inizio||'9999'))
+      .map(t=>{
+        const al=allogDiTappa(t);
+        return { id:(al?al.id:t.id), nome:(al?al.nome_hotel:t.nome), luogo:t.nome, tappa_id:t.id,
+                 dal:t.data_inizio||'', al:(t.data_fine||t.data_inizio||''), rec:(al||{}) };
+      });
+  } else {
+    soggiorni=data.filter(r=>r.tipo==='alloggio' && !r.da_prenotare && !r.valuta_cancellazione && !r.escluso_totale && isValidISO(r.data_inizio))
+      .map(r=>({ id:r.id, nome:r.nome_hotel, luogo:r.tappa||r.nome_hotel, tappa_id:r.tappa_id||null,
+                 dal:r.data_inizio, al:(isValidISO(r.data_fine)?r.data_fine:r.data_inizio), rec:r }))
+      .sort((a,b)=>a.dal.localeCompare(b.dal));
+  }
+
+  if(soggiorni.length<1) return '<div class="empty">Aggiungi le tappe dell\'itinerario (o almeno un alloggio) per vedere gli spostamenti.</div>';
 
   // 2) Tratte dedotte: da ogni check-out al check-in successivo
   const tratte=[];
@@ -1679,14 +1732,31 @@ function renderSpostamenti(){
     tratte.push({ da:a, a:b, quando:a.al });
   }
 
+  // 2b) Aggiungo i passaggi dichiarati esplicitamente nei trasporti (tappa partenza + tappa arrivo),
+  //     anche quando non risultano da due tappe consecutive (es. rientro finale)
+  data.filter(x=>x.tipo==='trasporto' && x.tappa_da_id && x.tappa_a_id && x.tappa_da_id!==x.tappa_a_id).forEach(x=>{
+    const gia=tratte.some(t=>t.da.tappa_id===x.tappa_da_id && t.a.tappa_id===x.tappa_a_id);
+    if(gia) return;
+    const td=tappe.find(t=>t.id===x.tappa_da_id), ta=tappe.find(t=>t.id===x.tappa_a_id);
+    if(!td||!ta) return;
+    const mk=(t)=>{ const s=soggiorni.find(z=>z.tappa_id===t.id); return s||{id:t.id,nome:t.nome,luogo:t.nome,tappa_id:t.id,dal:t.data_inizio||'',al:t.data_fine||t.data_inizio||'',rec:{}}; };
+    tratte.push({ da:mk(td), a:mk(ta), quando:(x.data_inizio||td.data_fine||td.data_inizio||'') });
+  });
+  tratte.sort((a,b)=>(a.quando||'9999').localeCompare(b.quando||'9999'));
+
   // 3) Segmenti: trasporti collegati alla tratta (per tappa di arrivo, o per data nel giorno del passaggio)
   const usati=new Set();
   const segmentiDi=(tr)=>{
     const segs=data.filter(x=>{
       if(x.tipo!=='trasporto') return false;
-      // collegato esplicitamente alla tappa di arrivo
-      if(tr.a.tappa_id && x.tappa_a_id===tr.a.tappa_id) return true;
-      // oppure avviene nel giorno del passaggio
+      // 1) coppia esatta partenza+arrivo: è senz'altro questo passaggio
+      if(x.tappa_da_id && x.tappa_a_id && tr.da.tappa_id && tr.a.tappa_id)
+        return x.tappa_da_id===tr.da.tappa_id && x.tappa_a_id===tr.a.tappa_id;
+      // 2) solo la tappa di arrivo
+      if(x.tappa_a_id) return tr.a.tappa_id && x.tappa_a_id===tr.a.tappa_id;
+      // 3) solo la tappa di partenza
+      if(x.tappa_da_id) return tr.da.tappa_id && x.tappa_da_id===tr.da.tappa_id;
+      // 4) nessuna tappa: mi baso sulla data del passaggio
       if(x.data_inizio && x.data_inizio===tr.quando) return true;
       return false;
     }).sort((p,q)=>(p.ora_inizio||'').localeCompare(q.ora_inizio||''));
@@ -1716,9 +1786,20 @@ function renderSpostamenti(){
     const segs=segmentiDi(tr);
     const ref=refDi(tr.a);
     const nSeg=segs.length+(ref?1:0);
-    const daPren=segs.some(s=>s.da_prenotare && !s.acquisto_in_loco) || (ref&&ref.book);
+    // basta UNA tratta da prenotare perché l'intero passaggio sia da sistemare
+    const segBook=(s)=>{
+      // pacchetto unico: conta lo stato complessivo
+      if(s.pacchetto) return !!s.da_prenotare && !s.acquisto_in_loco;
+      try{
+        const arr=(JSON.parse(s.tratta2)||[]).filter(x=>x && !x.voloref);
+        if(arr.length) return arr.some(x=>x.book && !x.loco);
+      }catch(e){}
+      return !!s.da_prenotare && !s.acquisto_in_loco;
+    };
+    const daPren=segs.some(segBook) || (ref&&ref.book);
     const stato = nSeg===0 ? 'none' : (daPren ? 'book' : 'ok');
     if(stato==='ok') nOk++;
+    const totTratta = segs.reduce((t,s)=>t+prezzoTot(s),0);
     const icon = stato==='ok'?'✅':(stato==='book'?'⚠️':'❌');
     const cls  = stato==='ok'?'ok':(stato==='book'?'warnrow':'late');
 
@@ -1730,19 +1811,22 @@ function renderSpostamenti(){
       dett='<div class="seglist">';
       if(ref) dett+=`<div class="segrow${ref.book?' book':''}">${ref.label}${ref.book?' · <b>da prenotare</b>':''}</div>`;
       segs.forEach(s=>{
-        const tratta=(s.partenza||s.arrivo)?` ${esc(s.partenza)||'?'}→${esc(s.arrivo)||'?'}`:'';
-        const inloco=s.acquisto_in_loco?' · in loco':'';
-        const pack=s.pacchetto?' <span class="packtag">📦 pacchetto</span>':'';
-        const book=(s.da_prenotare&&!s.acquisto_in_loco)?' · <b>da prenotare</b>':'';
-        dett+=`<div class="segrow${(s.da_prenotare&&!s.acquisto_in_loco)?' book':''}" onclick='event.stopPropagation();editRow(${JSON.stringify(s).replace(/'/g,"&#39;")})'>${M[s.mezzo]||'🚐'} ${MNOME[s.mezzo]||'Trasporto'}${tratta}${s.ora_inizio?' · '+esc(s.ora_inizio):''}${inloco}${book}${pack}</div>`;
-        // seconda tratta del combinato
-        if(s.tratta2){
-          let t2={}; try{ t2=JSON.parse(s.tratta2); }catch(e){}
-          if(t2.da||t2.a){
-            const trat2=` ${esc(t2.da)||'?'}→${esc(t2.a)||'?'}`;
-            dett+=`<div class="segrow${(s.da_prenotare&&!s.acquisto_in_loco)?' book':''}" onclick='event.stopPropagation();editRow(${JSON.stringify(s).replace(/'/g,"&#39;")})'>${M[t2.mezzo]||'🚐'} ${MNOME[t2.mezzo]||'Trasporto'}${trat2}${t2.ora?' · '+esc(t2.ora):''}</div>`;
-          }
-        }
+        const click=`event.stopPropagation();editRow(${JSON.stringify(s).replace(/'/g,"&#39;")})`;
+        let arr=[]; try{ arr=JSON.parse(s.tratta2)||[]; }catch(e){}
+        if(!arr.length) arr=[{mezzo:s.mezzo,da:s.partenza,a:s.arrivo,ora:s.ora_inizio,book:s.da_prenotare,loco:s.acquisto_in_loco}];
+        arr.forEach((t,i)=>{
+          if(!(t.da||t.a)) return;
+          const tratta=` ${esc(t.da)||'?'}→${esc(t.a)||'?'}`;
+          // pacchetto: prezzo unico mostrato solo sulla prima riga
+          const prezzo = s.pacchetto
+            ? (i===0 && Number(s.prezzo) ? ` · <b>${eur(prezzoTot(s))}</b>` : '')
+            : (t.prezzo!=null ? ` · <b>${eur(Number(t.prezzo))}</b>` : '');
+          const bk = s.pacchetto ? (s.da_prenotare && !s.acquisto_in_loco) : (t.book && !t.loco);
+          const lc = s.pacchetto ? s.acquisto_in_loco : t.loco;
+          const flags = (bk?' · <b>da prenotare</b>':'') + (lc?' · in loco':'') + (t.excl?' · <i>esclusa</i>':'');
+          const pack = (s.pacchetto && i===0) ? ' <span class="packtag">📦 pacchetto</span>' : '';
+          dett+=`<div class="segrow${bk?' book':''}" onclick='${click}'>${M[t.mezzo]||'🚐'} ${MNOME[t.mezzo]||'Trasporto'}${tratta}${t.ora?' · '+hhmm(t.ora):''}${prezzo}${flags}${pack}</div>`;
+        });
       });
       dett+='</div>';
     }
@@ -1751,7 +1835,7 @@ function renderSpostamenti(){
       <div style="display:flex;align-items:flex-start;gap:10px">
         <div class="lrow-main">
           <div class="lrow-title">${esc(tr.da.luogo)} → ${esc(tr.a.luogo)}</div>
-          <div class="lrow-place">📅 ${fdate(tr.quando)}${nSeg>1?` · ${nSeg} mezzi`:''}</div>
+          <div class="lrow-place">📅 ${fdate(tr.quando)}${nSeg>1?` · ${nSeg} mezzi`:''}${totTratta?` · <b>${eur(totTratta)}</b>`:''}</div>
         </div>
         <div class="lrow-amt" style="font-size:1.3rem">${icon}</div>
       </div>
@@ -1763,15 +1847,23 @@ function renderSpostamenti(){
   html+= tratte.length?rows:'<div class="empty">Nessuno spostamento da coprire: gli alloggi sono tutti nello stesso luogo.</div>';
 
   // trasporti non associati ad alcuna tratta
+  // trasporti non finiti in nessuna tratta: li mostro come spostamenti a sé,
+  // usando le tappe che ho impostato io (es. il rientro finale, che non ha un alloggio dopo)
   const orfani=data.filter(r=>r.tipo==='trasporto' && !usati.has(r.id));
   if(orfani.length){
-    html+=`<div class="liststat" style="margin-top:16px">🚐 ${orfani.length} trasport${orfani.length===1?'o':'i'} non associat${orfani.length===1?'o':'i'} a uno spostamento</div>`;
+    const conTappe=orfani.filter(r=>r.tappa_da_id||r.tappa_a_id).length;
+    html+=`<div class="liststat" style="margin-top:16px">🚐 ${orfani.length} altr${orfani.length===1?'o spostamento':'i spostamenti'}${conTappe?'':' (senza tappe collegate)'}</div>`;
     orfani.sort((a,b)=>(a.data_inizio||'9999').localeCompare(b.data_inizio||'9999')).forEach(t=>{
       const tratta=(t.partenza||t.arrivo)?`${esc(t.partenza)||'?'}→${esc(t.arrivo)||'?'}`:esc(t.nome_hotel);
       html+=`<div class="lrow" onclick='editRow(${JSON.stringify(t).replace(/'/g,"&#39;")})' style="cursor:pointer">
         <div class="lrow-main">
-          <div class="lrow-title">${M[t.mezzo]||'🚐'} ${tratta}</div>
-          <div class="lrow-sub">${t.data_inizio?fdate(t.data_inizio):'senza data'}${t.da_prenotare?' · <b style="color:var(--red)">da prenotare</b>':''}</div>
+          <div class="lrow-title">${(()=>{let i=[];try{i=(JSON.parse(t.tratta2)||[]).filter(s=>s&&(s.da||s.a)).map(s=>M[s.mezzo]||'🚐');}catch(e){}if(!i.length)i=[M[t.mezzo]||'🚐'];return i.filter((x,k)=>k===0||x!==i[k-1]).join('');})()} ${tratta}</div>
+          <div class="lrow-sub">${(()=>{
+            const nt=(id)=>{const x=tappe.find(z=>z.id===id);return x?esc(x.nome):null;};
+            const d=nt(t.tappa_da_id), a=nt(t.tappa_a_id);
+            const tp=(d||a)?`🗺️ ${d||'?'} → ${a||'?'} · `:'';
+            return tp;
+          })()}${t.data_inizio?fdate(t.data_inizio):'senza data'}${t.da_prenotare?' · <b style="color:var(--red)">da prenotare</b>':''}</div>
         </div>
         <div class="lrow-amt" style="font-size:1.3rem">↔</div>
       </div>`;
@@ -1815,7 +1907,7 @@ function copiaPrenotazioni(){
   const ordered=expanded.sort(cmpChrono);
   let txt=`PRENOTAZIONI — ${currentTrip?currentTrip.nome:''}\n\n`;
   const label={alloggio:'🏨 ALLOGGIO',volo:'✈️ VOLO',trasporto:'🚕 TRASPORTO',attivita:'🎟️ ATTIVITÀ'};
-  const MEZZINOME={traghetto:'Traghetto',treno:'Treno',bus:'Bus',taxi:'Taxi/transfer',auto:'Auto/noleggio',combi:'Combinato (traghetto+taxi)',altro:'Trasporto'};
+  const MEZZINOME={traghetto:'Traghetto',treno:'Treno',bus:'Bus',taxi:'Taxi/transfer',volo:'Volo',auto:'Auto/noleggio',combi:'Combinato (traghetto+taxi)',altro:'Trasporto'};
   ordered.forEach(r=>{
     if(r.tipo==='volo'){
       const tr=parseTratte(r.tratte);
@@ -1962,7 +2054,7 @@ function apriPickTrasporto(alloggioId){
   pickAlloggioId=alloggioId;
   $('pick-title').textContent='Come arrivo a '+(al.tappa||al.nome_hotel)+'?';
   $('pick-sub').innerHTML=`Aggiungi un mezzo per questo spostamento. Puoi <b>aggiungerne più di uno</b> (es. taxi + traghetto + taxi): verranno raggruppati insieme.`;
-  const M={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',auto:'🚗',combi:'⛴️🚕',altro:'🚐'};
+  const M={traghetto:'⛴️',treno:'🚆',bus:'🚌',taxi:'🚕',volo:'✈️',auto:'🚗',piedi:'🚶',navetta:'🚐',breve:'🧭',combi:'⛴️🚕',altro:'🚐'};
   let h='';
 
   // --- TRASPORTI ---
@@ -1972,7 +2064,7 @@ function apriPickTrasporto(alloggioId){
     trasporti.forEach(t=>{
       const gia = al.tappa_id && t.tappa_a_id===al.tappa_id;
       const tratta=(t.partenza||t.arrivo)?`${esc(t.partenza)||'?'} → ${esc(t.arrivo)||'?'}`:esc(t.nome_hotel);
-      const quando=t.data_inizio?fdate(t.data_inizio)+(t.ora_inizio?' · '+esc(t.ora_inizio):''):'data da definire';
+      const quando=t.data_inizio?fdate(t.data_inizio)+(t.ora_inizio?' · '+hhmm(t.ora_inizio):''):'data da definire';
       h+=`<button type="button" class="pick-row${gia?' picked':''}" onclick="collegaTrasporto('${t.id}')">
         <span class="pick-ico">${M[t.mezzo]||'🚐'}</span>
         <span class="pick-main">
@@ -2085,7 +2177,8 @@ function nuovoTrasportoDaPick(){
   if(al.tappa_id) populateTrTappe(prec&&prec.tappa_id?prec.tappa_id:'', al.tappa_id);
   // la data del passaggio è il check-out precedente (o il check-in di destinazione)
   const dataPassaggio = prec ? (isValidISO(prec.data_fine)?prec.data_fine:prec.data_inizio) : al.data_inizio;
-  if($('f-trdata') && !$('f-trdata').value && dataPassaggio) $('f-trdata').value=isoToDdmm(dataPassaggio);
+  const d0=$('segs-wrap')?$('segs-wrap').querySelector('.sg-data'):null;
+  if(d0 && !d0.value && dataPassaggio) d0.value=isoToDdmm(dataPassaggio);
 }
 
 function openTappaForm(){
@@ -2331,41 +2424,169 @@ function populateTrTappe(idDa, idA){
 }
 // scegliendo una tappa riempio anche il campo testuale (se vuoto)
 function onTrTappaSelect(which){ return; }
-// mostra/nasconde la seconda tratta quando il mezzo è "Combinato"
-function toggleCombi(){
-  const combi = $('f-mezzo').value==='combi';
-  $('seg2').classList.toggle('hide', !combi);
-  $('seg1-title').textContent = combi ? '📍 Prima tratta' : '📍 Tratta';
-  // incateno: la partenza della seconda è l'arrivo della prima
-  if(combi && $('f-trda2') && !$('f-trda2').value.trim() && $('f-tra').value.trim()){
-    $('f-trda2').value=$('f-tra').value.trim();
+
+// ---------- TRATTE DINAMICHE DEL TRASPORTO ----------
+const SEG_MEZZI=[['taxi','🚕 Taxi / transfer'],['traghetto','⛴️ Traghetto'],['volo','✈️ Volo'],['treno','🚆 Treno'],['bus','🚌 Bus'],['auto','🚗 Auto / noleggio'],['piedi','🚶 A piedi'],['navetta','🚐 Navetta inclusa'],['breve','🧭 Spostamento breve'],['altro','🚐 Altro']];
+// mezzi che non si prenotano e non hanno un costo
+const SEG_FREE=['piedi','navetta','breve'];
+function segTemplate(s={}){
+  const opts=SEG_MEZZI.map(([v,l])=>`<option value="${v}"${s.mezzo===v?' selected':''}>${l}</option>`).join('');
+  const isVolo=s.mezzo==='volo';
+  return `<div class="segbox">
+    <div class="segbox-head">
+      <span class="segbox-t">📍 Tratta</span>
+      <button type="button" class="segdel" onclick="delSeg(this)" title="Rimuovi">🗑</button>
+    </div>
+    <div class="field"><label>Mezzo</label>
+      <select class="sg-mezzo" onchange="onSegMezzo(this)" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:11px;color:var(--text);font-size:.9rem;font-family:inherit">${opts}</select>
+    </div>
+    <div class="field sg-volo-f${isVolo?'':' hide'}"><label>Quale volo</label>
+      <select class="sg-voloref" onchange="onSegVolo(this)" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:11px;color:var(--text);font-size:.9rem;font-family:inherit">${voloOptions(s.voloref)}</select>
+    </div>
+    <div class="two">
+      <div class="field"><label>Da (partenza)</label><input class="sg-da" placeholder="es. Ubud" value="${esc(s.da||'')}"></div>
+      <div class="field"><label>A (arrivo)</label><input class="sg-a" placeholder="es. Porto di Sanur" value="${esc(s.a||'')}"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label>Data (gg/mm)</label><input class="sg-data datein" placeholder="gg/mm" inputmode="numeric" maxlength="5" value="${s.data?esc(isoToDdmm(s.data)):''}"></div>
+      <div class="field"><label>Ora</label><input type="time" class="sg-ora" value="${esc(s.ora||'')}"></div>
+    </div>
+    <div class="two">
+      <div class="field sg-comp-f"><label>Compagnia / app</label><input class="sg-comp" placeholder="es. Gojek, Grab…" list="trcomp-list" value="${esc(s.compagnia||'')}"></div>
+      <div class="field sg-prezzo-f"><label>Prezzo (€)</label><input type="number" inputmode="decimal" step="0.01" class="sg-prezzo" placeholder="0.00" value="${s.prezzo!=null?s.prezzo:''}"></div>
+    </div>
+    <div class="segopts">
+      <div class="field check sg-book-f"><input type="checkbox" class="sg-book"${s.book?' checked':''}><label>📍 Ancora da prenotare</label></div>
+      <div class="field check sg-loco-f"><input type="checkbox" class="sg-loco"${s.loco?' checked':''}><label>📍 Si acquista in loco (stima conteggiata)</label></div>
+      <div class="field check sg-excl-f"><input type="checkbox" class="sg-excl"${s.excl?' checked':''}><label>🚫 Escludi dalle statistiche</label></div>
+    </div>
+  </div>`;
+}
+// elenco dei voli già inseriti, per direzione
+function voloOptions(sel){
+  let o='<option value="">— scegli un volo inserito —</option>';
+  data.filter(x=>x.tipo==='volo').forEach(v=>{
+    const tr=parseTratte(v.tratte);
+    [['andata',tr.andata],['ritorno',tr.ritorno]].forEach(([dir,legs])=>{
+      if(!legs.length) return;
+      const key=`${v.id}:${dir}`;
+      const rotta=`${legs[0].da||'?'}→${legs[legs.length-1].a||'?'}`;
+      const quando=legs[0].data_dep?' · '+fdate(legs[0].data_dep):'';
+      o+=`<option value="${key}"${sel===key?' selected':''}>✈️ ${esc(rotta)} (${dir==='andata'?'andata':'ritorno'})${quando}</option>`;
+    });
+  });
+  return o;
+}
+// mostra/nasconde il selettore volo
+function onSegMezzo(sel, keep){
+  if(!sel) return;
+  const box=sel.closest('.segbox'); if(!box) return;
+  const v=sel.value;
+  const isVolo=v==='volo';
+  const isFree=SEG_FREE.indexOf(v)>=0;
+  const q=(c)=>box.querySelector(c);
+  const tog=(c,cond)=>{ const e=q(c); if(e) e.classList.toggle('hide',cond); };
+  tog('.sg-volo-f', !isVolo);
+  if(isVolo && !keep){ const vr=q('.sg-voloref'); if(vr) vr.innerHTML=voloOptions(null); }
+  // prezzo: nascosto per i voli (già contati) e per gli spostamenti senza costo
+  tog('.sg-prezzo-f', isVolo||isFree);
+  tog('.sg-comp-f', isFree);
+  tog('.segopts', isVolo||isFree);
+}
+// compila la tratta con i dati del volo scelto
+function onSegVolo(sel){
+  const box=sel.closest('.segbox');
+  if(!sel.value) return;
+  const [vid,dir]=sel.value.split(':');
+  const v=data.find(x=>x.id===vid); if(!v) return;
+  const tr=parseTratte(v.tratte);
+  const legs=dir==='ritorno'?tr.ritorno:tr.andata;
+  if(!legs.length) return;
+  box.querySelector('.sg-da').value=legs[0].da||'';
+  box.querySelector('.sg-a').value=legs[legs.length-1].a||'';
+  if(legs[0].data_dep) box.querySelector('.sg-data').value=isoToDdmm(legs[0].data_dep);
+  if(legs[0].ora_dep) box.querySelector('.sg-ora').value=legs[0].ora_dep;
+  if(legs[0].compagnia) box.querySelector('.sg-comp').value=legs[0].compagnia;
+}
+function addSeg(s){
+  const w=$('segs-wrap');
+  const d=document.createElement('div');
+  d.innerHTML=segTemplate(s&&s.mezzo?s:{});
+  const box=d.firstElementChild;
+  w.appendChild(box);
+  const di=box.querySelector('.sg-data'); if(di) attachDateMask(di);
+  // se la tratta è un volo collegato, nascondo il prezzo (già contato nella voce del volo)
+  onSegMezzo(box.querySelector('.sg-mezzo'), true);
+  // la partenza di questa tratta = arrivo della precedente
+  const boxes=[...w.querySelectorAll('.segbox')];
+  if(boxes.length>1 && !(s&&s.da)){
+    const prev=boxes[boxes.length-2];
+    const prevA=prev.querySelector('.sg-a').value.trim();
+    if(prevA) box.querySelector('.sg-da').value=prevA;
+    const prevData=prev.querySelector('.sg-data').value.trim();
+    if(prevData) box.querySelector('.sg-data').value=prevData;
   }
+  renumberSegs();
+  togglePacchetto();
 }
-// legge la seconda tratta dal form
-function readTratta2(){
-  if($('f-mezzo').value!=='combi') return null;
-  const t={
-    mezzo:$('f-mezzo2').value,
-    da:$('f-trda2').value.trim()||null,
-    a:$('f-tra2').value.trim()||null,
-    data:ddmmToIso($('f-trdata2').value)||null,
-    ora:$('f-trora2').value||null,
-    compagnia:$('f-trcomp2').value.trim()||null,
-    prezzo:$('f-prezzo2').value?Number($('f-prezzo2').value):null
-  };
-  return (t.da||t.a)?JSON.stringify(t):null;
+function delSeg(btn){
+  const w=$('segs-wrap');
+  if(w.querySelectorAll('.segbox').length<=1){ alert('Serve almeno una tratta.'); return; }
+  btn.closest('.segbox').remove();
+  renumberSegs();
 }
-// riempie il form della seconda tratta
-function fillTratta2(raw){
-  let t={};
-  try{ t=raw?JSON.parse(raw):{}; }catch(e){}
-  $('f-mezzo2').value=t.mezzo||'traghetto';
-  $('f-trda2').value=t.da||'';
-  $('f-tra2').value=t.a||'';
-  $('f-trdata2').value=t.data?isoToDdmm(t.data):'';
-  $('f-trora2').value=t.ora||'';
-  $('f-trcomp2').value=t.compagnia||'';
-  $('f-prezzo2').value=(t.prezzo!=null)?t.prezzo:'';
+function renumberSegs(){
+  const boxes=[...$('segs-wrap').querySelectorAll('.segbox')];
+  boxes.forEach((b,i)=>{
+    b.querySelector('.segbox-t').textContent = boxes.length>1 ? `📍 Tratta ${i+1}` : '📍 Tratta';
+    b.querySelector('.segdel').style.display = boxes.length>1 ? '' : 'none';
+  });
+}
+// con il pacchetto unico i prezzi delle singole tratte non servono
+function togglePacchetto(){
+  if(!$('f-pacchetto')||!$('pack-opts')||!$('segs-wrap')) return;
+  const pack=$('f-pacchetto').checked;
+  // col pacchetto: prezzo e opzioni valgono per l'insieme, non per la singola tratta
+  $('pack-opts').classList.toggle('hide', !pack);
+  $('segs-wrap').querySelectorAll('.sg-prezzo-f').forEach(f=>f.classList.toggle('hide',pack));
+  $('segs-wrap').querySelectorAll('.segbox').forEach(b=>{
+    const m=b.querySelector('.sg-mezzo').value;
+    const noOpts = m==='volo' || SEG_FREE.indexOf(m)>=0;
+    b.querySelector('.segopts').classList.toggle('hide', pack||noOpts);
+  });
+  const lbl=$('lbl-prezzo');
+  if(lbl && $('f-tipo').value==='trasporto') lbl.textContent = pack ? 'Prezzo del pacchetto (€)' : 'Prezzo / previsione (€)';
+}
+// legge tutte le tratte dal form
+function readSegs(){
+  return [...$('segs-wrap').querySelectorAll('.segbox')].map(b=>({
+    mezzo:b.querySelector('.sg-mezzo').value,
+    da:b.querySelector('.sg-da').value.trim()||null,
+    a:b.querySelector('.sg-a').value.trim()||null,
+    data:ddmmToIso(b.querySelector('.sg-data').value)||null,
+    ora:b.querySelector('.sg-ora').value||null,
+    compagnia:b.querySelector('.sg-comp').value.trim()||null,
+    voloref:(b.querySelector('.sg-mezzo').value==='volo' && (b.querySelector('.sg-voloref')||{}).value)||null,
+    book:!!(b.querySelector('.sg-book')||{}).checked,
+    loco:!!(b.querySelector('.sg-loco')||{}).checked,
+    excl:!!(b.querySelector('.sg-excl')||{}).checked,
+    prezzo:b.querySelector('.sg-prezzo').value?Number(b.querySelector('.sg-prezzo').value):null
+  })).filter(s=>s.da||s.a);
+}
+// ricostruisce le tratte nel form
+function buildSegs(raw){
+  const w=$('segs-wrap'); w.innerHTML='';
+  let arr=[];
+  try{ arr=raw?JSON.parse(raw):[]; }catch(e){}
+  if(!Array.isArray(arr) || !arr.length) arr=[{}];
+  arr.forEach(s=>addSeg(s));
+  renumberSegs();
+}
+// somma dei prezzi delle tratte (0 se pacchetto unico)
+function segsTot(raw){
+  let tot=0;
+  try{ (JSON.parse(raw)||[]).forEach(s=>{ if(s.prezzo!=null) tot+=Number(s.prezzo)||0; }); }catch(e){}
+  return tot;
 }
 
 function toggleDaPrenotare(){
@@ -2374,13 +2595,13 @@ function toggleDaPrenotare(){
   // in modalità "da prenotare" nascondo pagamento e cancellazione — ma NON il link.
   // Per i TRASPORTI tengo visibile anche il prezzo (è una previsione utile prima di prenotare).
   $('f-prezzo').closest('.field').classList.toggle('hide', on && !isTrasp);
-  $('fld-escludi-main').classList.toggle('hide', !isTrasp); // resta per i trasporti
   $('f-statopag').closest('.field').classList.toggle('hide',on);
   $('pay-wrap').classList.toggle('hide',on);
   $('acconto-wrap').classList.toggle('hide',on);
   $('lbl-scad').closest('.field').classList.toggle('hide',on);
-  $('more-toggle').classList.toggle('hide',on);
-  if(on) $('more-fields').classList.add('hide');
+  // le informazioni aggiuntive restano sempre raggiungibili, ma chiuse:
+  // le apre l'utente quando serve
+  $('more-toggle').classList.remove('hide');
   const linkField=$('fld-link');
   linkField.classList.toggle('link-highlight',on);
   $('lbl-link').innerHTML = on ? '🔗 Link dove prenotare <span style="color:var(--red)">(importante!)</span>' : '🔗 Link (sito / prenotazione)';
@@ -2414,7 +2635,7 @@ function applyTypeUI(tipo){
   // tappa collegata: alloggi, attività e trasporti (tappa di arrivo)
   $('grp-tappa').classList.toggle('hide', !(isAllog||isAtt));  // i trasporti usano i due select tappa partenza/arrivo
   // segnaposto / da prenotare: alloggi, attività e trasporti
-  $('fld-daprenotare').classList.toggle('hide', !(isAllog||isAtt||isTrasp));
+  $('fld-daprenotare').classList.toggle('hide', !(isAllog||isAtt));  // i trasporti hanno la spunta per singola tratta
   // data fine solo alloggi
   $('fld-fine').classList.toggle('hide', !isAllog);
   $('lbl-d1').textContent = isAllog?'Data inizio (gg/mm)':'Data (gg/mm)';
@@ -2426,13 +2647,12 @@ function applyTypeUI(tipo){
   $('extra-allog').classList.toggle('hide', !isAllog);
   // link: visibile per tutti tranne i voli (che hanno le tratte)
   $('fld-link').classList.toggle('hide', isVolo);
-  // trasporti: mostro "escludi dalle statistiche" tra i campi principali + label prezzo come previsione
-  $('fld-escludi-main').classList.toggle('hide', !isTrasp);
+  // trasporti: label prezzo come previsione
   $('lbl-prezzo').textContent = isTrasp ? 'Prezzo / previsione (€)' : 'Prezzo totale (€)';
   $('f-prezzo').placeholder = isTrasp ? 'anche solo una stima' : '0.00';
   // label nome
   $('lbl-nome').textContent = isAllog?'Nome hotel':isVolo?'Nome volo / riferimento':isTrasp?'Nome / compagnia (opz.)':'Nome attività';
-  $('f-nome').placeholder = isAllog?'es. Hotel Splendid':isVolo?'es. Andata Tokyo':isTrasp?'es. Traghetto veloce':'es. Tour Fushimi Inari';
+  $('f-nome').placeholder = isAllog?'es. Hotel Splendid':isVolo?'es. Andata Tokyo':isTrasp?'lascia vuoto: lo genero io':'es. Tour Fushimi Inari';
   // etichetta segnaposto adattata
   const segLbl=$('fld-daprenotare').querySelector('label');
   if(segLbl) segLbl.textContent = isAtt?'📍 Solo idea (attività che mi interessa ma non prenotata)':isTrasp?'📍 Da prenotare (spostamento non ancora prenotato)':'📍 Solo segnaposto (ancora da prenotare)';
@@ -2450,8 +2670,8 @@ function openForm(forceTipo){
   $('modal-title').textContent='Nuova voce';
   applyTypeUI(tipo);
   $('f-id').value='';
-  ['f-nome','f-tappa','f-sistemazione','f-orainizio','f-orafine','f-indirizzo','f-luogo','f-durata','f-inizio','f-fine','f-sito','f-link','f-prezzo','f-prezzoloc','f-valuta','f-scad','f-datapagamento','f-note','f-colazioneprezzo','f-acconto','f-trda','f-tra','f-trdata','f-trora'].forEach(i=>$(i).value='');
-  $('f-mezzo').value='traghetto'; $('f-trcomp').value=''; $('f-inloco').checked=false; $('f-pacchetto').checked=false; fillTratta2(null); toggleCombi(); populateTrTappe('','');
+  ['f-nome','f-tappa','f-sistemazione','f-orainizio','f-orafine','f-indirizzo','f-luogo','f-durata','f-inizio','f-fine','f-sito','f-link','f-prezzo','f-prezzoloc','f-valuta','f-scad','f-datapagamento','f-note','f-colazioneprezzo','f-acconto'].forEach(i=>$(i).value='');
+  $('f-inloco').checked=false; $('f-pacchetto').checked=false; $('f-packbook').checked=false; buildSegs(null); togglePacchetto(); populateTrTappe('','');
   $('f-valutacanc').checked=false;
   $('f-esclusototale').checked=false; if($('f-esclusototale2')) $('f-esclusototale2').checked=false;
   $('f-daprenotare').checked=false;
@@ -2468,7 +2688,7 @@ function openForm(forceTipo){
   $('overlay').classList.add('show'); resetDirty();
 }
 
-function editRow(r){
+function editRowInner(r){
   $('fld-tiposel').classList.add('hide');
   applyTypeUI(r.tipo);
   $('modal-title').textContent='Modifica '+(TYPE_LABELS[r.tipo]||'voce');
@@ -2499,9 +2719,11 @@ function editRow(r){
   updateBagRitornoVis();
   $('f-luogo').value=r.luogo||''; $('f-durata').value=r.durata||'';
   // trasporto
-  $('f-mezzo').value=r.mezzo||'traghetto'; $('f-trcomp').value=r.compagnia||''; $('f-inloco').checked=!!r.acquisto_in_loco; $('f-pacchetto').checked=!!r.pacchetto; fillTratta2(r.tratta2); toggleCombi(); populateTrTappe(r.tappa_da_id||'', r.tappa_a_id||'');
-  $('f-trda').value=r.partenza||''; $('f-tra').value=r.arrivo||'';
-  $('f-trdata').value=isoToDdmm(r.data_inizio); $('f-trora').value=r.ora_inizio||'';
+  if(r.tipo==='trasporto'){
+    $('f-inloco').checked=!!r.acquisto_in_loco; $('f-pacchetto').checked=!!r.pacchetto; $('f-packbook').checked=!!r.da_prenotare;
+    buildSegs(r.tratta2 || JSON.stringify([{mezzo:r.mezzo||'taxi',da:r.partenza,a:r.arrivo,data:r.data_inizio,ora:r.ora_inizio,compagnia:r.compagnia,prezzo:null}]));
+    togglePacchetto(); populateTrTappe(r.tappa_da_id||'', r.tappa_a_id||'');
+  }
   $('f-inizio').value=isoToDdmm(r.data_inizio); $('f-fine').value=isoToDdmm(r.data_fine);
   $('f-sito').value=r.sito_prenotazione||''; $('f-link').value=r.link||'';
   $('f-prezzo').value=r.prezzo??''; $('f-prezzoloc').value=r.prezzo_locale??''; $('f-valuta').value=r.valuta||'';
@@ -2514,24 +2736,42 @@ function editRow(r){
   $('f-esclusototale').checked=!!r.escluso_totale; if($('f-esclusototale2')) $('f-esclusototale2').checked=!!r.escluso_totale;
   $('f-daprenotare').checked=!!r.da_prenotare;
   $('f-note').value=r.note||'';
-  // apro le aggiuntive se contengono dati valorizzati
-  const hasExtra = r.link||r.tipo_sistemazione||r.ora_inizio||r.colazione&&r.colazione!=='no'||r.prezzo_locale||r.note||r.valuta_cancellazione||r.escluso_totale;
-  $('more-fields').classList.toggle('hide', !hasExtra);
-  $('more-toggle').innerHTML=(hasExtra?'▾':'▸')+' Informazioni aggiuntive';
+  // informazioni aggiuntive sempre chiuse: le apre l'utente se gli servono
+  $('more-fields').classList.add('hide');
+  $('more-toggle').innerHTML='▸ Informazioni aggiuntive';
   togglePayField(); toggleDaPrenotare();
   attachDateMask();
   $('overlay').classList.add('show'); resetDirty();
+}
+
+// wrapper: se un campo non esiste (voce vecchia), apro comunque il form senza bloccarmi
+function editRow(r){
+  try{ editRowInner(r); }
+  catch(e){
+    console.error('editRow:', e);
+    try{ $('overlay').classList.add('show'); resetDirty(); }catch(_){}
+    alert('Alcuni campi di questa voce non si sono caricati ('+((e&&e.message)||e)+'). Puoi comunque modificarla e risalvarla.');
+  }
 }
 function closeForm(){ $('overlay').classList.remove('show'); resetDirty(); }
 
 async function save(){
   const tipo=$('f-tipo').value;
   let nome=$('f-nome').value.trim();
-  // per il trasporto il nome è opzionale: uso il mezzo + tratta come nome
-  if(!nome && tipo==='trasporto'){
-    const MEZZI={traghetto:'Traghetto',treno:'Treno',bus:'Bus',taxi:'Taxi/transfer',auto:'Auto',altro:'Trasporto'};
-    const da=$('f-trda').value.trim(), a=$('f-tra').value.trim();
-    nome=(MEZZI[$('f-mezzo').value]||'Trasporto')+((da||a)?` ${da}→${a}`:'');
+  // per i trasporti il nome è opzionale: lo genero come PACCHETTO/SEPARATO + tratta complessiva
+  if(tipo==='trasporto'){
+    const MEZZI={traghetto:'Traghetto',treno:'Treno',bus:'Bus',taxi:'Taxi/transfer',volo:'Volo',auto:'Auto',piedi:'A piedi',navetta:'Navetta inclusa',breve:'Spostamento breve',altro:'Trasporto'};
+    const sg=readSegs();
+    const da=sg.length?(sg[0].da||''):'', a=sg.length?(sg[sg.length-1].a||''):'';
+    const pack=$('f-pacchetto').checked;
+    let auto;
+    if(sg.length>1 || pack){
+      auto=(pack?'PACCHETTO':'SEPARATO')+((da||a)?` ${da} - ${a}`:'');
+    } else {
+      auto=(MEZZI[sg[0]?sg[0].mezzo:'taxi']||'Trasporto')+((da||a)?` ${da} - ${a}`:'');
+    }
+    // sostituisco anche un nome generato in precedenza, così resta sempre allineato
+    if(!nome || /^(PACCHETTO|SEPARATO|Combinato)\b/i.test(nome)) nome=auto;
   }
   if(!nome){ alert('Inserisci il nome'); return; }
   const daPrenotare = (tipo==='alloggio'||tipo==='attivita'||tipo==='trasporto') && $('f-daprenotare').checked;
@@ -2551,6 +2791,8 @@ async function save(){
   }
 
   // il prezzo si azzera per i segnaposto da-prenotare, TRANNE i trasporti (dove è una previsione utile a farsi un'idea)
+  const SEGS = tipo==='trasporto' ? readSegs() : [];
+  const PACK = tipo==='trasporto' && $('f-pacchetto').checked;
   const prezzo = (daPrenotare && tipo!=='trasporto') ? 0 : ($('f-prezzo').value?Number($('f-prezzo').value):0);
 
   // Risolvo la tappa collegata (alloggi e attività)
@@ -2585,18 +2827,18 @@ async function save(){
     tappa_a_id: tipo==='trasporto' ? ($('f-trtappaa').value||null) : null,
     tipo_sistemazione: tipo==='alloggio'?($('f-sistemazione').value.trim()||null):null,
     indirizzo: tipo==='alloggio'?($('f-indirizzo').value.trim()||null):null,
-    ora_inizio: tipo==='alloggio'?($('f-orainizio').value||null):(tipo==='trasporto'?($('f-trora').value||null):null),
+    ora_inizio: tipo==='alloggio'?($('f-orainizio').value||null):(tipo==='trasporto'?(SEGS[0]?SEGS[0].ora:null):null),
     ora_fine: tipo==='alloggio'?($('f-orafine').value||null):null,
     colazione: tipo==='alloggio'?$('f-colazione').value:'no',
     colazione_prezzo: (tipo==='alloggio'&&$('f-colazione').value==='pagamento')?($('f-colazioneprezzo').value.trim()||null):null,
-    partenza: tipo==='trasporto'?($('f-trda').value.trim()||null):voloDa,
-    arrivo: tipo==='trasporto'?($('f-tra').value.trim()||null):voloA,
-    mezzo: tipo==='trasporto'?$('f-mezzo').value:null,
+    partenza: tipo==='trasporto'?(SEGS[0]?SEGS[0].da:null):voloDa,
+    arrivo: tipo==='trasporto'?(SEGS.length?SEGS[SEGS.length-1].a:null):voloA,
+    mezzo: tipo==='trasporto'?(SEGS.length>1?'combi':(SEGS[0]?SEGS[0].mezzo:'taxi')):null,
     bagagli: tipo==='volo'?JSON.stringify(readBagUI()):null,
     tratte: tipo==='volo'?tratteJson:null,
     luogo: tipo==='attivita'?($('f-luogo').value.trim()||null):null,
     durata: tipo==='attivita'?($('f-durata').value.trim()||null):null,
-    data_inizio: tipo==='volo'?voloDataInizio:(tipo==='trasporto'?ddmmToIso($('f-trdata').value):ddmmToIso($('f-inizio').value)),
+    data_inizio: tipo==='volo'?voloDataInizio:(tipo==='trasporto'?(SEGS[0]?SEGS[0].data:null):ddmmToIso($('f-inizio').value)),
     data_fine: tipo==='alloggio'?ddmmToIso($('f-fine').value):null,
     sito_prenotazione:$('f-sito').value.trim()||null,
     link:$('f-link').value.trim()||null,
@@ -2610,12 +2852,17 @@ async function save(){
     non_cancellabile: tipo==='alloggio'?$('f-noncancellabile').checked:false,
     data_pagamento: (statoPag==='dapagare'||statoPag==='acconto')&&!daPrenotare?ddmmToIso($('f-datapagamento').value):null,
     valuta_cancellazione: tipo==='alloggio'?$('f-valutacanc').checked:false,
-    escluso_totale: (tipo==='trasporto' && $('f-inloco').checked) ? false : (daPrenotare ? true : $('f-esclusototale').checked),
-    acquisto_in_loco: tipo==='trasporto' ? $('f-inloco').checked : false,
+    // per i trasporti decide sempre la spunta manuale (hanno la previsione di prezzo);
+    // per alloggi/attività il segnaposto "da prenotare" resta escluso dai totali
+    escluso_totale: (tipo==='trasporto')
+      ? (PACK ? ($('f-inloco').checked ? false : $('f-esclusototale').checked)
+              : (SEGS.length>0 && SEGS.filter(s=>!s.voloref).length>0 && SEGS.filter(s=>!s.voloref).every(s=>s.excl)))
+      : (daPrenotare ? true : $('f-esclusototale').checked),
+    acquisto_in_loco: tipo==='trasporto' ? (PACK ? $('f-inloco').checked : SEGS.some(s=>s.loco)) : false,
     pacchetto: tipo==='trasporto' ? $('f-pacchetto').checked : false,
-    tratta2: tipo==='trasporto' ? readTratta2() : null,
-    compagnia: tipo==='trasporto' ? ($('f-trcomp').value.trim()||null) : null,
-    da_prenotare: daPrenotare,
+    tratta2: tipo==='trasporto' ? (SEGS.length?JSON.stringify(SEGS):null) : null,
+    compagnia: tipo==='trasporto' ? (SEGS[0]?SEGS[0].compagnia:null) : null,
+    da_prenotare: tipo==='trasporto' ? (PACK ? $('f-packbook').checked : SEGS.some(s=>s.book)) : daPrenotare,
     note: $('f-note').value.trim()||null
   };
   const id=$('f-id').value;
