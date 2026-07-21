@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.96.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.97.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -370,7 +370,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.96.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.97.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -577,6 +577,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
     <div class="two" id="row-duedate">
       <div class="field"><label id="lbl-d1">Data inizio (gg/mm)</label><input id="f-inizio" class="datein" placeholder="gg/mm" inputmode="numeric" maxlength="5"></div>
       <div class="field" id="fld-fine"><label>Data fine (gg/mm)</label><input id="f-fine" class="datein" placeholder="gg/mm" inputmode="numeric" maxlength="5"></div>
+      <div class="field hide" id="fld-oraatt"><label>Orario inizio</label><input type="time" id="f-oraatt"></div>
     </div>
 
     <div class="field"><label id="lbl-prezzo">Prezzo totale (€)</label><input type="number" inputmode="decimal" step="0.01" id="f-prezzo" placeholder="0.00"></div>
@@ -1365,7 +1366,7 @@ function cardHtml(r){
   } else {
     const luoghi=[r.tappa, r.luogo].filter(Boolean).map(esc).join(' · ');
     meta=`📍 ${luoghi||'—'}${r.durata?' · '+esc(r.durata):''}`;
-    dates=`<div class="row"><span>Data <b>${fdate(r.data_inizio)}</b></span></div>`;
+    dates=`<div class="row"><span>Data <b>${fdate(r.data_inizio)}</b>${r.ora_inizio?' · <b>'+hhmm(r.ora_inizio)+'</b>':''}</span></div>`;
   }
 
   const st = r.stato_pagamento||(r.pagato?'pagato':'dapagare');
@@ -2661,11 +2662,12 @@ function applyTypeUI(tipo){
   $('fld-daprenotare').classList.toggle('hide', !(isAllog||isAtt));  // i trasporti hanno la spunta per singola tratta
   // data fine solo alloggi
   $('fld-fine').classList.toggle('hide', !isAllog);
+  $('fld-oraatt').classList.toggle('hide', !isAtt);
   $('lbl-d1').textContent = isAllog?'Data inizio (gg/mm)':'Data (gg/mm)';
   // blocco date standard nascosto per voli e trasporti (hanno la loro data)
   $('row-duedate').classList.toggle('hide', isVolo||isTrasp);
   // cancellazione: alloggi e trasporti (traghetti/treni cancellabili)
-  $('lbl-scad').closest('.field').classList.toggle('hide', !(isAllog||isTrasp));
+  $('lbl-scad').closest('.field').classList.toggle('hide', !(isAllog||isTrasp||isAtt));
   // sezione extra alloggio: solo alloggi
   $('extra-allog').classList.toggle('hide', !isAllog);
   // link: visibile per tutti tranne i voli (che hanno le tratte)
@@ -2693,7 +2695,7 @@ function openForm(forceTipo){
   $('modal-title').textContent='Nuova voce';
   applyTypeUI(tipo);
   $('f-id').value='';
-  ['f-nome','f-tappa','f-sistemazione','f-orainizio','f-orafine','f-indirizzo','f-luogo','f-durata','f-inizio','f-fine','f-sito','f-link','f-prezzo','f-prezzoloc','f-valuta','f-scad','f-datapagamento','f-note','f-colazioneprezzo','f-acconto'].forEach(i=>$(i).value='');
+  ['f-nome','f-tappa','f-sistemazione','f-orainizio','f-orafine','f-indirizzo','f-luogo','f-durata','f-inizio','f-fine','f-sito','f-link','f-prezzo','f-prezzoloc','f-valuta','f-scad','f-datapagamento','f-note','f-colazioneprezzo','f-acconto','f-oraatt'].forEach(i=>$(i).value='');
   $('f-inloco').checked=false; $('f-pacchetto').checked=false; $('f-packbook').checked=false; buildSegs(null); togglePacchetto(); populateTrTappe('','');
   $('f-valutacanc').checked=false;
   $('f-esclusototale').checked=false; if($('f-esclusototale2')) $('f-esclusototale2').checked=false;
@@ -2727,6 +2729,7 @@ function editRowInner(r){
   $('f-sistemazione').value=r.tipo_sistemazione||'';
   $('f-indirizzo').value=r.indirizzo||'';
   $('f-orainizio').value=r.ora_inizio||''; $('f-orafine').value=r.ora_fine||'';
+  $('f-oraatt').value=(r.tipo==='attivita'?(r.ora_inizio||''):'');
   $('f-colazione').value=r.colazione||'no'; $('f-colazioneprezzo').value=r.colazione_prezzo||''; toggleColazionePrezzo();
   { let bg={}; try{ bg=r.bagagli?JSON.parse(r.bagagli):{}; }catch(e){}
     buildBagUI(bg); }
@@ -2859,7 +2862,7 @@ async function saveInner(){
     tappa_a_id: tipo==='trasporto' ? ($('f-trtappaa').value||null) : null,
     tipo_sistemazione: tipo==='alloggio'?($('f-sistemazione').value.trim()||null):null,
     indirizzo: tipo==='alloggio'?($('f-indirizzo').value.trim()||null):null,
-    ora_inizio: tipo==='alloggio'?($('f-orainizio').value||null):(tipo==='trasporto'?(SEGS[0]?SEGS[0].ora:null):null),
+    ora_inizio: tipo==='alloggio'?($('f-orainizio').value||null):(tipo==='attivita'?($('f-oraatt').value||null):(tipo==='trasporto'?(SEGS[0]?SEGS[0].ora:null):null)),
     ora_fine: tipo==='alloggio'?($('f-orafine').value||null):null,
     colazione: tipo==='alloggio'?$('f-colazione').value:'no',
     colazione_prezzo: (tipo==='alloggio'&&$('f-colazione').value==='pagamento')?($('f-colazioneprezzo').value.trim()||null):null,
@@ -2880,7 +2883,7 @@ async function saveInner(){
     pagato:pagato,
     stato_pagamento:statoPag,
     acconto:acconto,
-    scadenza_cancellazione: ((tipo==='alloggio'||tipo==='trasporto') && !$('f-noncancellabile').checked && !daPrenotare)?ddmmToIso($('f-scad').value):null,
+    scadenza_cancellazione: ((tipo==='alloggio'||tipo==='trasporto'||tipo==='attivita') && !$('f-noncancellabile').checked && !daPrenotare)?ddmmToIso($('f-scad').value):null,
     non_cancellabile: tipo==='alloggio'?$('f-noncancellabile').checked:false,
     data_pagamento: (statoPag==='dapagare'||statoPag==='acconto')&&!daPrenotare?ddmmToIso($('f-datapagamento').value):null,
     valuta_cancellazione: tipo==='alloggio'?$('f-valutacanc').checked:false,
