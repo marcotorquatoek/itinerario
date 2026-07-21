@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.98.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v5.00.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -212,6 +212,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 /* Resoconto spese */
 .res-actions{display:flex;gap:6px;margin-bottom:12px}
 .res-btn{flex:1;background:var(--surface);border:1px solid var(--line);color:var(--teal-deep);font-weight:700;font-size:.78rem;padding:10px 4px;border-radius:10px;cursor:pointer}
+.res-trip{font-size:.8rem;color:var(--muted);background:var(--surface-2);border-radius:10px;padding:8px 11px;margin-bottom:10px}
 .res-cat{font-size:.9rem;font-weight:800;color:var(--teal-deep);margin:16px 0 6px}
 .res-table{background:var(--surface);border-radius:12px;overflow:hidden;border:1px solid var(--line)}
 /* resoconto: schede impilate, leggibili anche su schermi stretti */
@@ -367,6 +368,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .tact:hover{background:var(--surface-2)}
 .tact.tdel-i{color:var(--red)}
 .trip-card.archived{opacity:.62}
+.tstats{font-size:.72rem;color:var(--teal-deep);font-weight:600;margin-top:3px}
 .archtag{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);padding:2px 6px;border-radius:999px;vertical-align:middle}
 .arch-toggle{width:100%;background:none;border:none;color:var(--muted);font-size:.8rem;font-weight:700;padding:12px 4px;cursor:pointer;text-align:left}
 .trip-card .twarn{font-size:.72rem;color:var(--amber);font-weight:700;margin-top:8px}
@@ -376,7 +378,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.98.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v5.00.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -827,12 +829,23 @@ async function loadTrips(){
       const { data:flags } = await db.from(TABLE).select('viaggio_id,valuta_cancellazione').eq('valuta_cancellazione',true);
       (flags||[]).forEach(f=>{ cancMap[f.viaggio_id]=(cancMap[f.viaggio_id]||0)+1; });
     }catch(e){ /* ignoro: il badge cancellazioni è secondario */ }
+    // conteggio voci e spesa per viaggio: utile per distinguere gli originali dalle copie
+    tripStats={};
+    try{
+      const { data:all } = await db.from(TABLE).select('viaggio_id,prezzo,escluso_totale,da_prenotare,tratta2,pacchetto');
+      (all||[]).forEach(r=>{
+        const s=tripStats[r.viaggio_id]||(tripStats[r.viaggio_id]={n:0,tot:0});
+        s.n++;
+        if(!r.escluso_totale && !r.da_prenotare) s.tot+=prezzoTot(r);
+      });
+    }catch(e){ /* statistiche non essenziali */ }
     renderTrips(cancMap);
   }catch(e){
     $('trips-status').innerHTML='⚠️ Errore di connessione: '+esc(e.message||String(e))+'<br><br>Verifica URL e chiave Supabase e la connessione internet.';
   }
 }
 
+let tripStats={};
 let showArchived=false;
 function renderTrips(cancMap){
   lastCancMap=cancMap||{};
@@ -849,6 +862,7 @@ function renderTrips(cancMap){
       </div>
       <div class="tname">${esc(t.nome)}${arch?' <span class="archtag">archiviato</span>':''}</div>
       <div class="tdates">📅 ${frange(t.data_inizio,t.data_fine)}</div>
+      ${(()=>{const s=tripStats[t.id];return s?`<div class="tstats">${s.n} voci · <b>${eur(s.tot)}</b></div>`:'';})()}
       ${t.note?`<div class="tmeta">${esc(t.note)}</div>`:''}
       ${!arch&&cancMap&&cancMap[t.id]?`<div class="twarn">⚠️ ${cancMap[t.id]} da valutare cancellazione</div>`:''}
     </div>`;
@@ -871,7 +885,7 @@ async function duplicaTrip(id){
   try{
     // 1) nuovo viaggio
     const { data:nt, error:e1 } = await db.from(TABLE_TRIPS)
-      .insert({ nome:src.nome+' (copia)', data_inizio:src.data_inizio, data_fine:src.data_fine, note:src.note })
+      .insert({ nome:src.nome+' (copia '+new Date().toLocaleDateString('it-IT')+')', data_inizio:src.data_inizio, data_fine:src.data_fine, note:src.note })
       .select();
     if(e1) throw e1;
     const newId=nt[0].id;
@@ -891,6 +905,8 @@ async function duplicaTrip(id){
         const {id:_o,created_at:_c,...rest}=p;
         return {...rest, viaggio_id:newId,
           tappa_id: p.tappa_id?(mapTappe[p.tappa_id]||null):null,
+          tappa_da_id: p.tappa_da_id?(mapTappe[p.tappa_da_id]||null):null,
+          tappa_a_id: p.tappa_a_id?(mapTappe[p.tappa_a_id]||null):null,
           arrivo_ref: (p.arrivo_ref && String(p.arrivo_ref).indexOf('simple:')===0)?p.arrivo_ref:null };
       });
       const { error:e3 } = await db.from(TABLE).insert(nuove);
@@ -930,6 +946,9 @@ function goTrips(){
 function openTrip(id){
   currentTrip=trips.find(t=>t.id===id);
   if(!currentTrip) return;
+  // azzero subito i dati del viaggio precedente: senza questo, resoconto ed export
+  // potrebbero mostrare le voci del viaggio aperto prima
+  data=[]; tappe=[]; calDayMap={};
   calSelected=null;
   $('view-trips').classList.add('hide');
   $('view-detail').classList.remove('hide');
@@ -1019,13 +1038,17 @@ async function forceUpdate(){
 
 async function load(){
   if(!currentTrip) return;
+  const reqId=currentTrip.id;          // viaggio per cui sto caricando
   $('status').textContent = 'Caricamento…';
-  const { data:rows, error } = await db.from(TABLE).select('*').eq('viaggio_id',currentTrip.id).order('data_inizio',{ascending:true});
+  const { data:rows, error } = await db.from(TABLE).select('*').eq('viaggio_id',reqId).order('data_inizio',{ascending:true});
+  // se nel frattempo ho aperto un altro viaggio, scarto questi risultati
+  if(!currentTrip || currentTrip.id!==reqId) return;
   if(error){ $('status').textContent = '⚠️ Errore: '+error.message; return; }
   data = rows||[];
   // tappe itinerario (non bloccante: se la tabella non esiste, l'app funziona lo stesso)
   try{
-    const { data:tp } = await db.from(TABLE_TAPPE).select('*').eq('viaggio_id',currentTrip.id);
+    const { data:tp } = await db.from(TABLE_TAPPE).select('*').eq('viaggio_id',reqId);
+    if(!currentTrip || currentTrip.id!==reqId) return;
     tappe = tp||[];
   }catch(e){ tappe=[]; }
   render();
@@ -1626,7 +1649,8 @@ function resRows(tipo){
     });
 }
 function renderResoconto(){
-  let html='<div class="res-actions">'
+  let html=`<div class="res-trip">📊 Resoconto di <b>${currentTrip?esc(currentTrip.nome):'—'}</b></div>`;
+  html+='<div class="res-actions">'
     + '<button class="res-btn" onclick="esportaResoconto(\'testo\')">📋 Copia</button>'
     + '<button class="res-btn" onclick="esportaResoconto(\'csv\')">📊 Excel/CSV</button>'
     + '<button class="res-btn" onclick="esportaResoconto(\'pdf\')">🖨️ PDF</button>'
