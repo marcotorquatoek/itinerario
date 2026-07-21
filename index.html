@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.94.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.95.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -364,7 +364,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.94.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.95.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -2559,19 +2559,27 @@ function togglePacchetto(){
 }
 // legge tutte le tratte dal form
 function readSegs(){
-  return [...$('segs-wrap').querySelectorAll('.segbox')].map(b=>({
-    mezzo:b.querySelector('.sg-mezzo').value,
-    da:b.querySelector('.sg-da').value.trim()||null,
-    a:b.querySelector('.sg-a').value.trim()||null,
-    data:ddmmToIso(b.querySelector('.sg-data').value)||null,
-    ora:b.querySelector('.sg-ora').value||null,
-    compagnia:b.querySelector('.sg-comp').value.trim()||null,
-    voloref:(b.querySelector('.sg-mezzo').value==='volo' && (b.querySelector('.sg-voloref')||{}).value)||null,
-    book:!!(b.querySelector('.sg-book')||{}).checked,
-    loco:!!(b.querySelector('.sg-loco')||{}).checked,
-    excl:!!(b.querySelector('.sg-excl')||{}).checked,
-    prezzo:b.querySelector('.sg-prezzo').value?Number(b.querySelector('.sg-prezzo').value):null
-  })).filter(s=>s.da||s.a);
+  const w=$('segs-wrap'); if(!w) return [];
+  // leggo in modo tollerante: se un campo non c'è (nascosto o template vecchio) non mi blocco
+  const val=(b,c)=>{ const e=b.querySelector(c); return e? (e.value||'') : ''; };
+  const chk=(b,c)=>{ const e=b.querySelector(c); return !!(e && e.checked); };
+  return [...w.querySelectorAll('.segbox')].map(b=>{
+    const mezzo=val(b,'.sg-mezzo')||'taxi';
+    const pz=val(b,'.sg-prezzo');
+    return {
+      mezzo,
+      da:val(b,'.sg-da').trim()||null,
+      a:val(b,'.sg-a').trim()||null,
+      data:ddmmToIso(val(b,'.sg-data'))||null,
+      ora:val(b,'.sg-ora')||null,
+      compagnia:val(b,'.sg-comp').trim()||null,
+      voloref:(mezzo==='volo' && val(b,'.sg-voloref'))||null,
+      book:chk(b,'.sg-book'),
+      loco:chk(b,'.sg-loco'),
+      excl:chk(b,'.sg-excl'),
+      prezzo: pz!=='' ? Number(pz) : null
+    };
+  }).filter(s=>s.da||s.a);
 }
 // ricostruisce le tratte nel form
 function buildSegs(raw){
@@ -2755,7 +2763,16 @@ function editRow(r){
 }
 function closeForm(){ $('overlay').classList.remove('show'); resetDirty(); }
 
+// wrapper: qualunque errore imprevisto non deve lasciare il pulsante bloccato su "…"
 async function save(){
+  try{ await saveInner(); }
+  catch(e){
+    console.error('save:', e);
+    $('save-btn').textContent='Salva';
+    alert('Salvataggio non riuscito: '+((e&&e.message)||e)+'\n\nRiprova; se persiste, riapri la voce.');
+  }
+}
+async function saveInner(){
   const tipo=$('f-tipo').value;
   let nome=$('f-nome').value.trim();
   // per i trasporti il nome è opzionale: lo genero come PACCHETTO/SEPARATO + tratta complessiva
