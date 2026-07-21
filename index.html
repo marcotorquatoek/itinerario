@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- App Prenotazioni Viaggio — versione interna: v4.97.0 -->
+<!-- App Prenotazioni Viaggio — versione interna: v4.98.0 -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -91,7 +91,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 #status{font-size:.75rem;color:var(--muted);margin:14px 2px 6px}
 
 .list{display:flex;flex-direction:column;gap:12px;margin-top:6px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);position:relative}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:13px 14px;box-shadow:var(--shadow);position:relative}
 .card.warn{border-color:var(--amber-line);border-width:2px}
 .card.nocanc-card{border-left:4px solid var(--red)}
 .card.excluded{opacity:.72;border-style:dashed}
@@ -126,7 +126,13 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .segrow{font-size:.74rem;font-weight:600;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 9px;position:relative}
 .segrow.book{border-color:#f5c6c6;background:var(--red-bg);color:var(--red)}
 .packtag{font-size:.62rem;font-weight:800;background:var(--teal);color:#fff;padding:1px 6px;border-radius:999px;margin-left:4px;vertical-align:middle}
-.segflag{font-size:.62rem;font-weight:800;padding:1px 6px;border-radius:999px;margin-left:5px;vertical-align:middle;white-space:nowrap}
+/* righe delle tratte: icona a sinistra, tratta e orario impilati (niente a-capo sui numeri) */
+.trrow{display:flex;align-items:flex-start;gap:8px;margin-top:7px}
+.trico{font-size:.95rem;line-height:1.35;flex:none}
+.trbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.trtratta{font-size:.8rem;line-height:1.35;color:var(--text)}
+.trmeta{font-size:.7rem;color:var(--muted);display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.segflag{font-size:.6rem;font-weight:800;padding:1px 5px;border-radius:999px;white-space:nowrap}
 .segflag.book{background:var(--red-bg);color:var(--red);border:1px solid #f5c6c6}
 .segflag.loco{background:var(--amber-bg);color:var(--amber)}
 .segflag.excl{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
@@ -199,7 +205,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .card.tr-pack{border-left:6px solid #16a34a;background:#f0fdf4}
 .card.tr-sep{border-left:6px solid #e8a0b8;background:#fdf4f7}
 .card.mz-altro{border-left:6px solid var(--muted)}
-.mz-ico{font-size:1.25rem;margin-right:7px;vertical-align:-2px}
+.mz-ico{font-size:1.05rem;margin-right:6px;vertical-align:-1px;white-space:nowrap}
 .book-link-soft{display:block;text-align:center;background:var(--surface);border:1px solid var(--line);color:var(--teal-deep);font-weight:700;font-size:.85rem;padding:9px;border-radius:10px;text-decoration:none;margin-top:8px}
 .addr{display:flex;align-items:center;gap:8px;font-size:.76rem;color:var(--text);margin-top:4px;flex-wrap:wrap}
 .addr-copy{background:var(--surface-2);border:1px solid var(--line);color:var(--teal-deep);font-size:.68rem;font-weight:700;padding:3px 8px;border-radius:7px;cursor:pointer;white-space:nowrap}
@@ -241,10 +247,10 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .modal-x{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);font-size:1.15rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5}
 .modal h2{padding-right:44px}
 .card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.card .title{font-size:1.05rem;font-weight:700;line-height:1.2}
+.card .title{font-size:.97rem;font-weight:700;line-height:1.25}
 .card .meta{font-size:.78rem;color:var(--teal);margin-top:2px}
 .card .sito{font-size:.72rem;color:var(--muted);margin-top:3px}
-.badge{font-size:.68rem;font-weight:700;padding:5px 10px;border-radius:999px;white-space:nowrap;cursor:pointer;border:1px solid transparent;user-select:none}
+.badge{font-size:.63rem;font-weight:700;padding:4px 8px;border-radius:999px;white-space:nowrap;cursor:pointer;border:1px solid transparent;user-select:none;flex:none}
 .badge.paid{background:var(--green-bg);color:var(--green);border-color:#bce5cb}
 .badge.unpaid{background:var(--red-bg);color:var(--red);border-color:#f5c6c6}
 .badge.loco{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-line)}
@@ -277,7 +283,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .cal-empty{text-align:center;color:var(--muted);padding:30px;font-size:.85rem}
 .card .row{display:flex;justify-content:space-between;font-size:.82rem;color:var(--muted);margin-top:12px;gap:8px}
 .card .row b{color:var(--text);font-weight:600}
-.card .price{font-size:1.15rem;font-weight:700;color:var(--text);margin-top:10px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.card .price{font-size:1.05rem;font-weight:700;color:var(--text);margin-top:9px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;justify-content:space-between}
 .card .price .loc{font-size:.8rem;font-weight:600;color:var(--muted)}
 .card .price .split{font-size:.74rem;font-weight:600;color:var(--teal);margin-left:auto}
 .card .price .excl{font-size:.7rem;font-weight:600;color:var(--muted);margin-left:auto;background:var(--surface-2);padding:3px 8px;border-radius:7px}
@@ -287,7 +293,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 .card .warnflag{font-size:.74rem;font-weight:700;color:var(--amber);background:var(--amber-bg);border-radius:9px;padding:7px 10px;margin-top:10px;display:flex;gap:7px;align-items:center}
 .card .notes{font-size:.78rem;color:var(--muted);margin-top:8px;font-style:italic}
 .card .actions{display:flex;gap:8px;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
-.btn-sm{flex:1;font-size:.8rem;font-weight:600;padding:9px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);cursor:pointer}
+.btn-sm{flex:1;font-size:.76rem;font-weight:600;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);cursor:pointer}
 .btn-sm.del{color:var(--red);border-color:#f3d3d3}
 
 .empty{text-align:center;color:var(--muted);padding:50px 20px;font-size:.9rem}
@@ -370,7 +376,7 @@ header .sub{font-size:.72rem;color:var(--muted)}
 <header>
   <div style="flex:1">
     <button class="back hide" id="backBtn" onclick="goTrips()">← I miei viaggi</button>
-    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.97.0</span></h1>
+    <h1>Itine<span>rario</span> <span class="vbadge" id="vbadge">v4.98.0</span></h1>
     <div class="sub" id="headsub">I tuoi viaggi</div>
   </div>
   <button class="refresh-btn" id="refreshBtn" onclick="forceUpdate()" title="Aggiorna app">⟳</button>
@@ -1359,7 +1365,13 @@ function cardHtml(r){
         else if(s.loco) st2='<span class="segflag loco">📍 in loco</span>';
         if(s.excl) st2+='<span class="segflag excl">🚫 esclusa</span>';
       }
-      dates+=`<div class="row" style="margin-top:${i===0?'10':'6'}px"><span>${M2[s.mezzo]||'🚐'} <b>${esc(s.da)||'—'}</b> → <b>${esc(s.a)||'—'}</b>${st2}</span><span>${quando}</span></div>`;
+      dates+=`<div class="trrow">
+        <span class="trico">${M2[s.mezzo]||'🚐'}</span>
+        <span class="trbody">
+          <span class="trtratta"><b>${esc(s.da)||'—'}</b> → <b>${esc(s.a)||'—'}</b></span>
+          <span class="trmeta">${quando}${st2}</span>
+        </span>
+      </div>`;
     });
     if(r.pacchetto) dates+=`<div class="info">📦 Pacchetto unico (più mezzi, un solo prezzo)</div>`;
     if(r.pacchetto && r.acquisto_in_loco) dates+=`<div class="info">📍 Si acquista in loco (stima conteggiata)</div>`;
@@ -1387,11 +1399,11 @@ function cardHtml(r){
     }catch(e){ return false; }
   })();
   const badgeHtml = mixTrasp
-    ? `<span class="badge unpaid">📍 In parte da prenotare</span>`
+    ? `<span class="badge unpaid">📍 In parte</span>`
     : (gratis
     ? `<span class="badge free">✓ Nessun costo</span>`
     : (r.acquisto_in_loco
-    ? `<span class="badge loco">📍 Acquista in loco</span>`
+    ? `<span class="badge loco">📍 In loco</span>`
     : (r.da_prenotare
       ? `<span class="badge unpaid">${r.tipo==='attivita'?'💡 Idea':'📍 Da prenotare'}</span>`
       : `<span class="badge ${cfg[0]}" onclick="cyclePay('${r.id}','${st}')">${cfg[1]}</span>`)));
